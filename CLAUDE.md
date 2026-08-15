@@ -74,6 +74,7 @@ O projeto usa Dev Containers do VS Code — "Reopen in Container" sobe tudo auto
 - `docker-compose.yml` sobe um serviço `db` (Postgres 16) além do container principal `app`.
 - `postCreateCommand` executa `.devcontainer/post-create.sh`, que instala `backend/requirements.txt` (se existir), roda `npm install` em `frontend/` (se `package.json` existir) e copia `backend/.env.example`/`frontend/.env.example` para `.env` caso ainda não existam.
 - Portas expostas: `5173` (Vite), `8000` (Flask dev server), `5432` (Postgres local).
+- `frontend/node_modules` vive num **volume Docker nomeado** (`frontend-node-modules`), não no bind mount de `..:/workspace` — em dev no WSL2 com o repositório no disco Windows, `/workspace` é acessado via 9p, muito mais lento que o storage nativo do Docker para diretórios com muitos arquivos pequenos (medido: `npm run lint` caiu de ~26s para poucos segundos com esse volume). Efeito colateral: `node_modules` não aparece fora do container (Explorer do Windows, `git`, etc.) — não é um problema, já está no `.gitignore`. Alterar dependências do frontend continua normal (`npm install`/`npm ci` dentro do container); só uma mudança na própria configuração do volume exige "Rebuild Container".
 
 ## Arquitetura de dados: três bancos separados
 

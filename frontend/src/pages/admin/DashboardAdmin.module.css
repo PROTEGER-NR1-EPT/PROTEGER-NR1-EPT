@@ -1,0 +1,83 @@
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--espaco-3);
+  margin: var(--espaco-4) 0;
+}
+
+.cartao {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  background: var(--cor-fundo-alt);
+}
+
+.tituloCartao {
+  margin: 0 0 var(--espaco-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--cor-texto-secundario);
+}
+
+.numeroPrincipal {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.detalheCartao {
+  margin: var(--espaco-1) 0 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.avisoKAnonimato {
+  border: 1px solid var(--cor-atencao);
+  background: var(--cor-atencao-fundo);
+  color: var(--cor-atencao);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  margin-bottom: var(--espaco-4);
+  max-width: 40rem;
+}
+
+.avisoKAnonimato p {
+  margin: 0;
+}
+
+.avisoKAnonimato p + p {
+  margin-top: var(--espaco-2);
+  font-size: 0.9rem;
+}
+
+.linhaRanking {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-width: 12rem;
+}
+
+.barraRanking {
+  flex: 1;
+  height: 0.6rem;
+  background: var(--cor-fundo-alt);
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barraRankingPreenchida {
+  display: block;
+  height: 100%;
+  background: var(--cor-primaria);
+  border-radius: 999px;
+}
+
+.valorRanking {
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+  text-align: right;
+}

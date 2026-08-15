@@ -4,12 +4,17 @@ import * as authApi from "../api/auth";
 import { definirTokenSessao, registrarCallbackNaoAutenticado } from "../api/client";
 
 // ---------------------------------------------------------------------------
-// Sessão mantida SÓ em estado de aplicação (useState), nunca em
+// Sessão mantida em estado de aplicação (useState), nunca em
 // localStorage/sessionStorage — regra obrigatória do projeto, já que o
 // backend usa token de sessão via `Authorization: Bearer` (não cookie
-// httpOnly). Consequência deliberada: atualizar a página (F5) encerra a
-// sessão. Ver backend/app/auth/security.py para a justificativa da escolha
-// de autenticação no backend.
+// httpOnly) para as chamadas normais à API. O token em si só existe em
+// memória e some ao dar F5.
+//
+// O que sobrevive ao F5 é só um cookie httpOnly separado (setado no login,
+// nunca lido por este código — o navegador cuida disso sozinho): ao montar,
+// tentamos restaurar a sessão chamando GET /auth/sessao, que valida esse
+// cookie no servidor e devolve um novo token para repovoar o estado em
+// memória. Ver backend/app/blueprints/auth.py e frontend/README.md.
 // ---------------------------------------------------------------------------
 
 export const AuthContext = createContext(null);
@@ -17,7 +22,7 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
   const [token, setToken] = useState(null);
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
 
   const limparSessao = useCallback(() => {
     definirTokenSessao(null);
@@ -31,6 +36,31 @@ export function AuthProvider({ children }) {
     // válida (regra 6 do prompt de implementação do frontend).
     registrarCallbackNaoAutenticado(limparSessao);
   }, [limparSessao]);
+
+  useEffect(() => {
+    let cancelado = false;
+
+    authApi
+      .restaurarSessao()
+      .then((resposta) => {
+        if (cancelado) return;
+        definirTokenSessao(resposta.token);
+        setToken(resposta.token);
+        setUsuario(resposta.usuario);
+      })
+      .catch(() => {
+        // Sem cookie válido (nunca logou, sessão expirada/revogada, ou
+        // navegador bloqueando cookie de terceiro) — segue deslogado, sem
+        // erro visível: este é o caminho normal na maioria dos acessos.
+      })
+      .finally(() => {
+        if (!cancelado) setCarregando(false);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   const entrar = useCallback(async (email, senha) => {
     setCarregando(true);

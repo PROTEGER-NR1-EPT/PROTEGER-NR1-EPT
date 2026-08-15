@@ -13,7 +13,14 @@ import bcrypt
 # 2. Frontend (Vercel) e backend (Render) ficam em domínios diferentes;
 #    sessão via cookie (Flask-Login) exige SameSite=None + Secure, o que
 #    complica dev local em http. Um token opaco enviado como
-#    `Authorization: Bearer <token>` evita esse problema por completo.
+#    `Authorization: Bearer <token>` evita esse problema por completo
+#    para as chamadas normais à API. Um cookie httpOnly ainda existe,
+#    mas só como mecanismo auxiliar de restauração de sessão após F5
+#    (GET /auth/sessao, app/blueprints/auth.py) — nunca como o
+#    transporte principal de autenticação, e a complicação de
+#    SameSite/Secure entre ambientes é resolvida via COOKIE_SECURE/
+#    COOKIE_SAMESITE em app/config.py (Lax+inseguro em dev, None+Secure
+#    em produção).
 # 3. Logout precisa invalidar a sessão imediatamente (revogado_em) — com
 #    JWT stateless isso exigiria uma blocklist à parte, duplicando o que a
 #    tabela sessao_login já faz.

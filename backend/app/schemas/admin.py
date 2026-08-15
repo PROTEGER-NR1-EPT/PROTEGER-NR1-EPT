@@ -299,6 +299,68 @@ class ListaLogsResponse(RootModel[list[LogAtividadeItem]]):
 
 
 # ---------------------------------------------------------------------------
+# Estatísticas (painel do Administrador)
+# ---------------------------------------------------------------------------
+
+
+class EstatisticasInstituicoes(BaseModel):
+    total: int
+    ativas: int
+
+
+class EstatisticasQuestionarios(BaseModel):
+    total: int
+    ativos: int
+
+
+class EstatisticasUsuarios(BaseModel):
+    consultores: int
+    administradores: int
+
+
+class EstatisticasRespostas(BaseModel):
+    total: int
+    ultimos_7_dias: int
+    ultimos_30_dias: int
+
+
+class EstatisticasKAnonimato(BaseModel):
+    threshold_atual: int
+    grupos_abaixo_threshold: int = Field(
+        ...,
+        description=(
+            "Grupos (instituição + setor + questionário) com pelo menos 1 "
+            "resposta, mas ainda abaixo do threshold de k-anonimato — "
+            "apenas a contagem, nunca quais grupos são (docs/05)."
+        ),
+    )
+
+
+class EstatisticaPorInstituicao(BaseModel):
+    instituicao_id: int
+    nome: str
+    total_respostas: int = Field(
+        ...,
+        description=(
+            "Só o volume de respostas — não passa pelo gate de k-anonimato "
+            "porque não expõe conteúdo nem resultado calculado, ao "
+            "contrário de GET /admin/instituicoes/{id}/resultados."
+        ),
+    )
+
+
+class EstatisticasResponse(BaseModel):
+    instituicoes: EstatisticasInstituicoes
+    questionarios: EstatisticasQuestionarios
+    usuarios: EstatisticasUsuarios
+    respostas: EstatisticasRespostas
+    k_anonimato: EstatisticasKAnonimato
+    por_instituicao: list[EstatisticaPorInstituicao] = Field(
+        ..., description="Top 10 instituições por total de respostas, ordem decrescente."
+    )
+
+
+# ---------------------------------------------------------------------------
 # Memória institucional
 # ---------------------------------------------------------------------------
 

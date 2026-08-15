@@ -13,12 +13,11 @@ def _erro(codigo, mensagem, status):
     return resposta
 
 
-def _carregar_usuario_da_requisicao():
-    cabecalho = request.headers.get("Authorization", "")
-    if not cabecalho.startswith("Bearer "):
-        return None
-
-    token = cabecalho[len("Bearer ") :].strip()
+def carregar_usuario_por_token(token):
+    """Resolve o Usuario de um token opaco de sessao_login, validando
+    revogação/expiração — usado tanto pelo Authorization: Bearer (abaixo)
+    quanto pelo cookie httpOnly de restauração de sessão
+    (app/blueprints/auth.py:restaurar_sessao)."""
     if not token:
         return None
 
@@ -38,6 +37,15 @@ def _carregar_usuario_da_requisicao():
         return None
 
     return usuario
+
+
+def _carregar_usuario_da_requisicao():
+    cabecalho = request.headers.get("Authorization", "")
+    if not cabecalho.startswith("Bearer "):
+        return None
+
+    token = cabecalho[len("Bearer ") :].strip()
+    return carregar_usuario_por_token(token)
 
 
 def login_required(view_func):

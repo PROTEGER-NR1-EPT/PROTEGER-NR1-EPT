@@ -1,4 +1,35 @@
+@import "tailwindcss";
 @import "./tokens.css";
+
+/*
+ * Ponte entre os tokens de acessibilidade (tokens.css, trocados em runtime
+ * pelo PreferencesContext via variáveis CSS) e o Tailwind: `@theme inline`
+ * gera utilitários (bg-primaria, text-perigo, rounded-borda, ...) que
+ * resolvem para `var(--cor-*)` em tempo real, então continuam reagindo ao
+ * modo alto contraste e não precisam ser recalculados no build.
+ */
+@theme inline {
+  --color-fundo: var(--cor-fundo);
+  --color-fundo-alt: var(--cor-fundo-alt);
+  --color-texto: var(--cor-texto);
+  --color-texto-secundario: var(--cor-texto-secundario);
+  --color-borda: var(--cor-borda);
+
+  --color-primaria: var(--cor-primaria);
+  --color-primaria-hover: var(--cor-primaria-hover);
+  --color-primaria-texto: var(--cor-primaria-texto);
+
+  --color-sucesso: var(--cor-sucesso);
+  --color-sucesso-fundo: var(--cor-sucesso-fundo);
+  --color-atencao: var(--cor-atencao);
+  --color-atencao-fundo: var(--cor-atencao-fundo);
+  --color-perigo: var(--cor-perigo);
+  --color-perigo-fundo: var(--cor-perigo-fundo);
+
+  --color-foco: var(--cor-foco);
+
+  --radius-borda: var(--raio-borda);
+}
 
 *,
 *::before,

@@ -38,6 +38,7 @@ bearer token), exceto rotas marcadas como públicas.
 |---|---|---|
 | POST | `/auth/login` | Login |
 | POST | `/auth/logout` | Logout |
+| GET | `/auth/sessao` | Restaura a sessão a partir do cookie httpOnly do login (usado pelo frontend após F5) |
 | GET | `/consultor/instituicoes` | Lista instituições vinculadas ao consultor logado |
 | GET | `/consultor/instituicoes/{id}/resultados` | Resultados agregados (já filtrados por k-anonimato) |
 | GET | `/consultor/instituicoes/{id}/memoria` | Registros de memória institucional |
@@ -58,6 +59,7 @@ bearer token), exceto rotas marcadas como públicas.
 | GET/PUT | `/admin/configuracoes` | Threshold de k-anonimato, toggles de IA, provedor LLM |
 | GET | `/admin/logs` | Log de atividade |
 | POST/GET | `/admin/memoria` | Criar/consultar registros de memória institucional |
+| GET | `/admin/estatisticas` | Contagens gerais para o painel do Administrador (instituições, questionários, usuários, respostas, alerta de k-anonimato e ranking por instituição) |
 
 ## IA (opcional — apenas se toggle ativado)
 

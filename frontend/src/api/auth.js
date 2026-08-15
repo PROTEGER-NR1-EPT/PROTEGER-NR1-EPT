@@ -9,3 +9,10 @@ export async function logout() {
   const { data } = await api.post("/auth/logout");
   return data;
 }
+
+// Restaura a sessão a partir do cookie httpOnly (definido no login) —
+// chamada só uma vez, ao carregar a aplicação. Ver AuthContext.jsx.
+export async function restaurarSessao() {
+  const { data } = await api.get("/auth/sessao");
+  return data;
+}

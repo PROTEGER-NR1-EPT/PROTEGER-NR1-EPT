@@ -17,7 +17,11 @@ const HOME_POR_PAPEL = {
 // nenhuma restrição de autenticação, então um Administrador logado
 // também pode acessá-las normalmente (ex.: para conferir o formulário).
 export function PublicRoute() {
-  const { estaAutenticado, papel } = useAuth();
+  const { estaAutenticado, papel, carregando } = useAuth();
+
+  if (carregando) {
+    return null;
+  }
 
   if (estaAutenticado) {
     return <Navigate to={HOME_POR_PAPEL[papel] ?? "/"} replace />;

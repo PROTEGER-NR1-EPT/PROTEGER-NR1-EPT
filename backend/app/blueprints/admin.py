@@ -1,11 +1,14 @@
+from datetime import datetime, timedelta, timezone
+
 from flask import Response, g, request
 from flask_openapi3 import APIBlueprint, Tag
+from sqlalchemy import func
 
 from app.auth.decorators import requer_papel
 from app.auth.security import gerar_hash_senha
 from app.blueprints import erro_json
 from app.extensions import db
-from app.models.anonimo import Dominio, Instituicao, Item, Questionario, Setor
+from app.models.anonimo import Dominio, Instituicao, Item, Questionario, RespostaBruta, ResultadoAgregado, Setor
 from app.models.auth import PAPEIS_VALIDOS, PAPEL_ADMINISTRADOR, ConsultorInstituicao, LogAtividade, Usuario
 from app.models.memoria import InstituicaoReferencia, RegistroMemoria
 from app.schemas.admin import (
@@ -18,6 +21,7 @@ from app.schemas.admin import (
     EditarInstituicaoBody,
     EditarQuestionarioBody,
     EditarSetorBody,
+    EstatisticasResponse,
     ExportRespostasQuery,
     ListaInstituicoesAdminResponse,
     ListaLogsResponse,
@@ -37,9 +41,10 @@ from app.schemas.admin import (
 from app.schemas.comuns import ConfirmadoResponse, IdCriadoResponse, respostas_erro
 from app.schemas.consultor import ListaResultadosResponse
 from app.schemas.publico import InstituicaoIdPath
+from app.services.estatisticas import contar_grupos_abaixo_threshold, montar_totais
 from app.services.exportacao import exportar_respostas_csv
 from app.services.instrumentos import instrumentos_disponiveis
-from app.services.k_anonimato import obter_configuracao, obter_resultados
+from app.services.k_anonimato import obter_configuracao, obter_resultados, obter_threshold
 
 tag = Tag(
     name="Administrador",
@@ -537,6 +542,104 @@ def vincular_usuario_instituicoes(path: UsuarioIdPath, body: VincularInstituicoe
 @requer_papel(PAPEL_ADMINISTRADOR)
 def resultados_de_qualquer_instituicao(path: InstituicaoIdPath):
     return obter_resultados(path.instituicao_id)
+
+
+# ---------------------------------------------------------------------------
+# Estatísticas (painel do Administrador)
+# ---------------------------------------------------------------------------
+
+
+@bp.get(
+    "/estatisticas",
+    summary="Estatísticas gerais para o painel do Administrador",
+    description=(
+        "Contagens agregadas (instituições, questionários, usuários, "
+        "respostas) mais um alerta de k-anonimato e um ranking de volume "
+        "de respostas por instituição. `por_instituicao` só mostra "
+        "contagem — nunca conteúdo nem resultado calculado — então não "
+        "passa pelo filtro de k-anonimato (docs/05); já "
+        "`k_anonimato.grupos_abaixo_threshold` é só um número, sem "
+        "identificar quais grupos são, para não vazar tamanho de grupo "
+        "pequeno associado a uma instituição nomeada."
+    ),
+    responses={200: EstatisticasResponse, **respostas_erro(401, 403)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def obter_estatisticas():
+    instituicoes_ativo = [i.ativo for i in db.session.query(Instituicao.ativo).all()]
+    questionarios_ativo = [q.ativo for q in db.session.query(Questionario.ativo).all()]
+    # Banco "auth", separado do banco anônimo consultado acima — junta-se
+    # em memória, nunca com um JOIN entre bancos (docs/03).
+    usuarios_papel = [u.papel for u in db.session.query(Usuario.papel).all()]
+    totais = montar_totais(instituicoes_ativo, questionarios_ativo, usuarios_papel)
+
+    agora = datetime.now(timezone.utc)
+    total_respostas = db.session.query(func.count(RespostaBruta.id)).scalar()
+    respostas_7d = (
+        db.session.query(func.count(RespostaBruta.id))
+        .filter(RespostaBruta.respondido_em >= agora - timedelta(days=7))
+        .scalar()
+    )
+    respostas_30d = (
+        db.session.query(func.count(RespostaBruta.id))
+        .filter(RespostaBruta.respondido_em >= agora - timedelta(days=30))
+        .scalar()
+    )
+
+    threshold = obter_threshold()
+    # Uma linha por grupo (instituição+setor+questionário) distinto — um
+    # grupo tem uma linha de ResultadoAgregado por domínio, todas com o
+    # mesmo n_respostas (ver services/k_anonimato.py:recalcular_resultados).
+    grupos = (
+        db.session.query(
+            ResultadoAgregado.instituicao_id,
+            ResultadoAgregado.setor_id,
+            ResultadoAgregado.questionario_id,
+            ResultadoAgregado.n_respostas,
+        )
+        .distinct()
+        .all()
+    )
+    grupos_abaixo_threshold = contar_grupos_abaixo_threshold(
+        [g.n_respostas for g in grupos], threshold
+    )
+
+    contagens_por_instituicao = (
+        db.session.query(
+            RespostaBruta.instituicao_id, func.count(RespostaBruta.id).label("total")
+        )
+        .group_by(RespostaBruta.instituicao_id)
+        .order_by(func.count(RespostaBruta.id).desc())
+        .limit(10)
+        .all()
+    )
+    nomes_instituicao = {
+        i.id: i.nome
+        for i in db.session.query(Instituicao.id, Instituicao.nome)
+        .filter(Instituicao.id.in_([c.instituicao_id for c in contagens_por_instituicao]))
+        .all()
+    }
+
+    return {
+        **totais,
+        "respostas": {
+            "total": total_respostas,
+            "ultimos_7_dias": respostas_7d,
+            "ultimos_30_dias": respostas_30d,
+        },
+        "k_anonimato": {
+            "threshold_atual": threshold,
+            "grupos_abaixo_threshold": grupos_abaixo_threshold,
+        },
+        "por_instituicao": [
+            {
+                "instituicao_id": c.instituicao_id,
+                "nome": nomes_instituicao.get(c.instituicao_id, "?"),
+                "total_respostas": c.total,
+            }
+            for c in contagens_por_instituicao
+        ],
+    }
 
 
 # ---------------------------------------------------------------------------

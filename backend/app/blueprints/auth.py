@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta, timezone
 
-from flask import current_app, request
+from flask import current_app, jsonify, request
 from flask_openapi3 import APIBlueprint, Tag
 
-from app.auth.decorators import login_required
+from app.auth.decorators import carregar_usuario_por_token, login_required
 from app.auth.security import gerar_token_sessao, verificar_senha
 from app.blueprints import erro_json
 from app.extensions import db
@@ -13,6 +13,38 @@ from app.schemas.comuns import respostas_erro
 
 tag = Tag(name="Autenticação", description="Login e logout de Consultor/Administrador.")
 bp = APIBlueprint("auth", __name__, url_prefix="/auth", abp_tags=[tag])
+
+# Nome do cookie httpOnly que guarda o mesmo token opaco de sessao_login,
+# usado só para restaurar a sessão após F5 (GET /auth/sessao) — o path o
+# restringe às rotas deste blueprint. Ver COOKIE_SECURE/COOKIE_SAMESITE em
+# app/config.py para a lógica dev vs. produção.
+COOKIE_NOME = "sessao_token"
+COOKIE_PATH = "/api/v1/auth"
+
+
+def _resumo_usuario(usuario):
+    return {
+        "id": usuario.id,
+        "nome": usuario.nome,
+        "email": usuario.email,
+        "papel": usuario.papel,
+    }
+
+
+def _definir_cookie_sessao(resposta, sessao):
+    agora = datetime.now(timezone.utc)
+    expira_em = sessao.expira_em
+    if expira_em.tzinfo is None:
+        expira_em = expira_em.replace(tzinfo=timezone.utc)
+    resposta.set_cookie(
+        COOKIE_NOME,
+        sessao.token,
+        max_age=int((expira_em - agora).total_seconds()),
+        httponly=True,
+        secure=current_app.config["COOKIE_SECURE"],
+        samesite=current_app.config["COOKIE_SAMESITE"],
+        path=COOKIE_PATH,
+    )
 
 
 @bp.post(
@@ -48,15 +80,40 @@ def login(body: LoginBody):
     db.session.add(sessao)
     db.session.commit()
 
+    resposta = jsonify(
+        {
+            "token": sessao.token,
+            "expira_em": sessao.expira_em.isoformat(),
+            "usuario": _resumo_usuario(usuario),
+        }
+    )
+    _definir_cookie_sessao(resposta, sessao)
+    return resposta
+
+
+@bp.get(
+    "/sessao",
+    summary="Restaurar sessão",
+    description=(
+        "Tenta restaurar a sessão a partir do cookie httpOnly definido no "
+        "login. Usada pelo frontend ao carregar a página (F5 incluso) para "
+        "reidratar o estado de autenticação em memória — o token de acesso "
+        "em si nunca é lido de localStorage/sessionStorage (ver "
+        "frontend/README.md). Não altera o cookie nem a sessão."
+    ),
+    responses={200: LoginResponse, **respostas_erro(401)},
+)
+def restaurar_sessao():
+    token = request.cookies.get(COOKIE_NOME, "")
+    usuario = carregar_usuario_por_token(token)
+    if usuario is None:
+        return erro_json("nao_autenticado", "Sessão inválida, expirada ou ausente.", 401)
+
+    sessao = db.session.query(SessaoLogin).filter_by(token=token).first()
     return {
         "token": sessao.token,
         "expira_em": sessao.expira_em.isoformat(),
-        "usuario": {
-            "id": usuario.id,
-            "nome": usuario.nome,
-            "email": usuario.email,
-            "papel": usuario.papel,
-        },
+        "usuario": _resumo_usuario(usuario),
     }
 
 
@@ -74,4 +131,7 @@ def logout():
     if sessao is not None and sessao.revogado_em is None:
         sessao.revogado_em = datetime.now(timezone.utc)
         db.session.commit()
-    return {"confirmado": True}
+
+    resposta = jsonify({"confirmado": True})
+    resposta.delete_cookie(COOKIE_NOME, path=COOKIE_PATH)
+    return resposta

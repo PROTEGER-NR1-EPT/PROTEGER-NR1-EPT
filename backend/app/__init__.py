@@ -95,7 +95,11 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     migrate.init_app(app, db)
-    cors.init_app(app, origins=app.config["CORS_ORIGINS"], supports_credentials=False)
+    # supports_credentials=True: necessário para o cookie httpOnly de
+    # restauração de sessão (GET /auth/sessao) trafegar cross-site — exige
+    # que CORS_ORIGINS liste origens explícitas (nunca "*", incompatível
+    # com credentials) e que o frontend use axios com withCredentials.
+    cors.init_app(app, origins=app.config["CORS_ORIGINS"], supports_credentials=True)
 
     with app.app_context():
         from app import models  # noqa: F401  (registra os modelos nos metadados)

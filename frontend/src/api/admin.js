@@ -127,6 +127,13 @@ export async function listarLogs(filtros = {}) {
   return data;
 }
 
+// --- Estatísticas (painel do Administrador) -------------------------------
+
+export async function obterEstatisticas() {
+  const { data } = await api.get("/admin/estatisticas");
+  return data;
+}
+
 // --- Memória institucional ------------------------------------------------
 
 export async function listarMemoria(instituicaoId) {

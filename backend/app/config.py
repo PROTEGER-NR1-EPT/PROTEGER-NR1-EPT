@@ -45,3 +45,18 @@ class Config:
 
     FLASK_ENV = os.environ.get("FLASK_ENV", "production")
     DEBUG = _bool_env("FLASK_DEBUG", False)
+
+    # Cookie httpOnly usado só para restaurar a sessão após F5
+    # (POST /auth/login o define; GET /auth/sessao o lê) — o token de
+    # acesso em si continua trafegando via Authorization: Bearer e vivendo
+    # só em memória no frontend, nunca em localStorage/sessionStorage (ver
+    # frontend/README.md e app/auth/security.py).
+    #
+    # Produção: frontend (Vercel) e backend (Render) ficam em domínios
+    # diferentes → cookie cross-site precisa de SameSite=None + Secure
+    # (exige HTTPS, que ambos têm em produção).
+    # Dev local: frontend (:5173) e backend (:8000) são portas diferentes
+    # do mesmo host "localhost" — mesmo "site" pela definição de SameSite
+    # (que ignora porta), então Lax + Secure=False funciona sem HTTPS.
+    COOKIE_SECURE = not DEBUG
+    COOKIE_SAMESITE = "Lax" if DEBUG else "None"

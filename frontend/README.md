@@ -10,33 +10,68 @@ para como subir a API que este frontend consome.
 - **React Router v6** — navegação entre as áreas pública, Consultor e Administrador
 - **axios** — cliente HTTP (`src/api/client.js`), apontando para `VITE_API_BASE_URL`
 - **Context API + hooks** — estado global (autenticação, preferências de acessibilidade); sem Redux
-- **CSS Modules** — ver justificativa abaixo
+- **CSS Modules + Tailwind CSS v4** — ver justificativa abaixo
 
-### Por que CSS Modules (e não Tailwind)
+### CSS Modules + Tailwind, e como convivem com a acessibilidade
 
 Os requisitos de acessibilidade (controles de fonte A-/A/A+, alto
-contraste) pedem tokens de tema alteráveis em runtime — implementados aqui
+contraste) pedem tokens de tema alteráveis em runtime — implementados
 como variáveis CSS (`src/styles/tokens.css`) trocadas via
-`document.documentElement` a partir de `PreferencesContext`. CSS Modules
-lida bem com isso sem nenhuma configuração adicional de build (Tailwind
-exigiria uma camada PostCSS extra só para este projeto pequeno). Convenção
-seguida em todo o projeto: cada componente/página com estilo próprio tem
-um arquivo `Nome.module.css` ao lado; estilos realmente compartilhados
+`document.documentElement` a partir de `PreferencesContext`. Convenção
+seguida no projeto: cada componente/página com estilo próprio tem um
+arquivo `Nome.module.css` ao lado; estilos realmente compartilhados
 (tabelas administrativas, tokens, reset global) ficam em `src/styles/`.
+
+Tailwind CSS v4 (`@tailwindcss/vite`, sem `tailwind.config.js` — config
+via CSS) foi adicionado depois, para uso em componentes/páginas novas.
+A razão original para evitá-lo (uma camada PostCSS extra só para trocar
+tema em runtime) não se aplica mais à v4: em `src/styles/global.css`, o
+bloco `@theme inline` mapeia cores/raio do Tailwind (`bg-primaria`,
+`text-perigo`, `rounded-borda`, ...) para `var(--cor-*)` de
+`tokens.css` em vez de valores fixos — as classes utilitárias continuam
+reagindo ao modo alto contraste, exatamente como o CSS Modules já fazia.
+`--font-scale` (escala de fonte) não precisa de mapeamento: como afeta o
+`font-size` da raiz e todo o espaçamento do Tailwind é em `rem`, ele já
+escala automaticamente. CSS Modules continuam sendo a opção padrão para
+estilo específico de componente já existente; não há migração do que já
+existe — é convivência, não substituição.
 
 ## Autenticação: token em memória, nunca em storage do navegador
 
 O backend autentica por token de sessão via `Authorization: Bearer`
-(não cookie httpOnly — ver `backend/app/auth/security.py`). Seguindo a
-regra do projeto de nunca guardar dado sensível de sessão em
-`localStorage`/`sessionStorage`, o token vive **só em estado de
-aplicação**:
+(ver `backend/app/auth/security.py`). Seguindo a regra do projeto de
+nunca guardar dado sensível de sessão em `localStorage`/`sessionStorage`,
+o token de acesso vive **só em estado de aplicação**:
 
 - `AuthContext` (`src/context/AuthContext.jsx`) guarda `token`/`usuario` em `useState`.
 - `api/client.js` mantém uma cópia do token em uma variável de módulo (não em React) só para poder montar o header `Authorization` em cada requisição do axios.
 
-**Consequência deliberada:** atualizar a página (F5) encerra a sessão —
-não há nada para restaurar. Isso é esperado, não um bug.
+### Sobrevivendo ao F5: cookie httpOnly só para restaurar a sessão
+
+Dar F5 não guarda mais o token em nenhum storage lido por JS — em vez
+disso, o login também seta um **cookie httpOnly** (`sessao_token`, ver
+`backend/app/blueprints/auth.py`), que o JavaScript do frontend nunca lê
+diretamente. Ao montar `AuthProvider`, o frontend chama
+`GET /auth/sessao`: o backend valida esse cookie no servidor e, se ainda
+for uma sessão válida, devolve um novo token para repovoar o `useState`
+em memória — mesmo mecanismo do login, só que disparado automaticamente
+no carregamento da página em vez de por um formulário.
+
+Isso exige `withCredentials: true` no cliente axios (`api/client.js`) e
+`supports_credentials=True` no CORS do backend, com `CORS_ORIGINS`
+sempre uma lista explícita de origens (nunca `*`, incompatível com
+credentials). Em produção (frontend na Vercel, backend no Render, em
+domínios diferentes) o cookie usa `SameSite=None; Secure`; em dev local
+(`:5173`/`:8000`, mesmo host `localhost`) usa `SameSite=Lax` sem
+`Secure`, já que não há HTTPS — ver `COOKIE_SECURE`/`COOKIE_SAMESITE`
+em `backend/app/config.py`.
+
+Se o cookie estiver ausente/expirado/revogado, `GET /auth/sessao`
+responde 401 e o usuário segue deslogado normalmente — esse é o caminho
+mais comum (primeiro acesso, sessão expirada, logout explícito).
+Enquanto essa checagem inicial está em andamento, `AuthContext.carregando`
+fica `true` e `ProtectedRoute`/`PublicRoute` não renderizam nada, pra
+evitar um flash da tela de login antes da sessão ser restaurada.
 
 ## Estrutura
 

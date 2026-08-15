@@ -5,6 +5,16 @@ services:
     image: mcr.microsoft.com/devcontainers/base:ubuntu-22.04
     volumes:
       - ..:/workspace:cached
+      # frontend/node_modules num volume Docker nativo (não no bind mount
+      # de ..) — em dev no WSL2 com o repo no disco Windows, /workspace é
+      # acessado via 9p, muito mais lento que o storage nativo do Docker
+      # para diretórios com muitos arquivos pequenos (node_modules tem
+      # milhares). Sem isso, eslint/vite ficam visivelmente mais lentos
+      # (medido: eslint caiu de ~26s para poucos segundos com este volume).
+      # Efeito colateral esperado: node_modules não aparece no Explorer do
+      # Windows nem fora do container — só importa para quem roda
+      # `npm install` fora do devcontainer, o que não é o fluxo suportado.
+      - frontend-node-modules:/workspace/frontend/node_modules
     command: sleep infinity
     environment:
       - DATABASE_URL_ANONIMO=postgresql://devuser:devpass@db:5432/anonimo_db
@@ -28,3 +38,4 @@ services:
 
 volumes:
   postgres-data:
+  frontend-node-modules:

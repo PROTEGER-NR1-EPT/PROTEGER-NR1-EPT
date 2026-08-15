@@ -4,7 +4,11 @@ import axios from "axios";
 // sem o prefixo /api/v1 — ele é adicionado aqui, uma única vez, para toda a API.
 const baseURL = `${import.meta.env.VITE_API_BASE_URL}/api/v1`;
 
-export const api = axios.create({ baseURL });
+// withCredentials: envia/recebe o cookie httpOnly de restauração de sessão
+// (GET /auth/sessao) — o cookie em si nunca é lido pelo JS, só o navegador
+// o anexa; o token que o frontend guarda em memória continua vindo do
+// corpo JSON das respostas (ver definirTokenSessao abaixo).
+export const api = axios.create({ baseURL, withCredentials: true });
 
 // ---------------------------------------------------------------------------
 // Token de sessão: guardado só em memória (módulo), nunca em

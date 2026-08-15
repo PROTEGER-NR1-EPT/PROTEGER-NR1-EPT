@@ -17,10 +17,12 @@ de logs em `05-regras-de-negocio-e-privacidade.md`).
   `VITE_API_BASE_URL`
 - **Context API + hooks** para estado global (sessão, preferências de
   acessibilidade) — sem Redux
-- **CSS Modules** para estilo (ver justificativa em `frontend/README.md`)
-- Sessão (token) mantida só em estado de aplicação — nunca em
-  `localStorage`/`sessionStorage`, já que o backend autentica por token
-  de sessão via `Authorization: Bearer`, não cookie httpOnly
+- **CSS Modules + Tailwind CSS v4** para estilo (ver justificativa em `frontend/README.md`)
+- Token de acesso mantido só em estado de aplicação — nunca em
+  `localStorage`/`sessionStorage`; trafega via `Authorization: Bearer`
+  em cada requisição. Um cookie httpOnly separado (setado no login)
+  serve só para restaurar a sessão em memória após F5, via
+  `GET /auth/sessao` — ver "Sobrevivendo ao F5" em `frontend/README.md`
 - **Vitest**: teste de integração (`npm test`) que chama a API real (sem
   mocks) para confirmar a comunicação frontend↔backend — ver
   `frontend/README.md`
