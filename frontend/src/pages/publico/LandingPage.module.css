@@ -1,0 +1,17 @@
+.secao {
+  padding: var(--espaco-5) 0;
+}
+
+.titulo {
+  margin-bottom: var(--espaco-2);
+}
+
+.introducao {
+  color: var(--cor-texto-secundario);
+  margin-bottom: var(--espaco-4);
+  max-width: 40rem;
+}
+
+.formulario {
+  max-width: 28rem;
+}

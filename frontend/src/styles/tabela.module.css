@@ -1,0 +1,57 @@
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--espaco-4);
+  font-size: 0.9rem;
+}
+
+.tabela caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: var(--espaco-2);
+}
+
+.tabela th,
+.tabela td {
+  text-align: left;
+  padding: var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+  vertical-align: middle;
+}
+
+.tabela th {
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+}
+
+.envoltorioTabela {
+  overflow-x: auto;
+  margin-bottom: var(--espaco-4);
+}
+
+.selo {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.seloAtivo {
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso);
+}
+
+.seloInativo {
+  background: var(--cor-perigo-fundo);
+  color: var(--cor-perigo);
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-2);
+}
+
+.secaoAdmin {
+  margin-bottom: var(--espaco-5);
+}

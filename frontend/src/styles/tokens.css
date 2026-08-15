@@ -1,0 +1,65 @@
+/*
+ * Tokens de design (cor, tipografia, espaçamento).
+ *
+ * Acessibilidade (docs/02, regra 8 do prompt de implementação): o tamanho
+ * de fonte é controlado por --font-scale (aplicado em :root por
+ * FontSizeControl.jsx via PreferencesContext) e o modo alto contraste por
+ * [data-contraste="alto"] em <html> (aplicado por ContrastToggle.jsx).
+ * Ambos vivem em estado de aplicação (Context) — nunca em localStorage.
+ */
+
+:root {
+  --font-scale: 1;
+
+  --cor-fundo: #ffffff;
+  --cor-fundo-alt: #f4f6f8;
+  --cor-texto: #1a1d21;
+  --cor-texto-secundario: #4b5563;
+  --cor-borda: #d1d5db;
+
+  --cor-primaria: #1d4ed8;
+  --cor-primaria-hover: #1e40af;
+  --cor-primaria-texto: #ffffff;
+
+  --cor-sucesso: #15803d;
+  --cor-sucesso-fundo: #dcfce7;
+  --cor-atencao: #a16207;
+  --cor-atencao-fundo: #fef9c3;
+  --cor-perigo: #b91c1c;
+  --cor-perigo-fundo: #fee2e2;
+
+  --cor-foco: #2563eb;
+
+  --raio-borda: 6px;
+  --espaco-1: 0.25rem;
+  --espaco-2: 0.5rem;
+  --espaco-3: 1rem;
+  --espaco-4: 1.5rem;
+  --espaco-5: 2.5rem;
+}
+
+/* Modo alto contraste: paleta preto/branco/amarelo, contraste ampliado. */
+:root[data-contraste="alto"] {
+  --cor-fundo: #000000;
+  --cor-fundo-alt: #0a0a0a;
+  --cor-texto: #ffffff;
+  --cor-texto-secundario: #f5f5f5;
+  --cor-borda: #ffffff;
+
+  --cor-primaria: #ffdd00;
+  --cor-primaria-hover: #ffe94d;
+  --cor-primaria-texto: #000000;
+
+  --cor-sucesso: #00e676;
+  --cor-sucesso-fundo: #003d1f;
+  --cor-atencao: #ffdd00;
+  --cor-atencao-fundo: #4d3d00;
+  --cor-perigo: #ff6b6b;
+  --cor-perigo-fundo: #4d0000;
+
+  --cor-foco: #ffdd00;
+}
+
+html {
+  font-size: calc(16px * var(--font-scale));
+}

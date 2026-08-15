@@ -12,11 +12,13 @@ unitários e migrations já geradas. Ver `backend/README.md` para a
 estrutura completa de pastas e decisões de arquitetura, e a seção
 "Backend — comandos" abaixo para rodar localmente.
 
-O **frontend** (`frontend/`) ainda está em estágio de scaffolding: só
-existe `frontend/.env.example`, sem `package.json` nem código-fonte. Não
-assuma a existência de comandos de build/lint/test para o frontend até que
-esses arquivos sejam adicionados — quando forem, devem ser documentados
-aqui.
+O **frontend** (`frontend/`) também está implementado: React + Vite,
+React Router, Context API (sem Redux), cliente axios em `src/api/`
+consumindo a API do backend, CSS Modules, controles de acessibilidade
+(fonte/contraste) e todas as telas públicas/Consultor/Administrador do
+MVP. Ver `frontend/README.md` para estrutura completa e decisões
+(inclusive por que o token de sessão vive só em memória, nunca em
+localStorage/sessionStorage), e a seção "Frontend — comandos" abaixo.
 
 ## Backend — comandos
 
@@ -37,6 +39,22 @@ pytest                    # testes: k-anonimato, Karasek, COPSOQ (app/services/)
 
 Com o servidor rodando, a documentação interativa da API (Scalar) fica em
 `http://localhost:8000/docs/scalar` (spec OpenAPI em `/docs/openapi.json`).
+
+## Frontend — comandos
+
+Precisa do backend rodando (seção acima) — `VITE_API_BASE_URL`, em
+`frontend/.env`, aponta para a raiz dele (o prefixo `/api/v1` é
+adicionado em `src/api/client.js`).
+
+```bash
+cd frontend
+npm install
+
+npm run dev      # servidor de desenvolvimento em http://localhost:5173
+npm run build    # build de produção em dist/
+npm run lint     # ESLint (react, react-hooks, jsx-a11y)
+npm test         # testes de integração contra a API real (backend precisa estar no ar)
+```
 
 ## Estrutura do monorepo
 

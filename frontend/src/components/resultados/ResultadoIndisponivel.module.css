@@ -1,0 +1,8 @@
+.aviso {
+  border: 1px dashed var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  margin: 0 var(--espaco-2) var(--espaco-2) 0;
+  color: var(--cor-texto-secundario);
+  max-width: 20rem;
+}

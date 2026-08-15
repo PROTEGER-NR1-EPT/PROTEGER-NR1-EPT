@@ -1,0 +1,32 @@
+.grupo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+}
+
+.rotulo {
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+  margin-right: var(--espaco-1);
+}
+
+.botao {
+  min-width: 2rem;
+  min-height: 2rem;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  border-radius: var(--raio-borda);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.botao:hover:not(:disabled) {
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria);
+}
+
+.botao:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

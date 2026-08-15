@@ -1,0 +1,25 @@
+.dominioForm {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  margin-bottom: var(--espaco-3);
+}
+
+.itemForm {
+  border-top: 1px dashed var(--cor-borda);
+  padding-top: var(--espaco-2);
+  margin-top: var(--espaco-2);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espaco-2);
+}
+
+.linhaCampos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+.linhaCampos > * {
+  flex: 1 1 8rem;
+}

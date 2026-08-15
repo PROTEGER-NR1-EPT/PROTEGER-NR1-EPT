@@ -1,0 +1,12 @@
+.secao {
+  padding: var(--espaco-5) 0;
+}
+
+.formulario {
+  max-width: 24rem;
+}
+
+.erro {
+  color: var(--cor-perigo);
+  margin-bottom: var(--espaco-3);
+}

@@ -1,0 +1,27 @@
+.secao {
+  padding: var(--espaco-5) 0;
+}
+
+.blocoResultados {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: var(--espaco-5);
+}
+
+.blocoMemoria {
+  border-top: 1px solid var(--cor-borda);
+  padding-top: var(--espaco-4);
+}
+
+.registroMemoria {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  margin-bottom: var(--espaco-2);
+}
+
+.registroMemoriaData {
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+}

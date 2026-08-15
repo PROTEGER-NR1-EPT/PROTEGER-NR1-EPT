@@ -11,6 +11,19 @@ de logs em `05-regras-de-negocio-e-privacidade.md`).
 - Mobile-first, responsivo desde o início
 - Acessibilidade: eMAG/WCAG (controles de fonte A-/A/A+, alto contraste,
   navegação por teclado, HTML semântico, alt text em imagens)
+- **React Router** para navegação entre as áreas pública, Consultor e
+  Administrador, com bloqueio de rota por papel
+- **axios** como cliente HTTP (`src/api/`), apontando para
+  `VITE_API_BASE_URL`
+- **Context API + hooks** para estado global (sessão, preferências de
+  acessibilidade) — sem Redux
+- **CSS Modules** para estilo (ver justificativa em `frontend/README.md`)
+- Sessão (token) mantida só em estado de aplicação — nunca em
+  `localStorage`/`sessionStorage`, já que o backend autentica por token
+  de sessão via `Authorization: Bearer`, não cookie httpOnly
+- **Vitest**: teste de integração (`npm test`) que chama a API real (sem
+  mocks) para confirmar a comunicação frontend↔backend — ver
+  `frontend/README.md`
 
 ## Backend
 

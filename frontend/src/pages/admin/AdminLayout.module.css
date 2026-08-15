@@ -1,0 +1,31 @@
+.envoltorio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: var(--espaco-4) 0;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+  padding-bottom: var(--espaco-3);
+}
+
+.nav a {
+  text-decoration: none;
+  color: var(--cor-texto);
+  padding: var(--espaco-1) var(--espaco-2);
+  border-radius: var(--raio-borda);
+  font-size: 0.9rem;
+}
+
+.nav a:hover {
+  background: var(--cor-fundo-alt);
+}
+
+.navAtivo {
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto) !important;
+}

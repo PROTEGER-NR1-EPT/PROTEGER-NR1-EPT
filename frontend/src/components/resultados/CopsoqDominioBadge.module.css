@@ -1,0 +1,62 @@
+.badge {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  min-width: 12rem;
+  margin: 0 var(--espaco-2) var(--espaco-2) 0;
+}
+
+.faixa {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  font-weight: 700;
+  border-radius: 999px;
+  padding: var(--espaco-1) var(--espaco-2);
+  width: fit-content;
+  font-size: 0.85rem;
+}
+
+.pontoFaixa {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.verde {
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso);
+}
+.verde .pontoFaixa {
+  background: var(--cor-sucesso);
+}
+
+.amarelo {
+  background: var(--cor-atencao-fundo);
+  color: var(--cor-atencao);
+}
+.amarelo .pontoFaixa {
+  background: var(--cor-atencao);
+}
+
+.vermelho {
+  background: var(--cor-perigo-fundo);
+  color: var(--cor-perigo);
+}
+.vermelho .pontoFaixa {
+  background: var(--cor-perigo);
+}
+
+.escore {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.rodape {
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+}

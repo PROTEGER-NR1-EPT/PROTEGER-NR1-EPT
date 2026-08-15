@@ -1,0 +1,35 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  margin-bottom: var(--espaco-3);
+}
+
+.rotulo {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.controle {
+  padding: var(--espaco-2);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-size: 1rem;
+  min-height: 2.75rem;
+}
+
+.controle:disabled {
+  opacity: 0.6;
+}
+
+.mensagemErro {
+  color: var(--cor-perigo);
+  font-size: 0.85rem;
+}
+
+.textoAjuda {
+  color: var(--cor-texto-secundario);
+  font-size: 0.85rem;
+}

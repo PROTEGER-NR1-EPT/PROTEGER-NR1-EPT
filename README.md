@@ -10,7 +10,7 @@ profissional na área.
 
 ```
 proteger-nr1-ept/
-├── frontend/    → React (Vite), deploy em produção na Vercel [scaffolding]
+├── frontend/    → React (Vite), deploy em produção na Vercel [implementado]
 ├── backend/     → Python (Flask + Gunicorn em produção), deploy no Render [implementado]
 ├── docs/        → documentação técnica de referência (arquitetura, modelo de dados, regras de negócio, API)
 └── .devcontainer/ → ambiente de desenvolvimento (Dev Containers), com Postgres local simulando os 3 bancos de produção
@@ -20,6 +20,7 @@ proteger-nr1-ept/
 
 - [`docs/00-README.md`](docs/00-README.md) — índice da documentação técnica (arquitetura, modelo de dados, papéis/fluxos, regras de negócio, instrumentos, API, stack, roadmap).
 - [`backend/README.md`](backend/README.md) — como rodar o backend localmente, estrutura de pastas e decisões de implementação.
+- [`frontend/README.md`](frontend/README.md) — como rodar o frontend localmente, estrutura de pastas e decisões de implementação (inclusive por que o token de sessão fica só em memória).
 - [`CLAUDE.md`](CLAUDE.md) — guia do repositório para desenvolvimento assistido por Claude Code.
 
 Com o backend rodando localmente, a documentação interativa da API

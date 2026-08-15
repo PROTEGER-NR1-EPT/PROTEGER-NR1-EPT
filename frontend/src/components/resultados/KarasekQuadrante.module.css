@@ -1,0 +1,69 @@
+.cartao {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  margin-bottom: var(--espaco-4);
+}
+
+.titulo {
+  margin: 0 0 var(--espaco-3);
+  font-size: 1.05rem;
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  grid-template-rows: auto 1fr 1fr;
+  gap: 2px;
+  max-width: 420px;
+  background: var(--cor-borda);
+}
+
+.grade > * {
+  background: var(--cor-fundo);
+  padding: var(--espaco-2);
+}
+
+.eixoCanto {
+  background: transparent;
+}
+
+.eixoTopo,
+.eixoLateral {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  text-align: center;
+}
+
+.celula {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 5.5rem;
+  gap: var(--espaco-1);
+}
+
+.celulaAtiva {
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+  font-weight: 700;
+}
+
+.legenda {
+  margin-top: var(--espaco-3);
+  font-size: 0.9rem;
+  color: var(--cor-texto-secundario);
+}
+
+.medias {
+  display: flex;
+  gap: var(--espaco-4);
+  margin-top: var(--espaco-2);
+  font-size: 0.9rem;
+}
