@@ -1,0 +1,17 @@
+flask==3.0.3
+flask-sqlalchemy==3.1.1
+flask-migrate==4.0.7
+flask-cors==4.0.1
+psycopg2-binary==2.9.9
+bcrypt==4.2.0
+python-dotenv==1.0.1
+gunicorn==22.0.0
+pytest==8.3.3
+
+# --- Documentação OpenAPI (Scalar) ---
+# flask-openapi3 substitui a classe Flask por uma subclasse (OpenAPI) que
+# gera o spec automaticamente a partir de modelos Pydantic anotados nas
+# rotas — ver app/schemas/ e comentário em app/__init__.py.
+flask-openapi3==4.3.2
+flask-openapi3-scalar==1.44.15
+pydantic==2.13.4
