@@ -1,0 +1,48 @@
+# =========================================
+# PROTEGER-NR1 EPT — .gitignore
+# =========================================
+
+# --- Variáveis de ambiente (locais, nunca commitar) ---
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# --- Node / Frontend (Vite) ---
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Python / Backend ---
+backend/__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+backend/.venv/
+backend/venv/
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+instance/
+
+# --- Editor / OS ---
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+
+# --- Docker / devcontainer (dados locais, não config) ---
+.devcontainer/*.local.yml
