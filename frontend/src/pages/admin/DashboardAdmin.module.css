@@ -12,6 +12,13 @@
   background: var(--cor-fundo-alt);
 }
 
+.iconeCartao {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--cor-primaria);
+  margin-bottom: var(--espaco-2);
+}
+
 .tituloCartao {
   margin: 0 0 var(--espaco-2);
   font-size: 0.8rem;

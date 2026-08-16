@@ -1,0 +1,259 @@
+.hero {
+  background: var(--cor-fundo-alt);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.heroConteudo {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: var(--espaco-4);
+  padding: var(--espaco-5) 0;
+}
+
+.heroTexto {
+  max-width: 34rem;
+  text-align: center;
+}
+
+.heroTitulo {
+  margin: 0 0 var(--espaco-3);
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.heroSubtitulo {
+  margin: 0 0 var(--espaco-4);
+  color: var(--cor-texto-secundario);
+  font-size: 1.05rem;
+}
+
+.botaoHero {
+  font-size: 1.05rem;
+  padding: var(--espaco-3) var(--espaco-5);
+}
+
+.heroNota {
+  margin: var(--espaco-2) 0 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.heroLogo {
+  width: 16rem;
+  max-width: 80%;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.secao {
+  padding: var(--espaco-5) 0;
+}
+
+.secaoAlt {
+  background: var(--cor-fundo-alt);
+}
+
+.tituloSecao {
+  margin: 0 0 var(--espaco-3);
+  font-size: 1.4rem;
+}
+
+.introducaoSecao {
+  margin: 0 0 var(--espaco-4);
+  max-width: 42rem;
+  color: var(--cor-texto-secundario);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espaco-3);
+}
+
+.cartao {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  background: var(--cor-fundo);
+}
+
+.tituloCartao {
+  margin: 0 0 var(--espaco-1);
+  font-size: 1rem;
+}
+
+.textoCartao {
+  margin: 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.95rem;
+}
+
+.listaPassos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.passo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-3);
+}
+
+.numeroPasso {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+  font-weight: 700;
+}
+
+.tituloPasso {
+  margin: 0 0 var(--espaco-1);
+  font-size: 1.05rem;
+}
+
+.blocoPrivacidade {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.iconeCadeado {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  fill: none;
+  stroke: var(--cor-sucesso);
+  stroke-width: 1.5;
+}
+
+.listaPrivacidade {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  color: var(--cor-texto-secundario);
+  max-width: 44rem;
+}
+
+.blocoSobre {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.iconeAcademico {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  fill: none;
+  stroke: var(--cor-primaria);
+  stroke-width: 1.5;
+}
+
+.paragrafoSobre {
+  margin: 0 0 var(--espaco-3);
+  max-width: 44rem;
+  color: var(--cor-texto-secundario);
+}
+
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  max-width: 44rem;
+}
+
+.faqItem {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-2) var(--espaco-3);
+}
+
+.faqPergunta {
+  cursor: pointer;
+  font-weight: 600;
+  padding: var(--espaco-1) 0;
+}
+
+.faqResposta {
+  margin: var(--espaco-2) 0 var(--espaco-1);
+  color: var(--cor-texto-secundario);
+}
+
+.ctaFinal {
+  text-align: center;
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+}
+
+.tituloCta {
+  margin: 0 0 var(--espaco-2);
+  font-size: 1.4rem;
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ctaNota {
+  margin: 0 0 var(--espaco-4);
+  max-width: 30rem;
+  margin-left: auto;
+  margin-right: auto;
+  opacity: 0.9;
+}
+
+@media (min-width: 640px) {
+  .heroTitulo {
+    font-size: 2.25rem;
+  }
+
+  .grade {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .listaPassos {
+    flex-direction: row;
+  }
+
+  .passo {
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .blocoPrivacidade,
+  .blocoSobre {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 900px) {
+  .heroConteudo {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .heroTexto {
+    text-align: left;
+  }
+
+  .heroLogo {
+    width: 20rem;
+  }
+
+  .grade {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

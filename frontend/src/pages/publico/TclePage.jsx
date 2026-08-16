@@ -28,7 +28,7 @@ export function TclePage() {
   }, [instituicao, setor, tcleExigido, navigate]);
 
   if (!instituicao || !setor) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/participar" replace />;
   }
 
   if (!tcleExigido) {

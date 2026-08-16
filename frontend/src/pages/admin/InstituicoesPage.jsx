@@ -107,6 +107,8 @@ export function InstituicoesPage() {
         <h2>Instituições cadastradas</h2>
         {carregando ? (
           <p>Carregando...</p>
+        ) : instituicoes.length === 0 ? (
+          <p className={tabela.semDados}>Nenhuma instituição cadastrada ainda.</p>
         ) : (
           <div className={tabela.envoltorioTabela}>
             <table className={tabela.tabela}>
@@ -194,10 +196,7 @@ export function InstituicoesPage() {
 
       <div className={tabela.secaoAdmin}>
         <h2>Setores</h2>
-        <p>
-          Selecione uma instituição para ver e gerenciar seus setores
-          (sempre por dropdown — nunca digitando o id).
-        </p>
+        <p>Selecione uma instituição para ver e gerenciar seus setores.</p>
         <DropdownInstituicao
           value={instituicaoSetores?.id}
           onChange={setInstituicaoSetores}
@@ -206,39 +205,45 @@ export function InstituicoesPage() {
 
         {instituicaoSetores && (
           <>
-            <div className={tabela.envoltorioTabela}>
-              <table className={tabela.tabela}>
-                <thead>
-                  <tr>
-                    <th scope="col">Nome</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {setores.map((setor) => (
-                    <tr key={setor.id}>
-                      <td>{setor.nome}</td>
-                      <td>
-                        <span
-                          className={`${tabela.selo} ${setor.ativo ? tabela.seloAtivo : tabela.seloInativo}`}
-                        >
-                          {setor.ativo ? "Ativo" : "Inativo"}
-                        </span>
-                      </td>
-                      <td className={tabela.acoes}>
-                        <Button
-                          variante="secundario"
-                          onClick={() => handleAlternarSetorAtivo(setor)}
-                        >
-                          {setor.ativo ? "Desativar" : "Reativar"}
-                        </Button>
-                      </td>
+            {setores.length === 0 ? (
+              <p className={tabela.semDados}>
+                Nenhum setor cadastrado em {instituicaoSetores.nome} ainda.
+              </p>
+            ) : (
+              <div className={tabela.envoltorioTabela}>
+                <table className={tabela.tabela}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Nome</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Ações</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {setores.map((setor) => (
+                      <tr key={setor.id}>
+                        <td>{setor.nome}</td>
+                        <td>
+                          <span
+                            className={`${tabela.selo} ${setor.ativo ? tabela.seloAtivo : tabela.seloInativo}`}
+                          >
+                            {setor.ativo ? "Ativo" : "Inativo"}
+                          </span>
+                        </td>
+                        <td className={tabela.acoes}>
+                          <Button
+                            variante="secundario"
+                            onClick={() => handleAlternarSetorAtivo(setor)}
+                          >
+                            {setor.ativo ? "Desativar" : "Reativar"}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             <form onSubmit={handleCriarSetor} style={{ maxWidth: "28rem" }}>
               <div className={formStyles.campo}>

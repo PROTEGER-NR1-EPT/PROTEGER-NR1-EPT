@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, RootModel
 class ResultadoAgregadoItem(BaseModel):
     instituicao_id: int
     setor_id: int
+    setor_nome: str = Field(..., examples=["Corpo Docente"])
     questionario_id: int
     dominio_id: Optional[int] = Field(
         None,
@@ -17,6 +18,11 @@ class ResultadoAgregadoItem(BaseModel):
             "preenchido quando é um escore por domínio (ex.: cada domínio do "
             "COPSOQ, ou os domínios individuais do Karasek)."
         ),
+    )
+    dominio_nome: Optional[str] = Field(
+        None,
+        description="Nulo exatamente quando dominio_id também é nulo.",
+        examples=["Exigências no Trabalho"],
     )
     periodo: str = Field(
         ..., description="Sempre 'consolidado' nesta versão do MVP (ver README do backend)."

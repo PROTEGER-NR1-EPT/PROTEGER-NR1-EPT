@@ -17,6 +17,7 @@ import { DashboardConsultor } from "./pages/consultor/DashboardConsultor";
 import { ResultadosInstituicao } from "./pages/consultor/ResultadosInstituicao";
 import { ConfirmacaoPage } from "./pages/publico/ConfirmacaoPage";
 import { LandingPage } from "./pages/publico/LandingPage";
+import { PaginaInicial } from "./pages/publico/PaginaInicial";
 import { PublicFlowLayout } from "./pages/publico/PublicFlowLayout";
 import { QuestionarioPage } from "./pages/publico/QuestionarioPage";
 import { TclePage } from "./pages/publico/TclePage";
@@ -51,10 +52,15 @@ export default function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
+        {/* Página institucional pública — fora do PublicFlowLayout porque
+            não participa do fluxo de resposta (não precisa do contexto de
+            instituição/setor selecionados). */}
+        <Route path="/" element={<PaginaInicial />} />
+
         {/* Fluxo público de resposta — sem autenticação (regra 1: nunca
             revela instrumento/resultado nestas telas). */}
         <Route element={<PublicFlowLayout />}>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/participar" element={<LandingPage />} />
           <Route path="/tcle" element={<TclePage />} />
           <Route path="/questionario" element={<QuestionarioPage />} />
           <Route path="/confirmacao" element={<ConfirmacaoPage />} />

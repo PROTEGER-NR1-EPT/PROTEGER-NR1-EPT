@@ -12,8 +12,8 @@ import { Outlet } from "react-router-dom";
  *
  * Ao atualizar a página no meio do fluxo, este estado se perde de
  * propósito (é só estado de aplicação) — cada página consumidora trata
- * isso redirecionando de volta para "/" quando os dados esperados não
- * estão presentes.
+ * isso redirecionando de volta para "/participar" (início do fluxo de
+ * resposta) quando os dados esperados não estão presentes.
  */
 export function PublicFlowLayout() {
   const [instituicao, setInstituicao] = useState(null);

@@ -2,16 +2,49 @@
   padding: var(--espaco-5) 0;
 }
 
+.voltar {
+  display: inline-block;
+  margin-bottom: var(--espaco-3);
+  color: var(--cor-texto-secundario);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.voltar:hover {
+  color: var(--cor-primaria);
+}
+
+.titulo {
+  margin: 0 0 var(--espaco-1);
+}
+
+.subtitulo {
+  margin: 0 0 var(--espaco-5);
+  color: var(--cor-texto-secundario);
+}
+
+.grupoSetor {
+  margin-bottom: var(--espaco-5);
+}
+
+.tituloSetor {
+  font-size: 1.1rem;
+  margin: 0 0 var(--espaco-3);
+  padding-bottom: var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
 .blocoResultados {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  margin-bottom: var(--espaco-5);
+  gap: var(--espaco-2);
 }
 
 .blocoMemoria {
   border-top: 1px solid var(--cor-borda);
   padding-top: var(--espaco-4);
+  margin-top: var(--espaco-4);
 }
 
 .registroMemoria {

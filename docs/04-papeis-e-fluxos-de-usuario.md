@@ -7,7 +7,10 @@
 Profissional da instituição respondendo ao questionário.
 
 **Fluxo:**
-1. Acessa a landing page pública.
+1. Acessa a página institucional pública (`/`) e clica em "Participar da
+   pesquisa", indo para `/participar` — a tela de seleção de
+   instituição/setor propriamente dita (pode-se chegar direto em
+   `/participar` também, ex.: link divulgado pela instituição).
 2. Seleciona instituição (dropdown).
 3. Seleciona setor (dropdown, filtrado pela instituição escolhida).
 4. *(Condicional — pendente de definição)* Tela de TCLE (Termo de

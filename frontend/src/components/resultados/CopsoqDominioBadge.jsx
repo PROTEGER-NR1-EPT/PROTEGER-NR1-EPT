@@ -9,13 +9,9 @@ const ROTULO_FAIXA = {
 /**
  * `resultado` é um item de /resultados cujo valor_agregado tem as chaves
  * `escore` (0–100) e `faixa` (verde/amarelo/vermelho) — um domínio do
- * COPSOQ (docs/06).
- *
- * Limitação conhecida: a API de resultados (docs/07) não devolve o nome
- * do domínio, só `dominio_id` — nomear os domínios exigiria uma rota
- * adicional (hoje só o Administrador tem acesso a
- * GET /admin/questionarios, que não é chamável pelo Consultor). Até essa
- * lacuna ser fechada no backend, o badge identifica o domínio pelo id.
+ * COPSOQ (docs/06). `dominio_nome` vem pronto do backend
+ * (app/services/k_anonimato.py:obter_resultados) — Consultor e
+ * Administrador têm permissão para ver a identidade do domínio (docs/04).
  */
 export function CopsoqDominioBadge({ resultado }) {
   const { escore, faixa } = resultado.valor_agregado;
@@ -23,7 +19,7 @@ export function CopsoqDominioBadge({ resultado }) {
 
   return (
     <div className={styles.badge}>
-      <span>Domínio #{resultado.dominio_id}</span>
+      <span className={styles.tituloDominio}>{resultado.dominio_nome}</span>
       <span className={styles.escore}>{escore}</span>
       <span className={`${styles.faixa} ${classeFaixa}`}>
         <span className={styles.pontoFaixa} aria-hidden="true" />

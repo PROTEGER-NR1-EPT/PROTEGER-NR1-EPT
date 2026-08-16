@@ -13,10 +13,18 @@
 }
 
 .marca {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--cor-texto);
   text-decoration: none;
+}
+
+.logo {
+  height: 2rem;
+  width: auto;
 }
 
 .nav {
@@ -40,14 +48,6 @@
 .nav a:hover,
 .botaoLink:hover {
   color: var(--cor-primaria);
-}
-
-.ferramentasAcessibilidade {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-3);
-  padding-bottom: var(--espaco-2);
-  flex-wrap: wrap;
 }
 
 @media (min-width: 640px) {

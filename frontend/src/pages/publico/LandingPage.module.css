@@ -15,3 +15,65 @@
 .formulario {
   max-width: 28rem;
 }
+
+/* Cartão da tela de seleção instituição/setor (LandingPage) — as demais
+   páginas que reaproveitam este módulo (TclePage, ConfirmacaoPage) usam
+   .secao/.titulo/.introducao/.formulario acima, sem cartão; por isso o
+   visual de cartão vive em classes próprias, para não afetá-las. */
+.cartao {
+  max-width: 28rem;
+  margin: 0 auto;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.iconeCartao {
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--cor-primaria);
+  margin: 0 auto var(--espaco-3);
+}
+
+.tituloCartao {
+  margin: 0 0 var(--espaco-2);
+  font-size: 1.5rem;
+}
+
+.introducaoCartao {
+  color: var(--cor-texto-secundario);
+  margin: 0 0 var(--espaco-4);
+}
+
+.avisoAnonimato {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  text-align: left;
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  margin: 0 0 var(--espaco-4);
+  font-size: 0.9rem;
+}
+
+.iconeCadeado {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.cartao .formulario {
+  text-align: left;
+  max-width: none;
+}
+
+.botaoContinuar {
+  width: 100%;
+  margin-top: var(--espaco-2);
+}

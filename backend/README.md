@@ -132,6 +132,13 @@ flask db upgrade
 # cria o primeiro Administrador (idempotente — não duplica se já existir)
 flask bootstrap-admin
 
+# opcional: popula os 3 bancos com uma massa de dados fictícia para
+# testar o sistema manualmente (instituições, questionários, respostas já
+# cobrindo grupos acima/abaixo do threshold de k-anonimato, Consultores de
+# teste, memória institucional) — idempotente, só roda com
+# FLASK_ENV=development. Ver app/seed.py para o que exatamente é criado.
+flask seed-dev-data
+
 # roda o servidor de desenvolvimento em http://localhost:8000
 python run.py
 ```

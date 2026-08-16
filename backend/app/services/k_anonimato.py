@@ -3,7 +3,14 @@ from datetime import datetime, timezone
 from flask import current_app
 
 from app.extensions import db
-from app.models.anonimo import ConfiguracaoSistema, Questionario, ResultadoAgregado, RespostaBruta
+from app.models.anonimo import (
+    ConfiguracaoSistema,
+    Dominio,
+    Questionario,
+    ResultadoAgregado,
+    RespostaBruta,
+    Setor,
+)
 from app.services.instrumentos import obter_estrategia
 
 PERIODO_CONSOLIDADO = "consolidado"
@@ -116,7 +123,13 @@ def recalcular_resultados(instituicao_id: int, setor_id: int, questionario_id: i
 
 def obter_resultados(instituicao_id: int, setor_id: int = None) -> list[dict]:
     """Leitura de resultados agregados, sempre filtrada por k-anonimato no
-    momento da consulta (não apenas no momento em que foram calculados)."""
+    momento da consulta (não apenas no momento em que foram calculados).
+
+    Inclui `setor_nome`/`dominio_nome` (além dos ids) — Consultor e
+    Administrador têm permissão para ver a identidade do instrumento/domínio
+    (docs/04, ao contrário do Usuário respondente, que nunca vê nem
+    instrumento nem resultado); nomear aqui evita que cada tela cliente
+    precise resolver os ids numa segunda chamada."""
     consulta = db.session.query(ResultadoAgregado).filter_by(
         instituicao_id=instituicao_id
     )
@@ -124,16 +137,35 @@ def obter_resultados(instituicao_id: int, setor_id: int = None) -> list[dict]:
         consulta = consulta.filter_by(setor_id=setor_id)
 
     threshold = obter_threshold()
+    linhas = consulta.all()
+
+    setor_ids = {linha.setor_id for linha in linhas}
+    dominio_ids = {linha.dominio_id for linha in linhas if linha.dominio_id is not None}
+
+    nomes_setor = {
+        s.id: s.nome
+        for s in db.session.query(Setor.id, Setor.nome).filter(Setor.id.in_(setor_ids)).all()
+    }
+    nomes_dominio = {
+        d.id: d.nome
+        for d in db.session.query(Dominio.id, Dominio.nome)
+        .filter(Dominio.id.in_(dominio_ids))
+        .all()
+    }
 
     saida = []
-    for linha in consulta.all():
+    for linha in linhas:
         gate = aplicar_k_anonimato(linha.n_respostas, linha.valor_agregado, threshold)
         saida.append(
             {
                 "instituicao_id": linha.instituicao_id,
                 "setor_id": linha.setor_id,
+                "setor_nome": nomes_setor.get(linha.setor_id),
                 "questionario_id": linha.questionario_id,
                 "dominio_id": linha.dominio_id,
+                "dominio_nome": nomes_dominio.get(linha.dominio_id)
+                if linha.dominio_id is not None
+                else None,
                 "periodo": linha.periodo,
                 **gate,
             }

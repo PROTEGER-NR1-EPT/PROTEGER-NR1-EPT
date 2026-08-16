@@ -9,6 +9,10 @@
   margin: 0 var(--espaco-2) var(--espaco-2) 0;
 }
 
+.tituloDominio {
+  font-weight: 600;
+}
+
 .faixa {
   display: inline-flex;
   align-items: center;

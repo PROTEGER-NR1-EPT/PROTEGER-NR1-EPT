@@ -3,7 +3,7 @@
 }
 
 .cartao {
-  max-width: 24rem;
+  max-width: 28rem;
   margin: 0 auto;
   background: var(--cor-fundo);
   border: 1px solid var(--cor-borda);
@@ -14,9 +14,9 @@
 }
 
 .iconeCartao {
-  width: 2.75rem;
-  height: 2.75rem;
-  color: var(--cor-primaria);
+  width: 3rem;
+  height: 3rem;
+  color: var(--cor-sucesso);
   margin: 0 auto var(--espaco-3);
 }
 
@@ -30,20 +30,6 @@
   margin: 0 0 var(--espaco-4);
 }
 
-.formulario {
-  text-align: left;
-}
-
-.erro {
-  color: var(--cor-perigo);
-  background: var(--cor-perigo-fundo);
-  border-radius: var(--raio-borda);
-  padding: var(--espaco-2) var(--espaco-3);
-  margin: 0 0 var(--espaco-3);
-  font-size: 0.9rem;
-}
-
-.botaoEntrar {
+.botaoVoltar {
   width: 100%;
-  margin-top: var(--espaco-2);
 }

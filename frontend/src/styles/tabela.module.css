@@ -55,3 +55,12 @@
 .secaoAdmin {
   margin-bottom: var(--espaco-5);
 }
+
+.semDados {
+  border: 1px dashed var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  color: var(--cor-texto-secundario);
+  max-width: 24rem;
+  margin-bottom: var(--espaco-4);
+}

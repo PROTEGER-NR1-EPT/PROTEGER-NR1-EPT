@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 
-import { ContrastToggle } from "../acessibilidade/ContrastToggle";
-import { FontSizeControl } from "../acessibilidade/FontSizeControl";
+import { AcessibilidadeWidget } from "../acessibilidade/AcessibilidadeWidget";
 import { useAuth } from "../../hooks/useAuth";
 import styles from "./Header.module.css";
 
@@ -16,12 +15,10 @@ export function Header() {
 
   return (
     <header className={styles.cabecalho}>
-      <div className={`container ${styles.ferramentasAcessibilidade}`}>
-        <FontSizeControl />
-        <ContrastToggle />
-      </div>
+      <AcessibilidadeWidget />
       <div className={`container ${styles.barra}`}>
         <Link to="/" className={styles.marca}>
+          <img src="/logo-icone.png" alt="" className={styles.logo} />
           PROTEGER-NR1 EPT
         </Link>
         <nav className={styles.nav} aria-label="Navegação principal">

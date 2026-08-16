@@ -32,6 +32,7 @@ pip install -r requirements.txt
 export FLASK_APP=wsgi.py
 flask db upgrade          # aplica as migrations nos 3 bancos (Flask-Migrate --multidb)
 flask bootstrap-admin     # cria o 1º Administrador a partir de ADMIN_BOOTSTRAP_EMAIL/PASSWORD (idempotente)
+flask seed-dev-data       # opcional: massa de dados fictícia p/ testar o sistema (idempotente, só em FLASK_ENV=development)
 
 python run.py             # servidor de desenvolvimento em http://localhost:8000
 pytest                    # testes: k-anonimato, Karasek, COPSOQ (app/services/)

@@ -2,41 +2,115 @@
   padding: var(--espaco-5) 0;
 }
 
-.dominio {
-  margin-bottom: var(--espaco-5);
+.titulo {
+  margin: 0 0 var(--espaco-2);
 }
 
-.tituloDominio {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+.introducao {
+  margin: 0 0 var(--espaco-4);
   color: var(--cor-texto-secundario);
-  margin-bottom: var(--espaco-3);
+  max-width: 40rem;
+}
+
+.progresso {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-5);
+  max-width: 32rem;
+}
+
+.barraProgresso {
+  flex: 1;
+  height: 0.6rem;
+  background: var(--cor-fundo-alt);
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barraProgressoPreenchida {
+  display: block;
+  height: 100%;
+  background: var(--cor-primaria);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.textoProgresso {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+  white-space: nowrap;
+}
+
+.dominio {
+  margin-bottom: var(--espaco-4);
 }
 
 .item {
-  border: none;
-  padding: 0;
-  margin: 0 0 var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-4);
+  margin: 0 0 var(--espaco-3);
+  background: var(--cor-fundo);
 }
 
 .textoItem {
   font-weight: 600;
-  margin-bottom: var(--espaco-2);
+  margin-bottom: var(--espaco-3);
+  padding: 0;
 }
 
 .escala {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--espaco-3);
+  gap: var(--espaco-2);
 }
 
 .opcaoEscala {
+  display: block;
+  cursor: pointer;
+}
+
+.inputEscala {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.bolhaEscala {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--espaco-1);
-  font-size: 0.85rem;
+  justify-content: center;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  padding: 0 var(--espaco-1);
+  border-radius: 999px;
+  border: 2px solid var(--cor-borda);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-weight: 600;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.opcaoEscala:hover .bolhaEscala {
+  border-color: var(--cor-primaria);
+}
+
+.inputEscala:checked + .bolhaEscala {
+  background: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+}
+
+.inputEscala:focus-visible + .bolhaEscala {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
 }
 
 .rodapeAcoes {
@@ -45,9 +119,19 @@
   background: var(--cor-fundo);
   padding: var(--espaco-3) 0;
   border-top: 1px solid var(--cor-borda);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .mensagemEstado {
   padding: var(--espaco-4) 0;
   color: var(--cor-texto-secundario);
+}
+
+.erro {
+  color: var(--cor-perigo);
+  background: var(--cor-perigo-fundo);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-2) var(--espaco-3);
+  margin: 0 0 var(--espaco-3);
+  font-size: 0.9rem;
 }

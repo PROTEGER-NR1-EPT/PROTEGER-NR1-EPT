@@ -5,6 +5,68 @@ import { useAuth } from "../../hooks/useAuth";
 import tabela from "../../styles/tabela.module.css";
 import styles from "./DashboardAdmin.module.css";
 
+function IconeInstituicoes() {
+  return (
+    <svg viewBox="0 0 24 24" className={styles.iconeCartao} aria-hidden="true" focusable="false">
+      <path d="M4 21V7l8-4 8 4v14" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M9 21v-6h6v6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M4 21h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconeQuestionarios() {
+  return (
+    <svg viewBox="0 0 24 24" className={styles.iconeCartao} aria-hidden="true" focusable="false">
+      <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8 8h8M8 12h8M8 16h5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconeUsuarios() {
+  return (
+    <svg viewBox="0 0 24 24" className={styles.iconeCartao} aria-hidden="true" focusable="false">
+      <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle cx="17" cy="8" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M15.5 14.8c2.6.4 4.5 2.3 4.5 5.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconeRespostas() {
+  return (
+    <svg viewBox="0 0 24 24" className={styles.iconeCartao} aria-hidden="true" focusable="false">
+      <path
+        d="M4 20V10M10 20V4M16 20v-7M4 20h16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function DashboardAdmin() {
   const { usuario } = useAuth();
   const [estatisticas, setEstatisticas] = useState(null);
@@ -43,18 +105,21 @@ export function DashboardAdmin() {
         <>
           <div className={styles.grade}>
             <div className={styles.cartao}>
+              <IconeInstituicoes />
               <h2 className={styles.tituloCartao}>Instituições</h2>
               <p className={styles.numeroPrincipal}>{estatisticas.instituicoes.total}</p>
               <p className={styles.detalheCartao}>{estatisticas.instituicoes.ativas} ativas</p>
             </div>
 
             <div className={styles.cartao}>
+              <IconeQuestionarios />
               <h2 className={styles.tituloCartao}>Questionários</h2>
               <p className={styles.numeroPrincipal}>{estatisticas.questionarios.total}</p>
               <p className={styles.detalheCartao}>{estatisticas.questionarios.ativos} ativos</p>
             </div>
 
             <div className={styles.cartao}>
+              <IconeUsuarios />
               <h2 className={styles.tituloCartao}>Usuários</h2>
               <p className={styles.numeroPrincipal}>
                 {estatisticas.usuarios.consultores + estatisticas.usuarios.administradores}
@@ -66,6 +131,7 @@ export function DashboardAdmin() {
             </div>
 
             <div className={styles.cartao}>
+              <IconeRespostas />
               <h2 className={styles.tituloCartao}>Respostas</h2>
               <p className={styles.numeroPrincipal}>{estatisticas.respostas.total}</p>
               <p className={styles.detalheCartao}>
@@ -100,7 +166,7 @@ export function DashboardAdmin() {
           <div className={tabela.secaoAdmin}>
             <h2>Respostas por instituição</h2>
             {estatisticas.por_instituicao.length === 0 ? (
-              <p>Ainda não há respostas registradas.</p>
+              <p className={tabela.semDados}>Ainda não há respostas registradas.</p>
             ) : (
               <div className={tabela.envoltorioTabela}>
                 <table className={tabela.tabela}>

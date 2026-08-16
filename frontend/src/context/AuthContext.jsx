@@ -23,6 +23,13 @@ export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
   const [token, setToken] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  // Separado de `carregando` (restauração de sessão ao montar o app, usado
+  // pelos guards de rota) de propósito: se entrar() reaproveitasse
+  // `carregando`, PublicRoute desmontaria <LoginPage> durante o envio do
+  // formulário (guard `if (carregando) return null`), perdendo o estado
+  // local de email/senha/erro bem no momento em que um erro 401 precisa
+  // aparecer.
+  const [entrando, setEntrando] = useState(false);
 
   const limparSessao = useCallback(() => {
     definirTokenSessao(null);
@@ -63,7 +70,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const entrar = useCallback(async (email, senha) => {
-    setCarregando(true);
+    setEntrando(true);
     try {
       const resposta = await authApi.login(email, senha);
       definirTokenSessao(resposta.token);
@@ -71,7 +78,7 @@ export function AuthProvider({ children }) {
       setUsuario(resposta.usuario);
       return resposta.usuario;
     } finally {
-      setCarregando(false);
+      setEntrando(false);
     }
   }, []);
 
@@ -90,6 +97,7 @@ export function AuthProvider({ children }) {
     papel: usuario?.papel ?? null,
     estaAutenticado: Boolean(usuario && token),
     carregando,
+    entrando,
     entrar,
     sair,
   };

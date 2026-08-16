@@ -175,3 +175,39 @@ def _registrar_comandos_cli(app):
             print("Administrador já existia — nenhuma ação necessária.")
         else:
             print(f"Administrador criado: {admin.email}")
+
+    @app.cli.command("seed-dev-data")
+    def seed_dev_data_cmd():
+        """Popula os 3 bancos com uma massa de dados fictícia para testes
+        manuais (instituições, setores, questionários Karasek/COPSOQ,
+        respostas, Consultores e memória institucional). Idempotente —
+        rodar de novo não duplica. Recusa rodar fora de FLASK_ENV=development
+        para nunca poluir um banco de produção por engano."""
+        if app.config["FLASK_ENV"] != "development":
+            print(
+                "Recusado: este comando só roda com FLASK_ENV=development "
+                "(configurado atualmente como "
+                f"'{app.config['FLASK_ENV']}')."
+            )
+            return
+
+        from app.seed import (
+            NOME_INSTITUICAO_1,
+            NOME_INSTITUICAO_2,
+            NOME_INSTITUICAO_3,
+            SENHA_DEMO,
+            seed_dev_data,
+        )
+
+        if not seed_dev_data():
+            print("Dados de teste já existiam — nenhuma ação necessária.")
+            return
+
+        print("Massa de dados de teste criada com sucesso:")
+        print(f"  - Instituições: {NOME_INSTITUICAO_1}, {NOME_INSTITUICAO_2}, {NOME_INSTITUICAO_3}")
+        print("  - Questionários: um Karasek ativo, um COPSOQ encerrado (inativo)")
+        print("  - Respostas cobrindo grupos acima e abaixo do threshold de k-anonimato")
+        print(f"  - Consultores de teste (senha para todos: {SENHA_DEMO}):")
+        print(f"      consultor.um@exemplo.com   -> {NOME_INSTITUICAO_1}")
+        print(f"      consultor.dois@exemplo.com -> {NOME_INSTITUICAO_2}, {NOME_INSTITUICAO_3}")
+        print("      consultor.tres@exemplo.com -> todas as instituições")
