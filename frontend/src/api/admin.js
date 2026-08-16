@@ -104,6 +104,29 @@ export async function obterResultados(instituicaoId) {
   return data;
 }
 
+// Dashboard "Resultados" (multi-instituição/setor/questionário/instrumento)
+// — diferente de obterResultados acima, que é escopado a uma instituição só.
+// Usa URLSearchParams em vez de deixar o axios serializar os arrays
+// sozinho: o padrão do axios é `chave[]=1&chave[]=2`, mas o backend
+// (Pydantic/flask-openapi3) só entende `chave=1&chave=2` (confirmado
+// testando a rota) — passar um URLSearchParams pronto faz o axios usá-lo
+// como está, sem re-serializar.
+export async function obterResultadosDashboard({
+  instituicaoIds = [],
+  setorIds = [],
+  questionarioIds = [],
+  instrumento = "",
+} = {}) {
+  const params = new URLSearchParams();
+  instituicaoIds.forEach((id) => params.append("instituicao_ids", id));
+  setorIds.forEach((id) => params.append("setor_ids", id));
+  questionarioIds.forEach((id) => params.append("questionario_ids", id));
+  if (instrumento) params.append("instrumento", instrumento);
+
+  const { data } = await api.get("/admin/resultados", { params });
+  return data;
+}
+
 // --- Exportação CSV ------------------------------------------------------
 
 // Só deve ser chamada após confirmação explícita do usuário na UI — ver

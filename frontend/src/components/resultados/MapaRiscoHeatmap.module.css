@@ -1,0 +1,55 @@
+.envoltorio {
+  overflow-x: auto;
+}
+
+.tabela {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.tabela th,
+.tabela td {
+  padding: var(--espaco-2);
+  text-align: center;
+  border: 1px solid var(--cor-borda);
+  white-space: nowrap;
+}
+
+.tabela th[scope="row"] {
+  text-align: left;
+  color: var(--cor-texto-secundario);
+  font-weight: 600;
+}
+
+.celula {
+  font-weight: 600;
+}
+
+.celulaVazia {
+  color: var(--cor-texto-secundario);
+}
+
+.nivelBaixo {
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso);
+}
+
+.nivelModerado {
+  background: var(--cor-risco-moderado-fundo);
+  color: var(--cor-risco-moderado);
+}
+
+.nivelAlto {
+  background: var(--cor-risco-alto-fundo);
+  color: var(--cor-risco-alto);
+}
+
+.nivelCritico {
+  background: var(--cor-perigo-fundo);
+  color: var(--cor-perigo);
+}
+
+.semDados {
+  color: var(--cor-texto-secundario);
+}

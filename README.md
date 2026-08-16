@@ -28,6 +28,22 @@ Com o backend rodando localmente, a documentação interativa da API
 
 ## Licenciamento
 
-- Código-fonte: **PolyForm Noncommercial License 1.0.0** — uso
-  não-comercial e educacional.
-- Materiais pedagógicos (questionários, guias, cartilhas): **CC BY-NC-SA 4.0**.
+Este projeto usa **licenciamento duplo**, separando código e conteúdo pedagógico:
+
+| Conteúdo | Licença | Arquivo |
+|---|---|---|
+| Código-fonte (`frontend/`, `backend/`, scripts, configs) | [PolyForm Noncommercial 1.0.0](./LICENSE) | `LICENSE` |
+| Materiais pedagógicos (questionários, cartilhas, roteiros, guias em `docs/`) | [CC BY-NC-SA 4.0](./docs/LICENSE-MATERIAIS.md) | `docs/LICENSE-MATERIAIS.md` |
+
+**Permitido:** uso livre e gratuito em instituições de ensino públicas e para
+fins educacionais, de pesquisa e não comerciais, incluindo adaptação para
+outras instituições de Educação Profissional e Tecnológica (EPT).
+
+**Vedado:** exploração comercial, revenda, ou uso do sistema/materiais em
+processos de licitação ou contratação por terceiros com fins lucrativos.
+
+Cada arquivo de material pedagógico deve conter, em seu cabeçalho, a nota:
+
+```
+Licenciado sob CC BY-NC-SA 4.0 — https://creativecommons.org/licenses/by-nc-sa/4.0/
+```

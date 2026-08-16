@@ -60,6 +60,7 @@ bearer token), exceto rotas marcadas como públicas.
 | POST | `/admin/usuarios/{id}/vinculos` | Vincular consultor a instituição(ões) |
 | DELETE | `/admin/usuarios/{id}/vinculos/{instituicao_id}` | Remover um vínculo específico |
 | GET | `/admin/instituicoes/{id}/resultados` | Resultados agregados de qualquer instituição |
+| GET | `/admin/resultados` | Dashboard de resultados por dimensão, com filtro multi-seleção (`instituicao_ids`, `setor_ids`, `questionario_ids`) e por instrumento (`karasek`/`copsoq`/`misto`); inclui `risco`/`nivel_risco` (0-100, 4 faixas, comparável entre instrumentos) |
 | GET | `/admin/respostas/export` | Exportação CSV bruta (requer confirmação prévia — ver doc 05) |
 | GET/PUT | `/admin/configuracoes` | Threshold de k-anonimato, toggles de IA, provedor LLM |
 | GET | `/admin/logs` | Log de atividade |

@@ -13,6 +13,7 @@ const CHAVE_RECOLHIDA = "proteger-nr1-admin-sidebar-recolhida";
 // telas estreitas) em vez do <nav> horizontal anterior.
 const LINKS = [
   { to: "/admin", rotulo: "Visão geral", fim: true, Icone: IconeVisaoGeral },
+  { to: "/admin/resultados", rotulo: "Resultados", Icone: IconeResultados },
   { to: "/admin/instituicoes", rotulo: "Instituições e setores", Icone: IconeInstituicoes },
   { to: "/admin/questionarios", rotulo: "Questionários", Icone: IconeQuestionarios },
   { to: "/admin/usuarios", rotulo: "Usuários", Icone: IconeUsuarios },
@@ -127,6 +128,21 @@ function IconeVisaoGeral({ className }) {
   );
 }
 
+function IconeResultados({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M4 20V10M10 20V4M16 20v-7M4 20h16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function IconeInstituicoes({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
@@ -172,13 +188,86 @@ function IconeUsuarios({ className }) {
 function IconeConfiguracoes({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
-      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"
+      <rect x="10.7" y="1" width="2.6" height="3.2" rx="0.6" fill="none" stroke="currentColor" strokeWidth="1.3" />
+      <rect
+        x="10.7"
+        y="1"
+        width="2.6"
+        height="3.2"
+        rx="0.6"
+        fill="none"
         stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
+        strokeWidth="1.3"
+        transform="rotate(45 12 12)"
       />
+      <rect
+        x="10.7"
+        y="1"
+        width="2.6"
+        height="3.2"
+        rx="0.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        transform="rotate(90 12 12)"
+      />
+      <rect
+        x="10.7"
+        y="1"
+        width="2.6"
+        height="3.2"
+        rx="0.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        transform="rotate(135 12 12)"
+      />
+      <rect
+        x="10.7"
+        y="1"
+        width="2.6"
+        height="3.2"
+        rx="0.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        transform="rotate(180 12 12)"
+      />
+      <rect
+        x="10.7"
+        y="1"
+        width="2.6"
+        height="3.2"
+        rx="0.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        transform="rotate(225 12 12)"
+      />
+      <rect
+        x="10.7"
+        y="1"
+        width="2.6"
+        height="3.2"
+        rx="0.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        transform="rotate(270 12 12)"
+      />
+      <rect
+        x="10.7"
+        y="1"
+        width="2.6"
+        height="3.2"
+        rx="0.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        transform="rotate(315 12 12)"
+      />
+      <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="12" cy="12" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }

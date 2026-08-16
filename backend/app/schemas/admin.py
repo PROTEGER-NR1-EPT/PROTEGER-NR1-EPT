@@ -276,6 +276,65 @@ class UsuarioInstituicaoVinculoPath(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Dashboard de resultados (multi-instituição/setor/questionário/instrumento)
+# ---------------------------------------------------------------------------
+
+
+class FiltroResultadosQuery(BaseModel):
+    instituicao_ids: Optional[list[int]] = Field(
+        None, description="Sem filtro (omitido) = todas as instituições."
+    )
+    setor_ids: Optional[list[int]] = Field(None, description="Sem filtro (omitido) = todos os setores.")
+    questionario_ids: Optional[list[int]] = Field(
+        None, description="Sem filtro (omitido) = todos os questionários."
+    )
+    instrumento: Optional[str] = Field(
+        None,
+        # Nota: Field(examples=[...]) não pode ser usado aqui — modelos usados
+        # como query:/path: em flask_openapi3 esperam examples no formato de
+        # mapa do OpenAPI clássico, e quebram com uma lista (só funciona em
+        # modelos de body:/resposta, ver ListarLogsQuery). Descrição textual
+        # no lugar, incluindo um exemplo em prosa.
+        description=(
+            "'karasek' ou 'copsoq' = só questionários puros daquele instrumento; "
+            "'misto' = questionários com domínios de mais de um instrumento (ex.: "
+            "'misto'). Combina por interseção com questionario_ids, quando ambos "
+            "forem enviados."
+        ),
+    )
+
+
+class ResultadoDimensaoItem(BaseModel):
+    instituicao_id: int
+    instituicao_nome: str
+    setor_id: int
+    setor_nome: str
+    questionario_id: int
+    questionario_titulo: str
+    dominio_id: int
+    dominio_nome: str
+    instrumento: str
+    n_respostas: int
+    threshold: int
+    resultado_disponivel: bool
+    risco: Optional[float] = Field(
+        None,
+        description=(
+            "0-100, comparável entre instrumentos ('quanto maior, pior') — null se "
+            "resultado_disponivel for false. Calculado em tempo de leitura, nunca "
+            "gravado em resultados_agregados."
+        ),
+    )
+    nivel_risco: Optional[str] = Field(
+        None, description="'baixo' (≤25) / 'moderado' (≤50) / 'alto' (≤75) / 'critico' (>75), ou null."
+    )
+
+
+class ListaResultadosDimensaoResponse(RootModel[list[ResultadoDimensaoItem]]):
+    pass
+
+
+# ---------------------------------------------------------------------------
 # Exportação de respostas brutas
 # ---------------------------------------------------------------------------
 

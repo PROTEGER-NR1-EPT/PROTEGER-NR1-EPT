@@ -26,6 +26,11 @@
   --color-perigo: var(--cor-perigo);
   --color-perigo-fundo: var(--cor-perigo-fundo);
 
+  --color-risco-moderado: var(--cor-risco-moderado);
+  --color-risco-moderado-fundo: var(--cor-risco-moderado-fundo);
+  --color-risco-alto: var(--cor-risco-alto);
+  --color-risco-alto-fundo: var(--cor-risco-alto-fundo);
+
   --color-foco: var(--cor-foco);
 
   --radius-borda: var(--raio-borda);

@@ -26,6 +26,30 @@
   height: 1.75rem;
 }
 
+/* Em telas pequenas o botão fica menor e semitransparente para atrapalhar
+   menos o conteúdo, ganhando opacidade total ao toque/hover/foco ou quando
+   o painel está aberto. */
+@media (max-width: 639px) {
+  .botaoFlutuante {
+    width: 2.5rem;
+    height: 2.5rem;
+    opacity: 0.5;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+  }
+
+  .icone {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .botaoFlutuante:hover,
+  .botaoFlutuante:focus-visible,
+  .botaoFlutuante:active,
+  .botaoFlutuante[aria-expanded="true"] {
+    opacity: 1;
+  }
+}
+
 /* Dica visual (tooltip) — só para quem usa mouse/teclado (aria-hidden:
    quem usa leitor de tela já recebe o aria-label do próprio botão).
    Some quando o painel está aberto (aria-expanded) pra não competir com

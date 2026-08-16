@@ -28,6 +28,16 @@
   --cor-perigo: #b91c1c;
   --cor-perigo-fundo: #fee2e2;
 
+  /* Escala de risco de 4 níveis (dashboard de Resultados do Administrador
+     — docs/07): "baixo"/"critico" reaproveitam --cor-sucesso/--cor-perigo
+     acima; "moderado"/"alto" são cores novas, distintas de
+     --cor-primaria/--cor-foco/--cor-atencao para não confundir com outros
+     usos já existentes. */
+  --cor-risco-moderado: #0e7490;
+  --cor-risco-moderado-fundo: #cffafe;
+  --cor-risco-alto: #7c3aed;
+  --cor-risco-alto-fundo: #ede9fe;
+
   --cor-foco: #2563eb;
 
   --raio-borda: 6px;
@@ -56,6 +66,11 @@
   --cor-atencao-fundo: #4d3d00;
   --cor-perigo: #ff6b6b;
   --cor-perigo-fundo: #4d0000;
+
+  --cor-risco-moderado: #22d3ee;
+  --cor-risco-moderado-fundo: #083344;
+  --cor-risco-alto: #c084fc;
+  --cor-risco-alto-fundo: #2e1065;
 
   --cor-foco: #ffdd00;
 }

@@ -1,0 +1,27 @@
+.semDados {
+  color: var(--cor-texto-secundario);
+}
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.legendaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+}
+
+.ponto {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

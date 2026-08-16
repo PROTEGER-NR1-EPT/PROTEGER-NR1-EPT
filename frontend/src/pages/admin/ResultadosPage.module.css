@@ -1,0 +1,148 @@
+.titulo {
+  margin: 0 0 var(--espaco-4);
+}
+
+/* --- Cards de KPI ------------------------------------------------------ */
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--espaco-3);
+  margin: 0 0 var(--espaco-4);
+}
+
+.cartao {
+  border: 1px solid var(--cor-borda);
+  border-left: 4px solid var(--cor-acento, var(--cor-primaria));
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  background: var(--cor-fundo);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.cartao:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09);
+  transform: translateY(-1px);
+}
+
+.iconeCartao {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--cor-acento, var(--cor-primaria));
+  margin-bottom: var(--espaco-2);
+}
+
+.tituloCartao {
+  margin: 0 0 var(--espaco-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--cor-texto-secundario);
+}
+
+.numeroPrincipal {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.detalheCartao {
+  margin: var(--espaco-1) 0 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* --- Painel de visualização (abas + gráfico/mapa) ----------------------- */
+
+.painel {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  background: var(--cor-fundo);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: var(--espaco-4);
+  margin-bottom: var(--espaco-5);
+}
+
+.abas {
+  display: flex;
+  gap: var(--espaco-1);
+  border-bottom: 1px solid var(--cor-borda);
+  margin-bottom: var(--espaco-4);
+}
+
+.aba {
+  border: none;
+  background: none;
+  padding: var(--espaco-2) var(--espaco-3);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.aba:hover {
+  color: var(--cor-texto);
+}
+
+.abaAtiva {
+  color: var(--cor-primaria);
+  border-bottom-color: var(--cor-primaria);
+}
+
+.painelAba {
+  min-height: 12rem;
+}
+
+/* --- Filtros: seção secundária, ancorada no fim da página --------------- */
+
+.secaoFiltros {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3) var(--espaco-4) var(--espaco-4);
+  margin-bottom: var(--espaco-4);
+  background: var(--cor-fundo-alt);
+}
+
+.cabecalhoFiltros {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-3);
+}
+
+.tituloFiltros {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.contadorFiltros {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cor-primaria-texto);
+  background: var(--cor-primaria);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
+.linhaFiltros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+.linhaFiltros > * {
+  flex: 1 1 12rem;
+}
+
+.acoesFiltros {
+  display: flex;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-3);
+}

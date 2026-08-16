@@ -25,10 +25,12 @@ from app.schemas.admin import (
     EditarUsuarioBody,
     EstatisticasResponse,
     ExportRespostasQuery,
+    FiltroResultadosQuery,
     ListaInstituicoesAdminResponse,
     ListaLogsResponse,
     ListaMemoriaAdminResponse,
     ListaQuestionariosResponse,
+    ListaResultadosDimensaoResponse,
     ListaSetoresAdminResponse,
     ListaUsuariosResponse,
     ListarLogsQuery,
@@ -48,6 +50,7 @@ from app.services.estatisticas import contar_grupos_abaixo_threshold, montar_tot
 from app.services.exportacao import exportar_respostas_csv
 from app.services.instrumentos import instrumentos_disponiveis
 from app.services.k_anonimato import obter_configuracao, obter_resultados, obter_threshold
+from app.services.resultados_dashboard import obter_resultados_dashboard
 
 tag = Tag(
     name="Administrador",
@@ -769,6 +772,31 @@ def desvincular_usuario_instituicao(path: UsuarioInstituicaoVinculoPath):
 @requer_papel(PAPEL_ADMINISTRADOR)
 def resultados_de_qualquer_instituicao(path: InstituicaoIdPath):
     return obter_resultados(path.instituicao_id)
+
+
+@bp.get(
+    "/resultados",
+    summary="Dashboard de resultados (multi-filtro)",
+    description=(
+        "Resultados agregados por dimensão (domínio), filtráveis por várias "
+        "instituições/setores/questionários e por instrumento ('karasek', "
+        "'copsoq' ou 'misto') ao mesmo tempo — diferente de "
+        "GET /admin/instituicoes/{id}/resultados, que é escopado a uma "
+        "instituição só. Cada grupo passa pelo filtro de k-anonimato "
+        "individualmente antes de qualquer agregação (docs/05). Inclui "
+        "`risco`/`nivel_risco` (0-100, 4 faixas, comparável entre "
+        "instrumentos) usado pelo radar/mapa de risco do painel."
+    ),
+    responses={200: ListaResultadosDimensaoResponse, **respostas_erro(401, 403)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def resultados_dashboard(query: FiltroResultadosQuery):
+    return obter_resultados_dashboard(
+        instituicao_ids=query.instituicao_ids,
+        setor_ids=query.setor_ids,
+        questionario_ids=query.questionario_ids,
+        instrumento=query.instrumento,
+    )
 
 
 # ---------------------------------------------------------------------------
