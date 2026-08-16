@@ -5,6 +5,16 @@ import { obterQuestionarioAtivo, enviarRespostas } from "../../api/publico";
 import { Button } from "../../components/forms/Button";
 import styles from "./QuestionarioPage.module.css";
 
+function IconeIndisponivel() {
+  return (
+    <svg viewBox="0 0 24 24" className={styles.iconeCartao} aria-hidden="true" focusable="false">
+      <rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path d="M3 9h18" stroke="currentColor" strokeWidth="2" />
+      <path d="M8 15h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 // Convenção simples de regra condicional (regra "regra condicional
 // simples" do escopo do MVP): { dependeDoItem: <item_id>, valorEsperado: <valor> }.
 // O backend guarda `regra_condicional` como JSON livre
@@ -20,7 +30,7 @@ function itemDeveSerExibido(item, respostas) {
 }
 
 export function QuestionarioPage() {
-  const { instituicao, setor } = useOutletContext();
+  const { instituicao, setor, limparFluxo } = useOutletContext();
   const navigate = useNavigate();
 
   const [questionario, setQuestionario] = useState(null);
@@ -39,7 +49,7 @@ export function QuestionarioPage() {
         if (!cancelado) setQuestionario(dados);
       })
       .catch((erro) => {
-        if (!cancelado) setErroCarregamento(erro.mensagem);
+        if (!cancelado) setErroCarregamento(erro);
       })
       .finally(() => {
         if (!cancelado) setCarregando(false);
@@ -49,27 +59,19 @@ export function QuestionarioPage() {
     };
   }, [instituicao, setor]);
 
-  const itensVisiveisPorDominio = useMemo(() => {
+  const itensVisiveis = useMemo(() => {
     if (!questionario) return [];
-    return questionario.dominios.map((dominio) => ({
-      ...dominio,
-      itens: dominio.itens.filter((item) => itemDeveSerExibido(item, respostas)),
-    }));
+    return questionario.itens.filter((item) => itemDeveSerExibido(item, respostas));
   }, [questionario, respostas]);
 
-  const todosVisiveisRespondidos = itensVisiveisPorDominio.every((dominio) =>
-    dominio.itens.every((item) => respostas[item.id] !== undefined)
+  const todosVisiveisRespondidos = itensVisiveis.every(
+    (item) => respostas[item.id] !== undefined
   );
 
-  const totalItensVisiveis = itensVisiveisPorDominio.reduce(
-    (soma, dominio) => soma + dominio.itens.length,
-    0
-  );
-  const totalRespondidos = itensVisiveisPorDominio.reduce(
-    (soma, dominio) =>
-      soma + dominio.itens.filter((item) => respostas[item.id] !== undefined).length,
-    0
-  );
+  const totalItensVisiveis = itensVisiveis.length;
+  const totalRespondidos = itensVisiveis.filter(
+    (item) => respostas[item.id] !== undefined
+  ).length;
 
   if (!instituicao || !setor) {
     return <Navigate to="/participar" replace />;
@@ -77,6 +79,11 @@ export function QuestionarioPage() {
 
   function handleRespostaItem(itemId, valor) {
     setRespostas((atual) => ({ ...atual, [itemId]: valor }));
+  }
+
+  function handleEscolherOutra() {
+    limparFluxo();
+    navigate("/participar");
   }
 
   async function handleEnviar(evento) {
@@ -87,10 +94,8 @@ export function QuestionarioPage() {
       // Só envia respostas de itens ainda visíveis — um item escondido por
       // regra condicional não deve ir no payload.
       const respostasVisiveis = {};
-      itensVisiveisPorDominio.forEach((dominio) => {
-        dominio.itens.forEach((item) => {
-          respostasVisiveis[item.id] = respostas[item.id];
-        });
+      itensVisiveis.forEach((item) => {
+        respostasVisiveis[item.id] = respostas[item.id];
       });
 
       await enviarRespostas({
@@ -122,10 +127,31 @@ export function QuestionarioPage() {
   }
 
   if (erroCarregamento) {
+    const semQuestionarioVinculado = erroCarregamento.erro === "questionario_indisponivel";
+
+    if (semQuestionarioVinculado) {
+      return (
+        <section className={styles.secao}>
+          <div className="container">
+            <div className={styles.cartaoEstado} role="status">
+              <IconeIndisponivel />
+              <h1 className={styles.tituloCartaoEstado}>Nenhum questionário disponível</h1>
+              <p className={styles.textoCartaoEstado}>
+                A instituição e o setor selecionados ainda não têm um questionário ativo. Isso
+                costuma acontecer quando a pesquisa ainda não foi liberada por lá — tente
+                novamente mais tarde ou fale com quem coordena a pesquisa na sua instituição.
+              </p>
+              <Button onClick={handleEscolherOutra}>Escolher outra instituição ou setor</Button>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
     return (
       <section className="container">
         <p className={styles.erro} role="alert">
-          {erroCarregamento}
+          {erroCarregamento.mensagem}
         </p>
       </section>
     );
@@ -153,33 +179,29 @@ export function QuestionarioPage() {
         </div>
 
         <form onSubmit={handleEnviar}>
-          {itensVisiveisPorDominio.map((dominio) => (
-            <div key={dominio.id} className={styles.dominio}>
-              {dominio.itens.map((item) => (
-                <fieldset key={item.id} className={styles.item}>
-                  <legend className={styles.textoItem}>{item.texto}</legend>
-                  <div className={styles.escala}>
-                    {Array.from(
-                      { length: item.escala_max - item.escala_min + 1 },
-                      (_, indice) => item.escala_min + indice
-                    ).map((valor) => (
-                      <label key={valor} className={styles.opcaoEscala}>
-                        <input
-                          type="radio"
-                          className={styles.inputEscala}
-                          name={`item-${item.id}`}
-                          value={valor}
-                          checked={respostas[item.id] === valor}
-                          onChange={() => handleRespostaItem(item.id, valor)}
-                          required
-                        />
-                        <span className={styles.bolhaEscala}>{valor}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              ))}
-            </div>
+          {itensVisiveis.map((item) => (
+            <fieldset key={item.id} className={styles.item}>
+              <legend className={styles.textoItem}>{item.texto}</legend>
+              <div className={styles.escala}>
+                {Array.from(
+                  { length: item.escala_max - item.escala_min + 1 },
+                  (_, indice) => item.escala_min + indice
+                ).map((valor) => (
+                  <label key={valor} className={styles.opcaoEscala}>
+                    <input
+                      type="radio"
+                      className={styles.inputEscala}
+                      name={`item-${item.id}`}
+                      value={valor}
+                      checked={respostas[item.id] === valor}
+                      onChange={() => handleRespostaItem(item.id, valor)}
+                      required
+                    />
+                    <span className={styles.bolhaEscala}>{valor}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
           ))}
 
           {erroEnvio && (

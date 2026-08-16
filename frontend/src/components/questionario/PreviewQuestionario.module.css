@@ -1,0 +1,154 @@
+.sobreposicao {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-4) var(--espaco-3);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 40rem;
+  /* Limita a altura do modal à viewport e força o .corpo (única área com
+     overflow) a ser o que rola — cabeçalho/rodapé ficam sempre visíveis
+     sem depender de position: sticky (que, sem essa contenção, deixava o
+     conteúdo do corpo "vazar" por cima/baixo deles durante a rolagem). */
+  max-height: calc(100vh - 2 * var(--espaco-4));
+  overflow: hidden;
+  background: var(--cor-fundo);
+  border-radius: var(--raio-borda);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.cabecalho {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-4);
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+}
+
+.aviso {
+  margin: 0 0 var(--espaco-1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.9;
+}
+
+.titulo {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.botaoFechar {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 var(--espaco-1);
+}
+
+.botaoFechar:hover {
+  opacity: 0.75;
+}
+
+.corpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--espaco-4);
+}
+
+.semItens {
+  color: var(--cor-texto-secundario);
+}
+
+.item {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-4);
+  margin: 0 0 var(--espaco-3);
+  background: var(--cor-fundo);
+}
+
+.textoItem {
+  font-weight: 600;
+  margin-bottom: var(--espaco-3);
+  padding: 0;
+}
+
+.escala {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.opcaoEscala {
+  display: block;
+  cursor: pointer;
+}
+
+.inputEscala {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.bolhaEscala {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  padding: 0 var(--espaco-1);
+  border-radius: 999px;
+  border: 2px solid var(--cor-borda);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-weight: 600;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.opcaoEscala:hover .bolhaEscala {
+  border-color: var(--cor-primaria);
+}
+
+.inputEscala:checked + .bolhaEscala {
+  background: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+}
+
+.inputEscala:focus-visible + .bolhaEscala {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.rodape {
+  flex-shrink: 0;
+  padding: var(--espaco-2) var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+  background: var(--cor-fundo);
+}
+
+.progresso {
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}

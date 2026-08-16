@@ -22,6 +22,9 @@ class InstituicaoAdmin(BaseModel):
     uf: Optional[str] = None
     municipio: Optional[str] = None
     ativo: bool = Field(..., description="Instituições inativas somem dos dropdowns públicos.")
+    questionario_id: Optional[int] = Field(
+        None, description="Questionário que esta instituição usa no fluxo público. Nulo = nenhum vinculado ainda."
+    )
 
 
 class ListaInstituicoesAdminResponse(RootModel[list[InstituicaoAdmin]]):
@@ -32,6 +35,9 @@ class CriarInstituicaoBody(BaseModel):
     nome: str = Field(..., min_length=1, examples=["Instituto Federal de Exemplo"])
     uf: Optional[str] = Field(None, max_length=2, examples=["SP"])
     municipio: Optional[str] = Field(None, examples=["São Paulo"])
+    questionario_id: Optional[int] = Field(
+        None, description="Precisa ser um questionário existente e ativo."
+    )
 
 
 class EditarInstituicaoBody(BaseModel):
@@ -41,6 +47,13 @@ class EditarInstituicaoBody(BaseModel):
     ativo: Optional[bool] = Field(
         None,
         description="Preferir DELETE /admin/instituicoes/{id} para desativar — este campo existe para reativar.",
+    )
+    questionario_id: Optional[int] = Field(
+        None,
+        description=(
+            "Questionário que esta instituição passa a usar no fluxo público. Precisa ser um "
+            "questionário existente e ativo. Enviar null desvincula."
+        ),
     )
 
 
@@ -106,6 +119,15 @@ class ItemBody(BaseModel):
 
 class DominioBody(BaseModel):
     nome: str = Field(..., examples=["Demanda Psicológica"])
+    instrumento: str = Field(
+        ...,
+        description=(
+            "Um dos instrumentos registrados em app/services/instrumentos (atualmente: karasek, "
+            "copsoq) — cada domínio carrega o seu, permitindo questionários mistos (domínios de "
+            "instrumentos diferentes no mesmo questionário)."
+        ),
+        examples=["karasek"],
+    )
     chave: str = Field(
         ...,
         description=(
@@ -121,20 +143,24 @@ class DominioBody(BaseModel):
 
 class CriarQuestionarioBody(BaseModel):
     titulo: str = Field(..., min_length=1, examples=["Pesquisa de Riscos Psicossociais 2026"])
-    instrumento: str = Field(
-        ...,
-        description="Um dos instrumentos registrados em app/services/instrumentos (atualmente: karasek, copsoq).",
-        examples=["karasek"],
-    )
     versao: str = Field("1.0", examples=["1.0"])
     ativo: bool = Field(
         False,
         description=(
-            "Existe no máximo um questionário ativo por vez no sistema todo "
-            "(o modelo de dados não vincula questionário a instituição/setor "
-            "— ver README do backend). Ativar este questionário desativa "
-            "automaticamente qualquer outro que estivesse ativo."
+            "Vários questionários podem estar ativos ao mesmo tempo — 'ativo' significa apenas "
+            "'disponível para ser vinculado a uma instituição' (ver "
+            "PUT /admin/instituicoes/{id}, campo questionario_id), sem exclusividade entre eles."
         ),
+    )
+    modo_apresentacao: str = Field(
+        "blocos",
+        description=(
+            "'blocos' (itens agrupados por domínio, na ordem cadastrada) ou 'intercalado' "
+            "(itens de domínios diferentes alternados) — relevante sobretudo em questionários "
+            "mistos, para decidir como os itens de instrumentos diferentes são apresentados sem "
+            "revelar ao respondente que são 'partes' distintas."
+        ),
+        examples=["blocos"],
     )
     dominios: Optional[list[DominioBody]] = None
 
@@ -143,6 +169,7 @@ class EditarQuestionarioBody(BaseModel):
     titulo: Optional[str] = Field(None, min_length=1)
     versao: Optional[str] = None
     ativo: Optional[bool] = None
+    modo_apresentacao: Optional[str] = Field(None, description="'blocos' ou 'intercalado'.")
     dominios: Optional[list[DominioBody]] = Field(
         None,
         description=(
@@ -161,6 +188,7 @@ class ItemResponse(ItemBody):
 class DominioResponse(BaseModel):
     id: int
     nome: str
+    instrumento: str
     chave: str
     ordem: int
     itens: list[ItemResponse]
@@ -169,9 +197,12 @@ class DominioResponse(BaseModel):
 class QuestionarioResponse(BaseModel):
     id: int
     titulo: str
-    instrumento: str
+    instrumentos: list[str] = Field(
+        ..., description="Instrumentos distintos entre os domínios deste questionário (mais de um = misto)."
+    )
     versao: str
     ativo: bool
+    modo_apresentacao: str
     dominios: list[DominioResponse]
 
 
@@ -188,12 +219,21 @@ class QuestionarioIdPath(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class InstituicaoVinculadaResumo(BaseModel):
+    id: int
+    nome: str
+
+
 class UsuarioAdmin(BaseModel):
     id: int
     nome: str
     email: str
     papel: str = Field(..., examples=["consultor"])
     ativo: bool
+    instituicoes: list[InstituicaoVinculadaResumo] = Field(
+        default_factory=list,
+        description="Instituições vinculadas (ConsultorInstituicao) — sempre vazio para Administrador.",
+    )
 
 
 class ListaUsuariosResponse(RootModel[list[UsuarioAdmin]]):
@@ -207,6 +247,16 @@ class CriarUsuarioBody(BaseModel):
     papel: str = Field(..., description="'consultor' ou 'administrador'.", examples=["consultor"])
 
 
+class EditarUsuarioBody(BaseModel):
+    nome: Optional[str] = Field(None, min_length=1)
+    email: Optional[str] = None
+    papel: Optional[str] = Field(None, description="'consultor' ou 'administrador'.")
+    ativo: Optional[bool] = Field(
+        None,
+        description="Preferir DELETE /admin/usuarios/{id} para desativar — este campo existe para reativar.",
+    )
+
+
 class UsuarioIdPath(BaseModel):
     usuario_id: int
 
@@ -218,6 +268,11 @@ class VincularInstituicoesBody(BaseModel):
         description="IDs de instituições (banco anônimo) às quais este usuário passa a ter acesso como Consultor.",
         examples=[[1, 2, 3]],
     )
+
+
+class UsuarioInstituicaoVinculoPath(BaseModel):
+    usuario_id: int
+    instituicao_id: int
 
 
 # ---------------------------------------------------------------------------

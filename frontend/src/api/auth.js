@@ -16,3 +16,11 @@ export async function restaurarSessao() {
   const { data } = await api.get("/auth/sessao");
   return data;
 }
+
+export async function alterarSenha(senhaAtual, senhaNova) {
+  const { data } = await api.put("/auth/senha", {
+    senha_atual: senhaAtual,
+    senha_nova: senhaNova,
+  });
+  return data;
+}

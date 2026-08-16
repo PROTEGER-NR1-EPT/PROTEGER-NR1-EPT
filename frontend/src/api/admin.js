@@ -58,6 +58,11 @@ export async function editarQuestionario(id, alteracoes) {
   return data;
 }
 
+export async function excluirQuestionario(id) {
+  const { data } = await api.delete(`/admin/questionarios/${id}`);
+  return data;
+}
+
 // --- Usuários e vínculos -----------------------------------------------
 
 export async function listarUsuarios() {
@@ -70,10 +75,25 @@ export async function criarUsuario(usuario) {
   return data;
 }
 
+export async function editarUsuario(id, alteracoes) {
+  const { data } = await api.put(`/admin/usuarios/${id}`, alteracoes);
+  return data;
+}
+
+export async function desativarUsuario(id) {
+  const { data } = await api.delete(`/admin/usuarios/${id}`);
+  return data;
+}
+
 export async function vincularInstituicoes(usuarioId, instituicaoIds) {
   const { data } = await api.post(`/admin/usuarios/${usuarioId}/vinculos`, {
     instituicao_ids: instituicaoIds,
   });
+  return data;
+}
+
+export async function desvincularInstituicao(usuarioId, instituicaoId) {
+  const { data } = await api.delete(`/admin/usuarios/${usuarioId}/vinculos/${instituicaoId}`);
   return data;
 }
 

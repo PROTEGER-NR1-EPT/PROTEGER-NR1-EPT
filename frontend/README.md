@@ -81,7 +81,7 @@ src/
 ├── context/        → AuthContext (sessão) e PreferencesContext (fonte/contraste — adicionado, não estava na lista original)
 ├── routes/          → PublicRoute (foge de /login se já autenticado) e ProtectedRoute (bloqueia por papel)
 ├── pages/            → uma pasta por área: publico/, auth/, consultor/, admin/
-├── components/        → layout/, forms/, resultados/, acessibilidade/
+├── components/        → layout/, forms/, resultados/, acessibilidade/, questionario/, common/
 ├── hooks/               → useAuth, usePreferences
 ├── styles/               → tokens.css (variáveis de tema), global.css (reset), tabela.module.css (tabelas admin)
 └── utils/resultados.js   → classifica cada linha de /resultados pelo formato do valor_agregado (ver comentário no arquivo)
@@ -92,7 +92,16 @@ adicionados por necessidade direta de outra regra pedida — cada um tem um
 comentário no topo explicando por quê: `PreferencesContext.jsx`,
 `hooks/usePreferences.js`, `pages/publico/PublicFlowLayout.jsx`,
 `pages/admin/AdminLayout.jsx`, `components/forms/Button.jsx`,
-`utils/resultados.js`.
+`utils/resultados.js`, `pages/admin/PerfilPage.jsx` (troca de senha,
+acessível a partir do rodapé da sidebar do admin),
+`components/questionario/PreviewQuestionario.jsx` (pré-visualização de
+questionário estilo Google Forms) e `components/common/ConfirmModal.jsx`
+(modal de confirmação genérico, usado hoje para excluir questionário).
+
+`pages/admin/AdminLayout.jsx` é uma sidebar colapsável (não um `<nav>`
+horizontal) — vira barra de ícones inferior em telas estreitas (estilo
+app), encolhe para só ícones em telas largas, e mostra status do
+usuário logado + link para `PerfilPage.jsx` no rodapé.
 
 Em `pages/publico/`, `PaginaInicial.jsx` (rota `/`) fica **fora** do
 `PublicFlowLayout` — é a página institucional de apresentação do projeto,

@@ -1,15 +1,15 @@
 from datetime import datetime, timedelta, timezone
 
-from flask import current_app, jsonify, request
+from flask import current_app, g, jsonify, request
 from flask_openapi3 import APIBlueprint, Tag
 
 from app.auth.decorators import carregar_usuario_por_token, login_required
-from app.auth.security import gerar_token_sessao, verificar_senha
+from app.auth.security import gerar_hash_senha, gerar_token_sessao, verificar_senha
 from app.blueprints import erro_json
 from app.extensions import db
 from app.models.auth import SessaoLogin, Usuario
-from app.schemas.auth import LoginBody, LoginResponse, LogoutResponse
-from app.schemas.comuns import respostas_erro
+from app.schemas.auth import AlterarSenhaBody, LoginBody, LoginResponse, LogoutResponse
+from app.schemas.comuns import ConfirmadoResponse, respostas_erro
 
 tag = Tag(name="Autenticação", description="Login e logout de Consultor/Administrador.")
 bp = APIBlueprint("auth", __name__, url_prefix="/auth", abp_tags=[tag])
@@ -135,3 +135,24 @@ def logout():
     resposta = jsonify({"confirmado": True})
     resposta.delete_cookie(COOKIE_NOME, path=COOKIE_PATH)
     return resposta
+
+
+@bp.put(
+    "/senha",
+    summary="Alterar senha",
+    description=(
+        "Troca a senha do usuário autenticado (Consultor ou Administrador), "
+        "exigindo a senha atual para confirmar a identidade. As sessões já "
+        "abertas em outros dispositivos não são revogadas."
+    ),
+    security=[{"bearerAuth": []}],
+    responses={200: ConfirmadoResponse, **respostas_erro(400, 401)},
+)
+@login_required
+def alterar_senha(body: AlterarSenhaBody):
+    if not verificar_senha(body.senha_atual, g.usuario.senha_hash):
+        return erro_json("senha_atual_invalida", "Senha atual incorreta.", 400)
+
+    g.usuario.senha_hash = gerar_hash_senha(body.senha_nova)
+    db.session.commit()
+    return {"confirmado": True}

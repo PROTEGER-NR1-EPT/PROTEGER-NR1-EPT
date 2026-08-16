@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
 from flask import Response, g, request
@@ -21,6 +22,7 @@ from app.schemas.admin import (
     EditarInstituicaoBody,
     EditarQuestionarioBody,
     EditarSetorBody,
+    EditarUsuarioBody,
     EstatisticasResponse,
     ExportRespostasQuery,
     ListaInstituicoesAdminResponse,
@@ -36,6 +38,7 @@ from app.schemas.admin import (
     QuestionarioIdPath,
     SetorIdPath,
     UsuarioIdPath,
+    UsuarioInstituicaoVinculoPath,
     VincularInstituicoesBody,
 )
 from app.schemas.comuns import ConfirmadoResponse, IdCriadoResponse, respostas_erro
@@ -69,6 +72,19 @@ def _registrar_log(acao, entidade=None, entidade_id=None, detalhes=None):
             detalhes=detalhes,
         )
     )
+
+
+def _validar_questionario_vinculo(questionario_id):
+    """None é válido (desvincula/nenhum vínculo). Se enviado, precisa
+    apontar para um questionário existente e ativo (disponível)."""
+    if questionario_id is None:
+        return None
+    questionario = db.session.get(Questionario, questionario_id)
+    if questionario is None or not questionario.ativo:
+        return erro_json(
+            "questionario_invalido", "questionario_id inválido ou não disponível.", 400
+        )
+    return None
 
 
 def _espelhar_instituicao_em_memoria(instituicao: Instituicao):
@@ -105,6 +121,7 @@ def listar_instituicoes():
             "uf": i.uf,
             "municipio": i.municipio,
             "ativo": i.ativo,
+            "questionario_id": i.questionario_id,
         }
         for i in instituicoes
     ]
@@ -122,7 +139,17 @@ def criar_instituicao(body: CriarInstituicaoBody):
     if not nome:
         return erro_json("payload_invalido", "O campo 'nome' é obrigatório.", 400)
 
-    instituicao = Instituicao(nome=nome, uf=body.uf, municipio=body.municipio, ativo=True)
+    erro = _validar_questionario_vinculo(body.questionario_id)
+    if erro is not None:
+        return erro
+
+    instituicao = Instituicao(
+        nome=nome,
+        uf=body.uf,
+        municipio=body.municipio,
+        ativo=True,
+        questionario_id=body.questionario_id,
+    )
     db.session.add(instituicao)
     db.session.flush()
     _espelhar_instituicao_em_memoria(instituicao)
@@ -144,7 +171,13 @@ def editar_instituicao(path: InstituicaoIdPath, body: EditarInstituicaoBody):
         return erro_json("nao_encontrado", "Instituição não encontrada.", 404)
 
     dados = body.model_dump(exclude_unset=True)
-    for campo in ("nome", "uf", "municipio", "ativo"):
+
+    if "questionario_id" in dados:
+        erro = _validar_questionario_vinculo(dados["questionario_id"])
+        if erro is not None:
+            return erro
+
+    for campo in ("nome", "uf", "municipio", "ativo", "questionario_id"):
         if campo in dados:
             setattr(instituicao, campo, dados[campo])
 
@@ -253,11 +286,25 @@ def editar_setor(path: SetorIdPath, body: EditarSetorBody):
 # ---------------------------------------------------------------------------
 
 
+def _validar_instrumentos_dominios(dominios_dados):
+    for dominio_dados in dominios_dados or []:
+        instrumento = dominio_dados.get("instrumento")
+        if instrumento not in instrumentos_disponiveis():
+            return erro_json(
+                "instrumento_invalido",
+                f"Domínio '{dominio_dados.get('nome', '')}': instrumento deve ser um de: "
+                f"{instrumentos_disponiveis()}.",
+                400,
+            )
+    return None
+
+
 def _montar_dominios(questionario_id, dominios_dados):
     for ordem_dominio, dominio_dados in enumerate(dominios_dados or []):
         dominio = Dominio(
             questionario_id=questionario_id,
             nome=dominio_dados.get("nome", ""),
+            instrumento=dominio_dados.get("instrumento", ""),
             chave=dominio_dados.get("chave", ""),
             ordem=dominio_dados.get("ordem", ordem_dominio),
         )
@@ -283,13 +330,15 @@ def _serializar_questionario(questionario: Questionario):
     return {
         "id": questionario.id,
         "titulo": questionario.titulo,
-        "instrumento": questionario.instrumento,
+        "instrumentos": sorted({dominio.instrumento for dominio in questionario.dominios}),
         "versao": questionario.versao,
         "ativo": questionario.ativo,
+        "modo_apresentacao": questionario.modo_apresentacao,
         "dominios": [
             {
                 "id": dominio.id,
                 "nome": dominio.nome,
+                "instrumento": dominio.instrumento,
                 "chave": dominio.chave,
                 "ordem": dominio.ordem,
                 "itens": [
@@ -323,46 +372,51 @@ def listar_questionarios():
     return [_serializar_questionario(q) for q in questionarios]
 
 
+MODOS_APRESENTACAO_VALIDOS = ("blocos", "intercalado")
+
+
 @bp.post(
     "/questionarios",
     summary="Criar questionário",
     description=(
         "Cria um questionário com sua árvore completa de domínios e itens "
-        "em uma única chamada. `instrumento` precisa ser um dos valores "
-        "registrados em app/services/instrumentos (strategy pattern — "
-        "docs/06). Se `ativo: true`, desativa automaticamente qualquer "
-        "outro questionário ativo (só existe um por vez — ver README)."
+        "em uma única chamada. Cada domínio carrega seu próprio "
+        "`instrumento` (um dos valores registrados em "
+        "app/services/instrumentos — strategy pattern, docs/06), o que "
+        "permite questionários mistos combinando domínios de instrumentos "
+        "diferentes. `ativo` não é mais exclusivo: vários questionários "
+        "podem estar ativos ao mesmo tempo, cada instituição escolhe o seu "
+        "(ver PUT /admin/instituicoes/{id})."
     ),
     responses={201: IdCriadoResponse, **respostas_erro(400, 401, 403)},
 )
 @requer_papel(PAPEL_ADMINISTRADOR)
 def criar_questionario(body: CriarQuestionarioBody):
     titulo = body.titulo.strip()
-    instrumento = body.instrumento
 
     if not titulo:
         return erro_json("payload_invalido", "O campo 'titulo' é obrigatório.", 400)
-    if instrumento not in instrumentos_disponiveis():
+    if body.modo_apresentacao not in MODOS_APRESENTACAO_VALIDOS:
         return erro_json(
-            "instrumento_invalido",
-            f"instrumento deve ser um de: {instrumentos_disponiveis()}.",
+            "modo_apresentacao_invalido",
+            f"modo_apresentacao deve ser um de: {MODOS_APRESENTACAO_VALIDOS}.",
             400,
         )
 
-    ativo = body.ativo
-    if ativo:
-        db.session.query(Questionario).filter_by(ativo=True).update({"ativo": False})
+    dominios_dados = [d.model_dump(exclude_none=True) for d in body.dominios] if body.dominios else None
+    erro = _validar_instrumentos_dominios(dominios_dados)
+    if erro is not None:
+        return erro
 
     questionario = Questionario(
         titulo=titulo,
-        instrumento=instrumento,
         versao=body.versao,
-        ativo=ativo,
+        ativo=body.ativo,
+        modo_apresentacao=body.modo_apresentacao,
     )
     db.session.add(questionario)
     db.session.flush()
 
-    dominios_dados = [d.model_dump(exclude_none=True) for d in body.dominios] if body.dominios else None
     _montar_dominios(questionario.id, dominios_dados)
     _registrar_log("criar_questionario", "questionario", questionario.id)
     db.session.commit()
@@ -375,10 +429,10 @@ def criar_questionario(body: CriarQuestionarioBody):
     description=(
         "Só altera os campos enviados no payload. Se `dominios` for "
         "enviado, SUBSTITUI COMPLETAMENTE os domínios/itens atuais (apaga "
-        "e recria) — não faz merge parcial. Ativar (`ativo: true`) "
-        "desativa automaticamente qualquer outro questionário ativo."
+        "e recria) — não faz merge parcial. `ativo` não é mais exclusivo: "
+        "vários questionários podem estar ativos ao mesmo tempo."
     ),
-    responses={200: ConfirmadoResponse, **respostas_erro(401, 403, 404)},
+    responses={200: ConfirmadoResponse, **respostas_erro(400, 401, 403, 404)},
 )
 @requer_papel(PAPEL_ADMINISTRADOR)
 def editar_questionario(path: QuestionarioIdPath, body: EditarQuestionarioBody):
@@ -388,20 +442,20 @@ def editar_questionario(path: QuestionarioIdPath, body: EditarQuestionarioBody):
 
     dados = body.model_dump(exclude_unset=True)
 
-    for campo in ("titulo", "versao"):
+    if "modo_apresentacao" in dados and dados["modo_apresentacao"] not in MODOS_APRESENTACAO_VALIDOS:
+        return erro_json(
+            "modo_apresentacao_invalido",
+            f"modo_apresentacao deve ser um de: {MODOS_APRESENTACAO_VALIDOS}.",
+            400,
+        )
+    if "dominios" in dados:
+        erro = _validar_instrumentos_dominios(dados["dominios"])
+        if erro is not None:
+            return erro
+
+    for campo in ("titulo", "versao", "ativo", "modo_apresentacao"):
         if campo in dados:
             setattr(questionario, campo, dados[campo])
-
-    if "ativo" in dados:
-        ativo = bool(dados["ativo"])
-        if ativo:
-            # Invariante do MVP: só existe um questionário ativo por vez,
-            # já que o modelo de dados não vincula questionário a
-            # instituição/setor (ver publico.py).
-            db.session.query(Questionario).filter(
-                Questionario.id != questionario.id, Questionario.ativo.is_(True)
-            ).update({"ativo": False})
-        questionario.ativo = ativo
 
     if "dominios" in dados:
         # Substituição completa de domínios/itens — mais simples e previsível
@@ -418,6 +472,54 @@ def editar_questionario(path: QuestionarioIdPath, body: EditarQuestionarioBody):
     return {"confirmado": True}
 
 
+@bp.delete(
+    "/questionarios/<int:questionario_id>",
+    summary="Excluir questionário",
+    description=(
+        "Exclusão definitiva (domínios e itens em cascata). Só é permitida "
+        "se o questionário não tiver nenhuma resposta registrada "
+        "(respostas_brutas) — para nunca destruir dado histórico, um "
+        "questionário já respondido não pode ser excluído, apenas "
+        "desativado (PUT .../questionarios/{id} com `ativo: false`). "
+        "Instituições vinculadas a ele (Instituicao.questionario_id) são "
+        "automaticamente desvinculadas."
+    ),
+    responses={200: ConfirmadoResponse, **respostas_erro(400, 401, 403, 404)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def excluir_questionario(path: QuestionarioIdPath):
+    questionario = db.session.get(Questionario, path.questionario_id)
+    if questionario is None:
+        return erro_json("nao_encontrado", "Questionário não encontrado.", 404)
+
+    total_respostas = (
+        db.session.query(func.count(RespostaBruta.id))
+        .filter_by(questionario_id=questionario.id)
+        .scalar()
+    )
+    if total_respostas > 0:
+        return erro_json(
+            "questionario_com_respostas",
+            "Este questionário já tem respostas registradas e não pode ser excluído — "
+            "desative-o em vez disso.",
+            400,
+        )
+
+    db.session.query(Instituicao).filter_by(questionario_id=questionario.id).update(
+        {"questionario_id": None}
+    )
+
+    for dominio in list(questionario.dominios):
+        for item in list(dominio.itens):
+            db.session.delete(item)
+        db.session.delete(dominio)
+    db.session.delete(questionario)
+
+    _registrar_log("excluir_questionario", "questionario", questionario.id)
+    db.session.commit()
+    return {"confirmado": True}
+
+
 # ---------------------------------------------------------------------------
 # Usuários (Consultor / Administrador) e vínculos
 # ---------------------------------------------------------------------------
@@ -426,12 +528,35 @@ def editar_questionario(path: QuestionarioIdPath, body: EditarQuestionarioBody):
 @bp.get(
     "/usuarios",
     summary="Listar usuários",
-    description="Nunca inclui `senha_hash`.",
+    description=(
+        "Nunca inclui `senha_hash`. Inclui as instituições vinculadas a "
+        "cada Consultor (resolvidas em duas consultas — banco `auth` para "
+        "os vínculos, banco `anonimo` para os nomes — nunca um JOIN "
+        "direto entre bancos, ver docs/03)."
+    ),
     responses={200: ListaUsuariosResponse, **respostas_erro(401, 403)},
 )
 @requer_papel(PAPEL_ADMINISTRADOR)
 def listar_usuarios():
     usuarios = db.session.query(Usuario).order_by(Usuario.nome).all()
+
+    vinculos = db.session.query(ConsultorInstituicao).all()
+    instituicao_ids_por_usuario = defaultdict(list)
+    for vinculo in vinculos:
+        instituicao_ids_por_usuario[vinculo.usuario_id].append(vinculo.instituicao_id)
+
+    todos_instituicao_ids = {
+        instituicao_id
+        for ids in instituicao_ids_por_usuario.values()
+        for instituicao_id in ids
+    }
+    nomes_instituicao = {
+        i.id: i.nome
+        for i in db.session.query(Instituicao.id, Instituicao.nome)
+        .filter(Instituicao.id.in_(todos_instituicao_ids))
+        .all()
+    }
+
     return [
         {
             "id": u.id,
@@ -439,6 +564,10 @@ def listar_usuarios():
             "email": u.email,
             "papel": u.papel,
             "ativo": u.ativo,
+            "instituicoes": [
+                {"id": instituicao_id, "nome": nomes_instituicao.get(instituicao_id, "?")}
+                for instituicao_id in instituicao_ids_por_usuario.get(u.id, [])
+            ],
         }
         for u in usuarios
     ]
@@ -472,6 +601,75 @@ def criar_usuario(body: CriarUsuarioBody):
     _registrar_log("criar_usuario", "usuario", usuario.id, {"papel": papel})
     db.session.commit()
     return {"id": usuario.id}, 201
+
+
+@bp.put(
+    "/usuarios/<int:usuario_id>",
+    summary="Editar usuário",
+    description=(
+        "Só altera os campos enviados no payload. Não altera senha (não há "
+        "rota de reset de senha de terceiro — cada usuário troca a própria "
+        "via PUT /auth/senha)."
+    ),
+    responses={200: ConfirmadoResponse, **respostas_erro(400, 401, 403, 404, 409)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def editar_usuario(path: UsuarioIdPath, body: EditarUsuarioBody):
+    usuario = db.session.get(Usuario, path.usuario_id)
+    if usuario is None:
+        return erro_json("nao_encontrado", "Usuário não encontrado.", 404)
+
+    dados = body.model_dump(exclude_unset=True)
+
+    if "papel" in dados and dados["papel"] not in PAPEIS_VALIDOS:
+        return erro_json("papel_invalido", f"papel deve ser um de: {PAPEIS_VALIDOS}.", 400)
+
+    if "email" in dados:
+        email = (dados["email"] or "").strip().lower()
+        if not email:
+            return erro_json("payload_invalido", "O campo 'email' não pode ficar vazio.", 400)
+        existente = db.session.query(Usuario).filter_by(email=email).first()
+        if existente is not None and existente.id != usuario.id:
+            return erro_json("email_em_uso", "Já existe um usuário com este e-mail.", 409)
+        dados["email"] = email
+
+    if "nome" in dados:
+        dados["nome"] = dados["nome"].strip()
+
+    for campo in ("nome", "email", "papel", "ativo"):
+        if campo in dados:
+            setattr(usuario, campo, dados[campo])
+
+    _registrar_log("editar_usuario", "usuario", usuario.id, dados)
+    db.session.commit()
+    return {"confirmado": True}
+
+
+@bp.delete(
+    "/usuarios/<int:usuario_id>",
+    summary="Desativar usuário",
+    description=(
+        "Soft delete apenas (`ativo = false`) — nunca DELETE físico. O "
+        "usuário desativado não consegue mais logar, mas seu log de "
+        "atividade e vínculos consultor-instituição são preservados. Um "
+        "Administrador não pode desativar a própria conta."
+    ),
+    responses={200: ConfirmadoResponse, **respostas_erro(400, 401, 403, 404)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def desativar_usuario(path: UsuarioIdPath):
+    usuario = db.session.get(Usuario, path.usuario_id)
+    if usuario is None:
+        return erro_json("nao_encontrado", "Usuário não encontrado.", 404)
+    if usuario.id == g.usuario.id:
+        return erro_json(
+            "acao_invalida", "Você não pode desativar sua própria conta.", 400
+        )
+
+    usuario.ativo = False
+    _registrar_log("desativar_usuario", "usuario", usuario.id)
+    db.session.commit()
+    return {"confirmado": True}
 
 
 @bp.post(
@@ -523,6 +721,35 @@ def vincular_usuario_instituicoes(path: UsuarioIdPath, body: VincularInstituicoe
         "usuario",
         path.usuario_id,
         {"instituicao_ids": instituicao_ids},
+    )
+    db.session.commit()
+    return {"confirmado": True}
+
+
+@bp.delete(
+    "/usuarios/<int:usuario_id>/vinculos/<int:instituicao_id>",
+    summary="Desvincular usuário de uma instituição",
+    description=(
+        "Remove um único vínculo consultor-instituição (N:N). Idempotente: "
+        "se o vínculo não existir, ainda retorna sucesso."
+    ),
+    responses={200: ConfirmadoResponse, **respostas_erro(401, 403, 404)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def desvincular_usuario_instituicao(path: UsuarioInstituicaoVinculoPath):
+    usuario = db.session.get(Usuario, path.usuario_id)
+    if usuario is None:
+        return erro_json("nao_encontrado", "Usuário não encontrado.", 404)
+
+    db.session.query(ConsultorInstituicao).filter_by(
+        usuario_id=path.usuario_id, instituicao_id=path.instituicao_id
+    ).delete()
+
+    _registrar_log(
+        "desvincular_usuario_instituicao",
+        "usuario",
+        path.usuario_id,
+        {"instituicao_id": path.instituicao_id},
     )
     db.session.commit()
     return {"confirmado": True}

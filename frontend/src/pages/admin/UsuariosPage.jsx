@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 
 import * as adminApi from "../../api/admin";
+import { BotaoIcone } from "../../components/common/BotaoIcone";
 import { Button } from "../../components/forms/Button";
+import { ConfirmModal } from "../../components/common/ConfirmModal";
+import { IconeEditar, IconeExcluir } from "../../components/common/icones";
 import formStyles from "../../components/forms/FormField.module.css";
 import tabela from "../../styles/tabela.module.css";
+import styles from "./UsuariosPage.module.css";
 
 const USUARIO_VAZIO = { nome: "", email: "", senha: "", papel: "consultor" };
 
@@ -14,6 +18,10 @@ export function UsuariosPage() {
   const [erro, setErro] = useState(null);
   const [mensagem, setMensagem] = useState(null);
   const [novoUsuario, setNovoUsuario] = useState(USUARIO_VAZIO);
+  const [editandoUsuarioId, setEditandoUsuarioId] = useState(null);
+  const [confirmarDesativarUsuario, setConfirmarDesativarUsuario] = useState(null);
+  const [desativandoUsuario, setDesativandoUsuario] = useState(false);
+  const [erroModalUsuario, setErroModalUsuario] = useState(null);
 
   const [usuarioVinculo, setUsuarioVinculo] = useState("");
   const [instituicoesSelecionadas, setInstituicoesSelecionadas] = useState([]);
@@ -38,17 +46,65 @@ export function UsuariosPage() {
     recarregar();
   }, []);
 
-  async function handleCriarUsuario(evento) {
+  function handleEditarUsuario(usuario) {
+    setErro(null);
+    setMensagem(null);
+    setEditandoUsuarioId(usuario.id);
+    setNovoUsuario({ nome: usuario.nome, email: usuario.email, senha: "", papel: usuario.papel });
+  }
+
+  function handleCancelarEdicaoUsuario() {
+    setEditandoUsuarioId(null);
+    setNovoUsuario(USUARIO_VAZIO);
+  }
+
+  async function handleSalvarUsuario(evento) {
     evento.preventDefault();
     setErro(null);
     setMensagem(null);
     try {
-      await adminApi.criarUsuario(novoUsuario);
+      if (editandoUsuarioId) {
+        await adminApi.editarUsuario(editandoUsuarioId, {
+          nome: novoUsuario.nome,
+          email: novoUsuario.email,
+          papel: novoUsuario.papel,
+        });
+        setMensagem("Usuário atualizado com sucesso.");
+        setEditandoUsuarioId(null);
+      } else {
+        await adminApi.criarUsuario(novoUsuario);
+        setMensagem("Usuário criado com sucesso.");
+      }
       setNovoUsuario(USUARIO_VAZIO);
-      setMensagem("Usuário criado com sucesso.");
       await recarregar();
     } catch (erroApi) {
       setErro(erroApi.mensagem);
+    }
+  }
+
+  async function handleReativarUsuario(usuario) {
+    setErro(null);
+    try {
+      await adminApi.editarUsuario(usuario.id, { ativo: true });
+      await recarregar();
+    } catch (erroApi) {
+      setErro(erroApi.mensagem);
+    }
+  }
+
+  async function handleConfirmarDesativacaoUsuario() {
+    if (!confirmarDesativarUsuario) return;
+    setDesativandoUsuario(true);
+    setErroModalUsuario(null);
+    try {
+      await adminApi.desativarUsuario(confirmarDesativarUsuario.id);
+      if (editandoUsuarioId === confirmarDesativarUsuario.id) handleCancelarEdicaoUsuario();
+      setConfirmarDesativarUsuario(null);
+      await recarregar();
+    } catch (erroApi) {
+      setErroModalUsuario(erroApi.mensagem);
+    } finally {
+      setDesativandoUsuario(false);
     }
   }
 
@@ -64,6 +120,17 @@ export function UsuariosPage() {
       );
       setMensagem("Vínculo(s) criado(s) com sucesso.");
       setInstituicoesSelecionadas([]);
+      await recarregar();
+    } catch (erroApi) {
+      setErro(erroApi.mensagem);
+    }
+  }
+
+  async function handleDesvincular(usuario, instituicao) {
+    setErro(null);
+    try {
+      await adminApi.desvincularInstituicao(usuario.id, instituicao.id);
+      await recarregar();
     } catch (erroApi) {
       setErro(erroApi.mensagem);
     }
@@ -93,7 +160,9 @@ export function UsuariosPage() {
                   <th scope="col">Nome</th>
                   <th scope="col">E-mail</th>
                   <th scope="col">Papel</th>
+                  <th scope="col">Instituições</th>
                   <th scope="col">Status</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -103,11 +172,49 @@ export function UsuariosPage() {
                     <td>{usuario.email}</td>
                     <td>{usuario.papel}</td>
                     <td>
+                      {usuario.instituicoes.length > 0 ? (
+                        usuario.instituicoes.map((instituicao) => (
+                          <span key={instituicao.id} className={styles.chip}>
+                            {instituicao.nome}
+                            <button
+                              type="button"
+                              className={styles.chipRemover}
+                              onClick={() => handleDesvincular(usuario, instituicao)}
+                              aria-label={`Desvincular ${usuario.nome} de ${instituicao.nome}`}
+                              title="Desvincular"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>
                       <span
                         className={`${tabela.selo} ${usuario.ativo ? tabela.seloAtivo : tabela.seloInativo}`}
                       >
                         {usuario.ativo ? "Ativo" : "Inativo"}
                       </span>
+                    </td>
+                    <td className={tabela.acoes}>
+                      <BotaoIcone
+                        icone={IconeEditar}
+                        rotulo={`Editar ${usuario.nome}`}
+                        onClick={() => handleEditarUsuario(usuario)}
+                      />
+                      {usuario.ativo ? (
+                        <BotaoIcone
+                          icone={IconeExcluir}
+                          rotulo={`Desativar ${usuario.nome}`}
+                          onClick={() => setConfirmarDesativarUsuario(usuario)}
+                        />
+                      ) : (
+                        <Button variante="secundario" onClick={() => handleReativarUsuario(usuario)}>
+                          Reativar
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -116,8 +223,8 @@ export function UsuariosPage() {
           </div>
         )}
 
-        <h3>Novo usuário</h3>
-        <form onSubmit={handleCriarUsuario} style={{ maxWidth: "28rem" }}>
+        <h3>{editandoUsuarioId ? "Editar usuário" : "Novo usuário"}</h3>
+        <form onSubmit={handleSalvarUsuario} style={{ maxWidth: "28rem" }}>
           <div className={formStyles.campo}>
             <label htmlFor="nome-usuario" className={formStyles.rotulo}>
               Nome
@@ -143,19 +250,21 @@ export function UsuariosPage() {
               required
             />
           </div>
-          <div className={formStyles.campo}>
-            <label htmlFor="senha-usuario" className={formStyles.rotulo}>
-              Senha provisória
-            </label>
-            <input
-              id="senha-usuario"
-              type="password"
-              className={formStyles.controle}
-              value={novoUsuario.senha}
-              onChange={(e) => setNovoUsuario({ ...novoUsuario, senha: e.target.value })}
-              required
-            />
-          </div>
+          {!editandoUsuarioId && (
+            <div className={formStyles.campo}>
+              <label htmlFor="senha-usuario" className={formStyles.rotulo}>
+                Senha provisória
+              </label>
+              <input
+                id="senha-usuario"
+                type="password"
+                className={formStyles.controle}
+                value={novoUsuario.senha}
+                onChange={(e) => setNovoUsuario({ ...novoUsuario, senha: e.target.value })}
+                required
+              />
+            </div>
+          )}
           <div className={formStyles.campo}>
             <label htmlFor="papel-usuario" className={formStyles.rotulo}>
               Papel
@@ -170,7 +279,16 @@ export function UsuariosPage() {
               <option value="administrador">Administrador</option>
             </select>
           </div>
-          <Button type="submit">Cadastrar usuário</Button>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <Button type="submit">
+              {editandoUsuarioId ? "Salvar alterações" : "Cadastrar usuário"}
+            </Button>
+            {editandoUsuarioId && (
+              <Button type="button" variante="secundario" onClick={handleCancelarEdicaoUsuario}>
+                Cancelar edição
+              </Button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -223,6 +341,30 @@ export function UsuariosPage() {
           <Button type="submit">Vincular</Button>
         </form>
       </div>
+
+      <ConfirmModal
+        aberto={confirmarDesativarUsuario !== null}
+        titulo={`Desativar "${confirmarDesativarUsuario?.nome ?? ""}"?`}
+        perigo
+        confirmando={desativandoUsuario}
+        textoConfirmar="Desativar"
+        onCancelar={() => {
+          setConfirmarDesativarUsuario(null);
+          setErroModalUsuario(null);
+        }}
+        onConfirmar={handleConfirmarDesativacaoUsuario}
+      >
+        <p>
+          O usuário deixa de conseguir fazer login imediatamente — o log de
+          atividade e os vínculos com instituições são preservados, e você
+          pode reativá-lo a qualquer momento.
+        </p>
+        {erroModalUsuario && (
+          <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+            {erroModalUsuario}
+          </p>
+        )}
+      </ConfirmModal>
     </section>
   );
 }

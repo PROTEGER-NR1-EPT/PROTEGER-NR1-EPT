@@ -111,7 +111,8 @@ app/
 ├── auth/
 │   ├── security.py          → hash de senha, geração de token
 │   └── decorators.py         → @login_required, @requer_papel(...)
-└── bootstrap.py               → criação idempotente do 1º Administrador
+├── bootstrap.py               → criação idempotente do 1º Administrador
+└── seed.py                     → massa de dados fictícia p/ dev (flask seed-dev-data / seed-questionario-misto)
 ```
 
 ## Rodando localmente (dentro do devcontainer)
@@ -133,11 +134,17 @@ flask db upgrade
 flask bootstrap-admin
 
 # opcional: popula os 3 bancos com uma massa de dados fictícia para
-# testar o sistema manualmente (instituições, questionários, respostas já
-# cobrindo grupos acima/abaixo do threshold de k-anonimato, Consultores de
-# teste, memória institucional) — idempotente, só roda com
-# FLASK_ENV=development. Ver app/seed.py para o que exatamente é criado.
+# testar o sistema manualmente (instituições, questionários — Karasek,
+# COPSOQ e um misto —, respostas já cobrindo grupos acima/abaixo do
+# threshold de k-anonimato, Consultores de teste, memória institucional)
+# — idempotente, só roda com FLASK_ENV=development. Ver app/seed.py para
+# o que exatamente é criado.
 flask seed-dev-data
+
+# opcional: se `seed-dev-data` já tinha rodado antes de o questionário
+# misto existir, este comando complementa só essa parte (idempotente pelo
+# título do questionário, não apaga/altera nada já existente).
+flask seed-questionario-misto
 
 # roda o servidor de desenvolvimento em http://localhost:8000
 python run.py
@@ -181,10 +188,18 @@ a cada boot do servidor.
 
 ## Decisões e simplificações do MVP
 
-- **Questionário ativo é único no sistema** (não por instituição/setor),
-  porque o modelo de dados de `docs/03-modelo-de-dados.md` não vincula
-  `questionarios` a uma instituição. Ativar um questionário desativa
-  automaticamente os demais (ver `admin.py`).
+- **Cada instituição escolhe o questionário que usa** via
+  `instituicoes.questionario_id` (nullable) — vários questionários podem
+  estar `ativo=true` (disponíveis para vínculo) ao mesmo tempo, sem
+  exclusividade entre eles (ver `docs/03-modelo-de-dados.md` e
+  `admin.py`). Um questionário pode ser **misto**: `dominios.instrumento`
+  vive no domínio, não no questionário, então um único questionário pode
+  combinar domínios de instrumentos diferentes (ex.: Karasek + COPSOQ) —
+  `services/k_anonimato.py:recalcular_resultados` agrupa por instrumento e
+  une os resultados. `Questionario.modo_apresentacao` (`blocos`/
+  `intercalado`) decide a ordem final dos itens entregues ao respondente
+  (`blueprints/publico.py:_montar_itens_em_ordem`), sem nunca revelar
+  domínio/instrumento.
 - **`resultados_agregados` usa um único período** (`periodo="consolidado"`),
   recalculado a cada nova resposta. Suporte a períodos reais (ex.: por
   semestre) é extensão futura que não exige mudança de schema.

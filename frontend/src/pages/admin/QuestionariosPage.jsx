@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 
 import * as adminApi from "../../api/admin";
+import { BotaoIcone } from "../../components/common/BotaoIcone";
 import { Button } from "../../components/forms/Button";
+import { ConfirmModal } from "../../components/common/ConfirmModal";
+import { IconeEditar, IconeExcluir } from "../../components/common/icones";
+import { PreviewQuestionario } from "../../components/questionario/PreviewQuestionario";
 import formStyles from "../../components/forms/FormField.module.css";
 import tabela from "../../styles/tabela.module.css";
 import styles from "./QuestionariosPage.module.css";
@@ -13,6 +17,11 @@ import styles from "./QuestionariosPage.module.css";
 const INSTRUMENTOS = [
   { valor: "karasek", rotulo: "Karasek Demand-Control" },
   { valor: "copsoq", rotulo: "COPSOQ" },
+];
+
+const MODOS_APRESENTACAO = [
+  { valor: "blocos", rotulo: "Em blocos (agrupados por domínio)" },
+  { valor: "intercalado", rotulo: "Intercalado (alterna entre os grupos)" },
 ];
 
 let contadorLocal = 0;
@@ -33,28 +42,65 @@ function novoItem() {
 }
 
 function novoDominio() {
-  return { _idLocal: idLocal(), nome: "", chave: "", itens: [novoItem()] };
+  return { _idLocal: idLocal(), nome: "", instrumento: "karasek", chave: "", itens: [novoItem()] };
 }
 
 const QUESTIONARIO_VAZIO = {
   titulo: "",
-  instrumento: "karasek",
   versao: "1.0",
   ativo: false,
+  modo_apresentacao: "blocos",
   dominios: [novoDominio()],
 };
 
+// Converte o questionário como vem da API (com ids reais) para o formato
+// editável do formulário (com _idLocal, usado só como key/controle local).
+function questionarioParaForm(questionario) {
+  return {
+    titulo: questionario.titulo,
+    versao: questionario.versao,
+    ativo: questionario.ativo,
+    modo_apresentacao: questionario.modo_apresentacao,
+    dominios: questionario.dominios.map((dominio) => ({
+      _idLocal: idLocal(),
+      nome: dominio.nome,
+      instrumento: dominio.instrumento,
+      chave: dominio.chave,
+      itens: dominio.itens.map((item) => ({
+        _idLocal: idLocal(),
+        texto: item.texto,
+        tipo_resposta: item.tipo_resposta,
+        escala_min: item.escala_min,
+        escala_max: item.escala_max,
+        invertido: item.invertido,
+        regra_condicional: item.regra_condicional,
+      })),
+    })),
+  };
+}
+
 export function QuestionariosPage() {
   const [questionarios, setQuestionarios] = useState([]);
+  const [instituicoes, setInstituicoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
   const [mensagem, setMensagem] = useState(null);
   const [form, setForm] = useState(QUESTIONARIO_VAZIO);
+  const [editandoId, setEditandoId] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [confirmarExclusao, setConfirmarExclusao] = useState(null);
+  const [excluindo, setExcluindo] = useState(false);
+  const [erroExclusao, setErroExclusao] = useState(null);
 
   async function recarregar() {
     setCarregando(true);
     try {
-      setQuestionarios(await adminApi.listarQuestionarios());
+      const [listaQuestionarios, listaInstituicoes] = await Promise.all([
+        adminApi.listarQuestionarios(),
+        adminApi.listarInstituicoes(),
+      ]);
+      setQuestionarios(listaQuestionarios);
+      setInstituicoes(listaInstituicoes);
     } catch (erroApi) {
       setErro(erroApi.mensagem);
     } finally {
@@ -66,13 +112,47 @@ export function QuestionariosPage() {
     recarregar();
   }, []);
 
-  async function handleAtivar(questionario) {
+  async function handleAlternarAtivo(questionario) {
     setErro(null);
     try {
-      await adminApi.editarQuestionario(questionario.id, { ativo: true });
+      await adminApi.editarQuestionario(questionario.id, { ativo: !questionario.ativo });
       await recarregar();
     } catch (erroApi) {
       setErro(erroApi.mensagem);
+    }
+  }
+
+  function handleEditar(questionario) {
+    setErro(null);
+    setMensagem(null);
+    setEditandoId(questionario.id);
+    setForm(questionarioParaForm(questionario));
+  }
+
+  function handleCancelarEdicao() {
+    setEditandoId(null);
+    setForm(QUESTIONARIO_VAZIO);
+  }
+
+  function handlePedirExclusao(questionario) {
+    setErroExclusao(null);
+    setConfirmarExclusao(questionario);
+  }
+
+  async function handleConfirmarExclusao() {
+    if (!confirmarExclusao) return;
+    setExcluindo(true);
+    setErroExclusao(null);
+    try {
+      await adminApi.excluirQuestionario(confirmarExclusao.id);
+      if (editandoId === confirmarExclusao.id) handleCancelarEdicao();
+      setConfirmarExclusao(null);
+      setMensagem("Questionário excluído com sucesso.");
+      await recarregar();
+    } catch (erroApi) {
+      setErroExclusao(erroApi.mensagem);
+    } finally {
+      setExcluindo(false);
     }
   }
 
@@ -127,24 +207,30 @@ export function QuestionariosPage() {
     });
   }
 
-  async function handleCriarQuestionario(evento) {
+  async function handleSalvarQuestionario(evento) {
     evento.preventDefault();
     setErro(null);
     setMensagem(null);
     try {
       const payload = {
         titulo: form.titulo,
-        instrumento: form.instrumento,
         versao: form.versao,
         ativo: form.ativo,
+        modo_apresentacao: form.modo_apresentacao,
         dominios: form.dominios.map(({ _idLocal, itens, ...dominio }) => ({
           ...dominio,
           itens: itens.map(({ _idLocal: itemId, ...item }) => item),
         })),
       };
-      await adminApi.criarQuestionario(payload);
+      if (editandoId) {
+        await adminApi.editarQuestionario(editandoId, payload);
+        setMensagem("Questionário atualizado com sucesso.");
+        setEditandoId(null);
+      } else {
+        await adminApi.criarQuestionario(payload);
+        setMensagem("Questionário criado com sucesso.");
+      }
       setForm(QUESTIONARIO_VAZIO);
-      setMensagem("Questionário criado com sucesso.");
       await recarregar();
     } catch (erroApi) {
       setErro(erroApi.mensagem);
@@ -164,8 +250,10 @@ export function QuestionariosPage() {
       <div className={tabela.secaoAdmin}>
         <h2>Questionários cadastrados</h2>
         <p>
-          Só existe um questionário ativo por vez no sistema — ativar um
-          desativa automaticamente qualquer outro.
+          Vários questionários podem estar ativos ao mesmo tempo — cada
+          instituição escolhe qual usa em "Instituições e setores". Um
+          questionário "Inativo" fica indisponível para vínculo até ser
+          reativado.
         </p>
         {carregando ? (
           <p>Carregando...</p>
@@ -175,7 +263,7 @@ export function QuestionariosPage() {
               <thead>
                 <tr>
                   <th scope="col">Título</th>
-                  <th scope="col">Instrumento</th>
+                  <th scope="col">Instrumento(s)</th>
                   <th scope="col">Versão</th>
                   <th scope="col">Domínios</th>
                   <th scope="col">Status</th>
@@ -186,7 +274,11 @@ export function QuestionariosPage() {
                 {questionarios.map((questionario) => (
                   <tr key={questionario.id}>
                     <td>{questionario.titulo}</td>
-                    <td>{questionario.instrumento}</td>
+                    <td>
+                      {questionario.instrumentos.length > 0
+                        ? questionario.instrumentos.join(" + ")
+                        : "—"}
+                    </td>
                     <td>{questionario.versao}</td>
                     <td>{questionario.dominios.length}</td>
                     <td>
@@ -196,12 +288,32 @@ export function QuestionariosPage() {
                         {questionario.ativo ? "Ativo" : "Inativo"}
                       </span>
                     </td>
-                    <td>
-                      {!questionario.ativo && (
-                        <Button variante="secundario" onClick={() => handleAtivar(questionario)}>
-                          Ativar
-                        </Button>
-                      )}
+                    <td className={tabela.acoes}>
+                      <Button
+                        variante="secundario"
+                        onClick={() =>
+                          setPreview({
+                            titulo: questionario.titulo,
+                            dominios: questionario.dominios,
+                            modoApresentacao: questionario.modo_apresentacao,
+                          })
+                        }
+                      >
+                        Pré-visualizar
+                      </Button>
+                      <Button variante="secundario" onClick={() => handleAlternarAtivo(questionario)}>
+                        {questionario.ativo ? "Desativar" : "Ativar"}
+                      </Button>
+                      <BotaoIcone
+                        icone={IconeEditar}
+                        rotulo={`Editar ${questionario.titulo}`}
+                        onClick={() => handleEditar(questionario)}
+                      />
+                      <BotaoIcone
+                        icone={IconeExcluir}
+                        rotulo={`Excluir ${questionario.titulo}`}
+                        onClick={() => handlePedirExclusao(questionario)}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -212,8 +324,8 @@ export function QuestionariosPage() {
       </div>
 
       <div className={tabela.secaoAdmin}>
-        <h2>Novo questionário</h2>
-        <form onSubmit={handleCriarQuestionario}>
+        <h2>{editandoId ? "Editar questionário" : "Novo questionário"}</h2>
+        <form onSubmit={handleSalvarQuestionario}>
           <div className={styles.linhaCampos}>
             <div className={formStyles.campo}>
               <label htmlFor="titulo-questionario" className={formStyles.rotulo}>
@@ -228,23 +340,6 @@ export function QuestionariosPage() {
               />
             </div>
             <div className={formStyles.campo}>
-              <label htmlFor="instrumento-questionario" className={formStyles.rotulo}>
-                Instrumento
-              </label>
-              <select
-                id="instrumento-questionario"
-                className={formStyles.controle}
-                value={form.instrumento}
-                onChange={(e) => setForm({ ...form, instrumento: e.target.value })}
-              >
-                {INSTRUMENTOS.map((instrumento) => (
-                  <option key={instrumento.valor} value={instrumento.valor}>
-                    {instrumento.rotulo}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={formStyles.campo}>
               <label htmlFor="versao-questionario" className={formStyles.rotulo}>
                 Versão
               </label>
@@ -255,6 +350,23 @@ export function QuestionariosPage() {
                 onChange={(e) => setForm({ ...form, versao: e.target.value })}
               />
             </div>
+            <div className={formStyles.campo}>
+              <label htmlFor="modo-apresentacao-questionario" className={formStyles.rotulo}>
+                Apresentação dos itens
+              </label>
+              <select
+                id="modo-apresentacao-questionario"
+                className={formStyles.controle}
+                value={form.modo_apresentacao}
+                onChange={(e) => setForm({ ...form, modo_apresentacao: e.target.value })}
+              >
+                {MODOS_APRESENTACAO.map((modo) => (
+                  <option key={modo.valor} value={modo.valor}>
+                    {modo.rotulo}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <label>
@@ -263,10 +375,15 @@ export function QuestionariosPage() {
               checked={form.ativo}
               onChange={(e) => setForm({ ...form, ativo: e.target.checked })}
             />{" "}
-            Ativar este questionário imediatamente (desativa o atual)
+            Ativar este questionário (fica disponível para ser vinculado a instituições)
           </label>
 
           <h3>Domínios</h3>
+          <p className={formStyles.textoAjuda}>
+            Cada domínio pertence a um instrumento — combine domínios de
+            instrumentos diferentes para montar um questionário misto (ex.:
+            Karasek + COPSOQ no mesmo formulário).
+          </p>
           {form.dominios.map((dominio, indiceDominio) => (
             <div key={dominio._idLocal} className={styles.dominioForm}>
               <div className={styles.linhaCampos}>
@@ -280,9 +397,25 @@ export function QuestionariosPage() {
                   />
                 </div>
                 <div className={formStyles.campo}>
+                  <label className={formStyles.rotulo}>Instrumento</label>
+                  <select
+                    className={formStyles.controle}
+                    value={dominio.instrumento}
+                    onChange={(e) =>
+                      atualizarDominio(indiceDominio, { instrumento: e.target.value })
+                    }
+                  >
+                    {INSTRUMENTOS.map((instrumento) => (
+                      <option key={instrumento.valor} value={instrumento.valor}>
+                        {instrumento.rotulo}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={formStyles.campo}>
                   <label className={formStyles.rotulo}>
                     Chave
-                    {form.instrumento === "karasek" && (
+                    {dominio.instrumento === "karasek" && (
                       <span className={formStyles.textoAjuda}>
                         {" "}
                         (use exatamente "demanda" ou "controle")
@@ -379,11 +512,83 @@ export function QuestionariosPage() {
             Adicionar domínio
           </Button>
 
-          <div style={{ marginTop: "1.5rem" }}>
-            <Button type="submit">Cadastrar questionário</Button>
+          <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.5rem" }}>
+            <Button type="submit">
+              {editandoId ? "Salvar alterações" : "Cadastrar questionário"}
+            </Button>
+            <Button
+              type="button"
+              variante="secundario"
+              onClick={() =>
+                setPreview({
+                  titulo: form.titulo,
+                  dominios: form.dominios,
+                  modoApresentacao: form.modo_apresentacao,
+                })
+              }
+            >
+              Pré-visualizar
+            </Button>
+            {editandoId && (
+              <Button type="button" variante="secundario" onClick={handleCancelarEdicao}>
+                Cancelar edição
+              </Button>
+            )}
           </div>
         </form>
       </div>
+
+      <PreviewQuestionario
+        aberto={preview !== null}
+        onFechar={() => setPreview(null)}
+        titulo={preview?.titulo}
+        dominios={preview?.dominios ?? []}
+        modoApresentacao={preview?.modoApresentacao}
+      />
+
+      <ConfirmModal
+        aberto={confirmarExclusao !== null}
+        titulo={`Excluir "${confirmarExclusao?.titulo ?? ""}"?`}
+        perigo
+        confirmando={excluindo}
+        textoConfirmar="Excluir definitivamente"
+        onCancelar={() => setConfirmarExclusao(null)}
+        onConfirmar={handleConfirmarExclusao}
+      >
+        {confirmarExclusao && (
+          <>
+            <p>
+              Esta ação é permanente: {confirmarExclusao.dominios.length} domínio(s) e{" "}
+              {confirmarExclusao.dominios.reduce((soma, d) => soma + d.itens.length, 0)}{" "}
+              item(ns) deste questionário serão apagados e não podem ser recuperados.
+            </p>
+            {(() => {
+              const vinculadas = instituicoes.filter(
+                (i) => i.questionario_id === confirmarExclusao.id
+              );
+              if (vinculadas.length === 0) return null;
+              return (
+                <p>
+                  <strong>{vinculadas.length}</strong>{" "}
+                  {vinculadas.length === 1 ? "instituição está vinculada" : "instituições estão vinculadas"}{" "}
+                  a este questionário ({vinculadas.map((i) => i.nome).join(", ")}) e{" "}
+                  {vinculadas.length === 1 ? "ficará" : "ficarão"} sem questionário até que
+                  você vincule outro.
+                </p>
+              );
+            })()}
+            <p>
+              Se já houver respostas registradas para este questionário, a exclusão será
+              bloqueada — use "Desativar" em vez de excluir.
+            </p>
+          </>
+        )}
+        {erroExclusao && (
+          <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+            {erroExclusao}
+          </p>
+        )}
+      </ConfirmModal>
     </section>
   );
 }

@@ -45,23 +45,23 @@ class ItemPublico(BaseModel):
     id: int = Field(..., description="ID do item — é a chave usada no payload de POST /respostas.")
     texto: str = Field(..., examples=["Meu trabalho exige muito de mim emocionalmente."])
     tipo_resposta: str = Field(..., examples=["escala_likert"])
-    ordem: int
     escala_min: int = Field(..., description="Menor valor aceito para este item.", examples=[1])
     escala_max: int = Field(..., description="Maior valor aceito para este item.", examples=[5])
-
-
-class DominioPublico(BaseModel):
-    id: int
-    ordem: int
-    itens: list[ItemPublico]
+    regra_condicional: Optional[dict] = Field(
+        None,
+        description="Reservado para lógica condicional de exibição, interpretada só no frontend.",
+    )
 
 
 class QuestionarioAtivoResponse(BaseModel):
-    """Nunca inclui `instrumento` nem `titulo`: o respondente não pode
-    identificar qual instrumento está sendo aplicado (docs/04)."""
+    """Nunca inclui `instrumento`, `dominio` nem `titulo`: o respondente não
+    pode identificar qual(is) instrumento(s) está(ão) sendo aplicado(s)
+    (docs/04). `itens` já vem em ordem final de apresentação (respeitando
+    modo_apresentacao do questionário — blocos ou intercalado), sem
+    aninhamento por domínio."""
 
     questionario_id: int = Field(..., description="Usado como questionario_id em POST /respostas.")
-    dominios: list[DominioPublico]
+    itens: list[ItemPublico]
 
 
 class EnviarRespostaBody(BaseModel):

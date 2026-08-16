@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime, timezone
 
 from flask import current_app
@@ -82,8 +83,35 @@ def recalcular_resultados(instituicao_id: int, setor_id: int, questionario_id: i
     n_respostas = len(respostas)
     payloads = [r.payload_json for r in respostas]
 
-    estrategia = obter_estrategia(questionario.instrumento)
-    resultado = estrategia.calcular(respostas=payloads, dominios=questionario.dominios)
+    # Questionário misto: cada domínio carrega seu próprio instrumento
+    # (Dominio.instrumento) — agrupa por instrumento e roda uma estratégia
+    # por grupo, depois une os resultados (chaves de dominio_id são
+    # disjuntas entre grupos, então a união de por_dominio é direta).
+    grupos_por_instrumento = defaultdict(list)
+    for dominio in questionario.dominios:
+        grupos_por_instrumento[dominio.instrumento].append(dominio)
+
+    por_dominio = {}
+    gerais = {}
+    for instrumento, dominios_grupo in grupos_por_instrumento.items():
+        estrategia = obter_estrategia(instrumento)
+        resultado_grupo = estrategia.calcular(respostas=payloads, dominios=dominios_grupo)
+        por_dominio.update(resultado_grupo["por_dominio"])
+        if resultado_grupo["geral"] is not None:
+            gerais[instrumento] = resultado_grupo["geral"]
+
+    # Caso comum (um só instrumento produz "geral", ex.: só Karasek):
+    # mantém o formato plano de sempre, para não quebrar quem já consome
+    # esse shape (frontend/src/utils/resultados.js, KarasekQuadrante.jsx).
+    # Só embrulha por instrumento se mais de um grupo produzir "geral" ao
+    # mesmo tempo — hoje não acontece (COPSOQ nunca produz "geral").
+    geral = None
+    if len(gerais) == 1:
+        geral = next(iter(gerais.values()))
+    elif len(gerais) > 1:
+        geral = gerais
+
+    resultado = {"por_dominio": por_dominio, "geral": geral}
 
     agora = datetime.now(timezone.utc)
 

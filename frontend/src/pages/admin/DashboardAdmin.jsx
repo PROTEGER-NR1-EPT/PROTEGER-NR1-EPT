@@ -89,9 +89,9 @@ export function DashboardAdmin() {
     <section>
       <h1>Painel do Administrador</h1>
       <p>
-        Olá, {usuario?.nome}. Use a navegação acima para gerenciar
-        instituições, setores, questionários, usuários, configurações do
-        sistema, exportação de dados e o log de atividade.
+        Olá, {usuario?.nome}. Use o menu para gerenciar instituições,
+        setores, questionários, usuários, configurações do sistema,
+        exportação de dados e o log de atividade.
       </p>
 
       {carregando && <p>Carregando estatísticas...</p>}

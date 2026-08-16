@@ -33,3 +33,8 @@ class LoginResponse(BaseModel):
 
 class LogoutResponse(BaseModel):
     confirmado: bool = Field(True, description="A sessão foi revogada — o token deixa de ser válido imediatamente.")
+
+
+class AlterarSenhaBody(BaseModel):
+    senha_atual: str = Field(..., min_length=1, description="Senha atual em texto plano, para confirmar a identidade.")
+    senha_nova: str = Field(..., min_length=8, description="Nova senha em texto plano (mínimo 8 caracteres).")

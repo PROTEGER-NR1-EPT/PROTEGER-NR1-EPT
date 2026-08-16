@@ -1,0 +1,90 @@
+.pagina {
+  max-width: 34rem;
+}
+
+.titulo {
+  margin: 0 0 var(--espaco-4);
+}
+
+.cartao {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  background: var(--cor-fundo-alt);
+  padding: var(--espaco-4);
+  margin-bottom: var(--espaco-4);
+}
+
+.tituloSecao {
+  margin: 0 0 var(--espaco-3);
+  font-size: 1.1rem;
+}
+
+.cabecalhoPerfil {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-4);
+  padding-bottom: var(--espaco-4);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.avatarGrande {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.nomeGrande {
+  margin: 0 0 var(--espaco-1);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.seloPapel {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--cor-fundo);
+  color: var(--cor-texto-secundario);
+  border: 1px solid var(--cor-borda);
+}
+
+.dados {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  gap: var(--espaco-2) var(--espaco-3);
+  margin: 0;
+}
+
+.dados dt {
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+}
+
+.dados dd {
+  margin: 0;
+}
+
+.formulario {
+  max-width: 24rem;
+}
+
+.mensagemErro {
+  color: var(--cor-perigo);
+  margin: 0 0 var(--espaco-3);
+}
+
+.mensagemSucesso {
+  color: var(--cor-sucesso);
+  margin: 0 0 var(--espaco-3);
+}

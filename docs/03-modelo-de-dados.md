@@ -12,10 +12,10 @@ identifica o respondente.
 
 | Tabela | Campos principais | Observações |
 |---|---|---|
-| `instituicoes` | id, nome, uf, municipio, ativo | Cadastro de instituições participantes |
+| `instituicoes` | id, nome, uf, municipio, ativo, **questionario_id** | Cadastro de instituições participantes — `questionario_id` define qual questionário essa instituição usa no fluxo público |
 | `setores` | id, instituicao_id, nome, ativo | Setor/área dentro da instituição |
-| `questionarios` | id, titulo, instrumento (karasek/copsoq), versao, ativo | Um questionário por instrumento/versão |
-| `dominios` | id, questionario_id, nome, ordem | Domínios/dimensões do instrumento (ex.: "Exigências", "Controle") |
+| `questionarios` | id, titulo, versao, ativo, modo_apresentacao (blocos/intercalado) | `ativo` não é exclusivo — vários questionários podem estar ativos (disponíveis para vínculo) ao mesmo tempo; cada instituição escolhe o seu via `instituicoes.questionario_id` |
+| `dominios` | id, questionario_id, nome, **instrumento (karasek/copsoq)**, chave, ordem | Domínios/dimensões — cada domínio carrega seu próprio instrumento, permitindo questionários **mistos** (domínios de instrumentos diferentes no mesmo questionário) |
 | `itens` | id, dominio_id, texto, tipo_resposta, ordem, regra_condicional | Perguntas individuais |
 | `respostas_brutas` | id, questionario_id, instituicao_id, setor_id, respondido_em, payload_json | **Sem qualquer campo identificador do respondente** |
 | `resultados_agregados` | id, instituicao_id, setor_id, questionario_id, dominio_id, periodo, valor_agregado, n_respostas | Pré-calculado; usado no dashboard, já considerando threshold de k-anonimato |

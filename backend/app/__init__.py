@@ -211,3 +211,26 @@ def _registrar_comandos_cli(app):
         print(f"      consultor.um@exemplo.com   -> {NOME_INSTITUICAO_1}")
         print(f"      consultor.dois@exemplo.com -> {NOME_INSTITUICAO_2}, {NOME_INSTITUICAO_3}")
         print("      consultor.tres@exemplo.com -> todas as instituições")
+
+    @app.cli.command("seed-questionario-misto")
+    def seed_questionario_misto_cmd():
+        """Cria só o questionário misto de demonstração (Karasek + COPSOQ no
+        mesmo formulário) com respostas de teste, sem apagar/alterar nenhum
+        dado já existente — útil para quem já tinha rodado `seed-dev-data`
+        antes de essa funcionalidade existir. Idempotente pelo título do
+        questionário. Recusa rodar fora de FLASK_ENV=development."""
+        if app.config["FLASK_ENV"] != "development":
+            print(
+                "Recusado: este comando só roda com FLASK_ENV=development "
+                "(configurado atualmente como "
+                f"'{app.config['FLASK_ENV']}')."
+            )
+            return
+
+        from app.seed import TITULO_QUESTIONARIO_MISTO, seed_questionario_misto_demo
+
+        if not seed_questionario_misto_demo():
+            print(f"Questionário '{TITULO_QUESTIONARIO_MISTO}' já existia — nenhuma ação necessária.")
+            return
+
+        print(f"Questionário misto de demonstração criado: {TITULO_QUESTIONARIO_MISTO}")

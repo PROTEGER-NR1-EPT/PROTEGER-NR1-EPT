@@ -20,6 +20,12 @@ class Instituicao(db.Model):
     uf = db.Column(db.String(2), nullable=True)
     municipio = db.Column(db.String(255), nullable=True)
     ativo = db.Column(db.Boolean, nullable=False, default=True)
+    # Qual questionário esta instituição usa no fluxo público (GET
+    # /questionarios/ativo) — substitui a antiga regra de "só existe um
+    # questionário ativo no sistema todo". Nulo = nenhum vinculado ainda.
+    questionario_id = db.Column(
+        db.Integer, db.ForeignKey("questionarios.id"), nullable=True, index=True
+    )
     criado_em = db.Column(db.DateTime(timezone=True), nullable=False, default=_agora)
 
 
@@ -40,12 +46,19 @@ class Questionario(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(255), nullable=False)
-    # Chave do strategy plugável em services/instrumentos (ex.: "karasek",
-    # "copsoq") — String livre (não Enum de banco) para permitir novos
-    # instrumentos sem migration, conforme docs/06.
-    instrumento = db.Column(db.String(50), nullable=False)
     versao = db.Column(db.String(20), nullable=False, default="1.0")
+    # "Disponível para ser vinculado a uma instituição" — não há mais
+    # exclusividade entre questionários (docs/03): vários podem estar
+    # ativos ao mesmo tempo, cada instituição escolhe o seu
+    # (Instituicao.questionario_id).
     ativo = db.Column(db.Boolean, nullable=False, default=True)
+    # "blocos": itens agrupados por domínio, na ordem cadastrada.
+    # "intercalado": itens de domínios diferentes alternados (round-robin) —
+    # ver app/blueprints/publico.py:_montar_itens_em_ordem. Usado para
+    # questionários mistos (Karasek + COPSOQ no mesmo formulário) decidirem
+    # como apresentar os itens sem revelar ao respondente que são "duas
+    # partes".
+    modo_apresentacao = db.Column(db.String(20), nullable=False, default="blocos")
     criado_em = db.Column(db.DateTime(timezone=True), nullable=False, default=_agora)
 
     dominios = db.relationship(
@@ -64,6 +77,12 @@ class Dominio(db.Model):
     # Chave usada pelas estratégias de cálculo (ex.: "demanda", "controle"
     # no Karasek; um slug por domínio no COPSOQ) — ver services/instrumentos.
     chave = db.Column(db.String(50), nullable=False)
+    # Chave do strategy plugável em services/instrumentos (ex.: "karasek",
+    # "copsoq") — vive no domínio (não no questionário) para permitir
+    # questionários mistos, combinando domínios de instrumentos diferentes
+    # no mesmo formulário. String livre (não Enum de banco) para permitir
+    # novos instrumentos sem migration, conforme docs/06.
+    instrumento = db.Column(db.String(50), nullable=False)
     ordem = db.Column(db.Integer, nullable=False, default=0)
 
     itens = db.relationship(

@@ -28,7 +28,7 @@ bearer token), exceto rotas marcadas como públicas.
 |---|---|---|
 | GET | `/instituicoes` | Lista instituições ativas (para dropdown) |
 | GET | `/instituicoes/{id}/setores` | Lista setores de uma instituição (para dropdown) |
-| GET | `/questionarios/ativo` | Retorna o questionário ativo para a instituição/setor (sem revelar instrumento) |
+| GET | `/questionarios/ativo` | Retorna os itens (já em ordem final — blocos ou intercalado) do questionário vinculado à instituição (`instituicoes.questionario_id`), sem revelar instrumento/domínio |
 | POST | `/respostas` | Envia respostas do Usuário (payload sem identificador pessoal) |
 | GET | `/tcle/{instituicao_id}` | Retorna texto do TCLE vigente, se aplicável *(condicional)* |
 
@@ -39,6 +39,7 @@ bearer token), exceto rotas marcadas como públicas.
 | POST | `/auth/login` | Login |
 | POST | `/auth/logout` | Logout |
 | GET | `/auth/sessao` | Restaura a sessão a partir do cookie httpOnly do login (usado pelo frontend após F5) |
+| PUT | `/auth/senha` | Altera a senha do usuário autenticado (exige senha atual) |
 | GET | `/consultor/instituicoes` | Lista instituições vinculadas ao consultor logado |
 | GET | `/consultor/instituicoes/{id}/resultados` | Resultados agregados (já filtrados por k-anonimato) |
 | GET | `/consultor/instituicoes/{id}/memoria` | Registros de memória institucional |
@@ -47,13 +48,17 @@ bearer token), exceto rotas marcadas como públicas.
 
 | Método | Rota | Descrição |
 |---|---|---|
-| GET/POST | `/admin/instituicoes` | Listar/criar instituições |
-| PUT/DELETE | `/admin/instituicoes/{id}` | Editar/desativar instituição |
+| GET/POST | `/admin/instituicoes` | Listar/criar instituições (inclui vínculo `questionario_id`) |
+| PUT/DELETE | `/admin/instituicoes/{id}` | Editar/desativar instituição, inclusive trocar/remover o questionário vinculado |
 | GET/POST | `/admin/setores` | Listar/criar setores |
-| GET/POST | `/admin/questionarios` | Listar/criar questionários |
-| PUT | `/admin/questionarios/{id}` | Editar questionário/domínios/itens |
-| GET/POST | `/admin/usuarios` | Listar/criar Consultores e Administradores |
+| GET/POST | `/admin/questionarios` | Listar/criar questionários — vários podem estar ativos ao mesmo tempo; cada domínio carrega seu próprio instrumento (questionários mistos) |
+| PUT | `/admin/questionarios/{id}` | Editar questionário/domínios/itens (inclui `modo_apresentacao`: blocos ou intercalado) |
+| DELETE | `/admin/questionarios/{id}` | Excluir questionário — bloqueado se já houver respostas registradas (usar `ativo: false` para desativar nesse caso) |
+| GET/POST | `/admin/usuarios` | Listar (inclui instituições vinculadas de cada Consultor)/criar Consultores e Administradores |
+| PUT | `/admin/usuarios/{id}` | Editar nome/e-mail/papel (não altera senha) |
+| DELETE | `/admin/usuarios/{id}` | Desativar usuário (soft delete — impede login, preserva log/vínculos; não é possível desativar a própria conta) |
 | POST | `/admin/usuarios/{id}/vinculos` | Vincular consultor a instituição(ões) |
+| DELETE | `/admin/usuarios/{id}/vinculos/{instituicao_id}` | Remover um vínculo específico |
 | GET | `/admin/instituicoes/{id}/resultados` | Resultados agregados de qualquer instituição |
 | GET | `/admin/respostas/export` | Exportação CSV bruta (requer confirmação prévia — ver doc 05) |
 | GET/PUT | `/admin/configuracoes` | Threshold de k-anonimato, toggles de IA, provedor LLM |

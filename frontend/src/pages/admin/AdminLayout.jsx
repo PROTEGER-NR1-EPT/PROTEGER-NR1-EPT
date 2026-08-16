@@ -1,36 +1,254 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
+import { useAuth } from "../../hooks/useAuth";
 import styles from "./AdminLayout.module.css";
+
+const CHAVE_RECOLHIDA = "proteger-nr1-admin-sidebar-recolhida";
 
 // Não estava na lista de arquivos pedida: junta a navegação persistente
 // entre as páginas administrativas (mesma ideia de PublicFlowLayout.jsx)
-// para não repetir o mesmo <nav> em cada uma das 7 páginas de admin/.
+// para não repetir o mesmo menu em cada uma das 7 páginas de admin/.
+// Vira sidebar (colapsável p/ ícones em telas largas, barra inferior em
+// telas estreitas) em vez do <nav> horizontal anterior.
 const LINKS = [
-  { to: "/admin", rotulo: "Visão geral", fim: true },
-  { to: "/admin/instituicoes", rotulo: "Instituições e setores" },
-  { to: "/admin/questionarios", rotulo: "Questionários" },
-  { to: "/admin/usuarios", rotulo: "Usuários" },
-  { to: "/admin/configuracoes", rotulo: "Configurações" },
-  { to: "/admin/exportacao", rotulo: "Exportação de dados" },
-  { to: "/admin/logs", rotulo: "Log de atividade" },
+  { to: "/admin", rotulo: "Visão geral", fim: true, Icone: IconeVisaoGeral },
+  { to: "/admin/instituicoes", rotulo: "Instituições e setores", Icone: IconeInstituicoes },
+  { to: "/admin/questionarios", rotulo: "Questionários", Icone: IconeQuestionarios },
+  { to: "/admin/usuarios", rotulo: "Usuários", Icone: IconeUsuarios },
+  { to: "/admin/configuracoes", rotulo: "Configurações", Icone: IconeConfiguracoes },
+  { to: "/admin/exportacao", rotulo: "Exportação de dados", Icone: IconeExportacao },
+  { to: "/admin/logs", rotulo: "Log de atividade", Icone: IconeLogs },
 ];
 
 export function AdminLayout() {
+  const { usuario, sair } = useAuth();
+  const navigate = useNavigate();
+  const [recolhida, setRecolhida] = useState(() => {
+    try {
+      return window.localStorage.getItem(CHAVE_RECOLHIDA) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CHAVE_RECOLHIDA, String(recolhida));
+    } catch {
+      // Preferência de UI apenas — se não puder persistir, segue sem quebrar.
+    }
+  }, [recolhida]);
+
+  async function handleSair() {
+    await sair();
+    navigate("/", { replace: true });
+  }
+
   return (
-    <div className={`container ${styles.envoltorio}`}>
-      <nav className={styles.nav} aria-label="Navegação administrativa">
-        {LINKS.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.fim}
-            className={({ isActive }) => (isActive ? styles.navAtivo : undefined)}
+    <div className={styles.envoltorio}>
+      <aside
+        className={`${styles.sidebar} ${recolhida ? styles.sidebarRecolhida : ""}`}
+      >
+        <nav className={styles.nav} aria-label="Navegação administrativa">
+          {LINKS.map(({ to, rotulo, fim, Icone }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={fim}
+              aria-label={rotulo}
+              title={recolhida ? rotulo : undefined}
+              className={({ isActive }) =>
+                `${styles.link} ${isActive ? styles.linkAtivo : ""}`
+              }
+            >
+              <Icone className={styles.icone} />
+              <span className={styles.rotulo}>{rotulo}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className={styles.rodape}>
+          <div className={styles.usuario}>
+            <NavLink
+              to="/admin/perfil"
+              className={({ isActive }) =>
+                `${styles.linkUsuario} ${isActive ? styles.linkUsuarioAtivo : ""}`
+              }
+              title="Meu perfil"
+            >
+              <span className={styles.avatar} aria-hidden="true">
+                {usuario?.nome?.charAt(0).toUpperCase()}
+              </span>
+              <span className={styles.infoUsuario}>
+                <span className={styles.nomeUsuario}>{usuario?.nome}</span>
+                <span className={styles.papelUsuario}>Administrador</span>
+              </span>
+            </NavLink>
+            <button
+              type="button"
+              className={styles.botaoSair}
+              onClick={handleSair}
+              aria-label="Sair"
+              title="Sair"
+            >
+              <IconeSair className={styles.icone} />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className={styles.botaoRecolher}
+            onClick={() => setRecolhida((atual) => !atual)}
+            aria-pressed={recolhida}
+            aria-label={recolhida ? "Expandir menu" : "Encolher menu"}
+            title={recolhida ? "Expandir menu" : "Encolher menu"}
           >
-            {link.rotulo}
-          </NavLink>
-        ))}
-      </nav>
-      <Outlet />
+            <IconeRecolher className={`${styles.icone} ${recolhida ? styles.iconeInvertido : ""}`} />
+          </button>
+        </div>
+      </aside>
+
+      <main className={styles.conteudo}>
+        <Outlet />
+      </main>
     </div>
+  );
+}
+
+function IconeVisaoGeral({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function IconeInstituicoes({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path d="M4 21V7l8-4 8 4v14" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M9 21v-6h6v6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M4 21h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconeQuestionarios({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconeUsuarios({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle cx="17" cy="8" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M15.5 14.8c2.6.4 4.5 2.3 4.5 5.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconeConfiguracoes({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconeExportacao({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M12 3v12M7 10l5 5 5-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M4 19h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconeLogs({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M12 7v5l3.5 2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconeSair({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M15 8l4 4-4 4M9 12h10"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconeRecolher({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M15 6l-6 6 6 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

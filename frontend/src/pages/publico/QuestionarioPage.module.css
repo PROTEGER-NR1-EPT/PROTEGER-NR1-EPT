@@ -44,10 +44,6 @@
   white-space: nowrap;
 }
 
-.dominio {
-  margin-bottom: var(--espaco-4);
-}
-
 .item {
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-borda);
@@ -134,4 +130,32 @@
   padding: var(--espaco-2) var(--espaco-3);
   margin: 0 0 var(--espaco-3);
   font-size: 0.9rem;
+}
+
+.cartaoEstado {
+  max-width: 28rem;
+  margin: 0 auto;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.iconeCartao {
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--cor-texto-secundario);
+  margin: 0 auto var(--espaco-3);
+}
+
+.tituloCartaoEstado {
+  margin: 0 0 var(--espaco-2);
+  font-size: 1.5rem;
+}
+
+.textoCartaoEstado {
+  color: var(--cor-texto-secundario);
+  margin: 0 0 var(--espaco-4);
 }

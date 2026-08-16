@@ -16,8 +16,9 @@ Profissional da instituição respondendo ao questionário.
 4. *(Condicional — pendente de definição)* Tela de TCLE (Termo de
    Consentimento Livre e Esclarecido), com checkbox "li e concordo",
    obrigatória caso o projeto exija aprovação de comitê de ética.
-5. Responde ao questionário (Karasek ou COPSOQ, conforme configurado
-   para aquela instituição/período).
+5. Responde ao questionário vinculado àquela instituição (Karasek,
+   COPSOQ, ou os dois combinados num único questionário "misto" —
+   configurado pelo Administrador).
 6. Vê apenas as perguntas — nunca o nome do instrumento, nem qualquer
    resultado calculado.
 7. Tela de agradecimento/confirmação de envio.
@@ -46,8 +47,13 @@ Acesso completo.
 
 **Fluxo (funcionalidades principais):**
 1. Login.
-2. CRUD de questionários, domínios, itens e regras condicionais.
-3. Cadastro/edição de instituições e setores.
+2. CRUD de questionários, domínios, itens e regras condicionais —
+   vários questionários podem estar ativos (disponíveis) ao mesmo tempo,
+   inclusive questionários **mistos** (combinando domínios de
+   instrumentos diferentes); pré-visualização estilo formulário antes de
+   publicar.
+3. Cadastro/edição de instituições e setores, incluindo qual questionário
+   cada instituição usa no fluxo público.
 4. Cadastro de Consultores e outros Administradores; gestão de vínculos
    consultor-instituição.
 5. Visualização de resultados de todas as instituições (sem restrição de
@@ -61,6 +67,11 @@ Acesso completo.
 7. Exportação de CSV de respostas brutas — exige confirmação explícita
    em tela de aviso sobre sensibilidade dos dados (ver documento 05).
 8. Consulta ao log de atividade.
+9. "Meu perfil": consulta nome/e-mail/papel e troca a própria senha
+   (`PUT /auth/senha`, exige senha atual). A rota do backend funciona
+   para Consultor e Administrador igualmente, mas hoje só existe tela no
+   painel do Administrador (acessível pelo rodapé da sidebar) — o
+   Consultor ainda não tem esse atalho na interface.
 
 ## Primeiro acesso (bootstrap)
 

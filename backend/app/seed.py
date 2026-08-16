@@ -16,10 +16,12 @@ from app.services.k_anonimato import recalcular_resultados
 
 # Massa de dados fictícia para testar o sistema manualmente sem precisar
 # preencher tudo na mão pelo painel do Administrador — instituições,
-# setores, os dois instrumentos (Karasek e COPSOQ, um ativo e um
-# "encerrado"), respostas já cobrindo grupos acima E abaixo do threshold
-# de k-anonimato (para testar tanto resultado visível quanto "dados
-# insuficientes"), Consultores de teste e memória institucional.
+# setores, três questionários (Karasek, COPSOQ "encerrado" e um MISTO
+# Karasek+COPSOQ intercalado, para demonstrar a funcionalidade), cada
+# instituição vinculada a um questionário diferente (ou nenhum), respostas
+# já cobrindo grupos acima E abaixo do threshold de k-anonimato (para testar
+# tanto resultado visível quanto "dados insuficientes"), Consultores de
+# teste e memória institucional.
 #
 # Nomes de instituição fictícios de propósito (não usar CIEP 052 nem
 # outras instituições reais citadas em docs/ — misturar dado sintético
@@ -108,18 +110,26 @@ def _criar_instituicoes_e_setores():
 def _criar_questionario_karasek():
     questionario = Questionario(
         titulo="Pesquisa de Riscos Psicossociais 2026.1",
-        instrumento="karasek",
         versao="1.0",
         ativo=True,
+        modo_apresentacao="blocos",
     )
     db.session.add(questionario)
     db.session.flush()
 
     dominio_demanda = Dominio(
-        questionario_id=questionario.id, nome="Demanda Psicológica", chave="demanda", ordem=0
+        questionario_id=questionario.id,
+        nome="Demanda Psicológica",
+        instrumento="karasek",
+        chave="demanda",
+        ordem=0,
     )
     dominio_controle = Dominio(
-        questionario_id=questionario.id, nome="Controle sobre o Trabalho", chave="controle", ordem=1
+        questionario_id=questionario.id,
+        nome="Controle sobre o Trabalho",
+        instrumento="karasek",
+        chave="controle",
+        ordem=1,
     )
     db.session.add_all([dominio_demanda, dominio_controle])
     db.session.flush()
@@ -180,22 +190,31 @@ def _criar_questionario_karasek():
 def _criar_questionario_copsoq():
     questionario = Questionario(
         titulo="Pesquisa de Riscos Psicossociais 2025.2 (encerrada)",
-        instrumento="copsoq",
         versao="1.0",
         ativo=False,
+        modo_apresentacao="blocos",
     )
     db.session.add(questionario)
     db.session.flush()
 
     dominio_exigencias = Dominio(
-        questionario_id=questionario.id, nome="Exigências no Trabalho", chave="exigencias", ordem=0
+        questionario_id=questionario.id,
+        nome="Exigências no Trabalho",
+        instrumento="copsoq",
+        chave="exigencias",
+        ordem=0,
     )
     dominio_organizacao = Dominio(
-        questionario_id=questionario.id, nome="Organização do Trabalho", chave="organizacao", ordem=1
+        questionario_id=questionario.id,
+        nome="Organização do Trabalho",
+        instrumento="copsoq",
+        chave="organizacao",
+        ordem=1,
     )
     dominio_relacoes = Dominio(
         questionario_id=questionario.id,
         nome="Relações Sociais e Liderança",
+        instrumento="copsoq",
         chave="relacoes",
         ordem=2,
     )
@@ -265,9 +284,116 @@ def _criar_questionario_copsoq():
     return questionario, dominio_exigencias, dominio_organizacao, dominio_relacoes
 
 
-def _gerar_respostas(instituicoes, setores, karasek_info, copsoq_info):
+TITULO_QUESTIONARIO_MISTO = "Pesquisa de Riscos Psicossociais 2026.2 (piloto misto)"
+
+
+def _criar_questionario_misto_se_nao_existir():
+    """Wrapper idempotente de `_criar_questionario_misto()` para quem chama
+    fora do fluxo de `seed_dev_data()` (que já tem seu próprio gate — ver
+    `seed_questionario_misto_demo()`). Retorna (None, None, None, None) se
+    um questionário com esse título já existir."""
+    existente = (
+        db.session.query(Questionario).filter_by(titulo=TITULO_QUESTIONARIO_MISTO).first()
+    )
+    if existente is not None:
+        return None, None, None, None
+    return _criar_questionario_misto()
+
+
+def _criar_questionario_misto():
+    """Demonstra questionários mistos (docs/06): um único formulário
+    combinando domínios de instrumentos diferentes (aqui, Karasek +
+    COPSOQ), com modo_apresentacao="intercalado" para também mostrar essa
+    opção — o respondente vê uma lista só, sem indicação de que há "duas
+    partes"."""
+    questionario = Questionario(
+        titulo=TITULO_QUESTIONARIO_MISTO,
+        versao="1.0",
+        ativo=True,
+        modo_apresentacao="intercalado",
+    )
+    db.session.add(questionario)
+    db.session.flush()
+
+    dominio_demanda = Dominio(
+        questionario_id=questionario.id,
+        nome="Demanda Psicológica",
+        instrumento="karasek",
+        chave="demanda",
+        ordem=0,
+    )
+    dominio_controle = Dominio(
+        questionario_id=questionario.id,
+        nome="Controle sobre o Trabalho",
+        instrumento="karasek",
+        chave="controle",
+        ordem=1,
+    )
+    dominio_relacoes = Dominio(
+        questionario_id=questionario.id,
+        nome="Relações Sociais e Liderança",
+        instrumento="copsoq",
+        chave="relacoes",
+        ordem=2,
+    )
+    db.session.add_all([dominio_demanda, dominio_controle, dominio_relacoes])
+    db.session.flush()
+
+    db.session.add_all(
+        [
+            Item(
+                dominio_id=dominio_demanda.id,
+                texto="Meu trabalho exige que eu faça tarefas muito rapidamente.",
+                ordem=0,
+                escala_min=1,
+                escala_max=5,
+            ),
+            Item(
+                dominio_id=dominio_demanda.id,
+                texto="Meu trabalho exige um grande esforço mental e emocional.",
+                ordem=1,
+                escala_min=1,
+                escala_max=5,
+            ),
+            Item(
+                dominio_id=dominio_controle.id,
+                texto="Tenho liberdade para decidir como organizar as atividades do meu trabalho.",
+                ordem=0,
+                escala_min=1,
+                escala_max=5,
+            ),
+            Item(
+                dominio_id=dominio_controle.id,
+                texto="Posso influenciar decisões que afetam diretamente o meu trabalho.",
+                ordem=1,
+                escala_min=1,
+                escala_max=5,
+            ),
+            Item(
+                dominio_id=dominio_relacoes.id,
+                texto="Posso contar com apoio da minha chefia quando preciso.",
+                ordem=0,
+                escala_min=1,
+                escala_max=5,
+            ),
+            Item(
+                dominio_id=dominio_relacoes.id,
+                texto="Sinto-me tratado(a) com respeito no ambiente de trabalho.",
+                ordem=1,
+                escala_min=1,
+                escala_max=5,
+            ),
+        ]
+    )
+    db.session.flush()
+
+    return questionario, dominio_demanda, dominio_controle, dominio_relacoes
+
+
+def _gerar_respostas(instituicoes, setores, karasek_info, copsoq_info, misto_info):
     karasek, dominio_demanda, dominio_controle = karasek_info
     copsoq, dominio_exigencias, dominio_organizacao, dominio_relacoes = copsoq_info
+    misto, dominio_misto_demanda, dominio_misto_controle, dominio_misto_relacoes = misto_info
 
     # (instituicao, setor, quantidade, media_demanda, media_controle, dias_atras_max)
     # Threshold padrão = 5 (K_ANONIMATO_THRESHOLD_DEFAULT): grupos com
@@ -329,6 +455,39 @@ def _gerar_respostas(instituicoes, setores, karasek_info, copsoq_info):
                 )
             )
 
+    # (instituicao, setor, quantidade, media_demanda, media_controle, media_relacoes, dias_atras_max)
+    # Questionário misto (Karasek + COPSOQ juntos, intercalado) — exercita o
+    # merge de resultados em services/k_anonimato.py:recalcular_resultados.
+    grupos_misto = [
+        (instituicoes["horizonte_verde"], setores["hv_docentes"], 8, 4.0, 2.0, 4.0, 5),
+    ]
+    for (
+        instituicao,
+        setor,
+        quantidade,
+        media_demanda,
+        media_controle,
+        media_relacoes,
+        dias_atras_max,
+    ) in grupos_misto:
+        for _ in range(quantidade):
+            payload = _payload_por_dominios(
+                [
+                    (dominio_misto_demanda, media_demanda),
+                    (dominio_misto_controle, media_controle),
+                    (dominio_misto_relacoes, media_relacoes),
+                ]
+            )
+            db.session.add(
+                RespostaBruta(
+                    questionario_id=misto.id,
+                    instituicao_id=instituicao.id,
+                    setor_id=setor.id,
+                    payload_json=payload,
+                    respondido_em=_data_aleatoria(dias_atras_max),
+                )
+            )
+
     db.session.commit()
 
     # recalcular_resultados lê as RespostaBruta recém-commitadas e faz o
@@ -338,6 +497,8 @@ def _gerar_respostas(instituicoes, setores, karasek_info, copsoq_info):
         recalcular_resultados(instituicao.id, setor.id, karasek.id)
     for instituicao, setor, *_ in grupos_copsoq:
         recalcular_resultados(instituicao.id, setor.id, copsoq.id)
+    for instituicao, setor, *_ in grupos_misto:
+        recalcular_resultados(instituicao.id, setor.id, misto.id)
 
 
 def _criar_consultores(instituicoes):
@@ -479,14 +640,104 @@ def seed_dev_data() -> bool:
     instituicoes, setores = _criar_instituicoes_e_setores()
     karasek_info = _criar_questionario_karasek()
     copsoq_info = _criar_questionario_copsoq()
+    misto_info = _criar_questionario_misto()
     db.session.commit()
 
-    _gerar_respostas(instituicoes, setores, karasek_info, copsoq_info)
+    # Vínculo instituição → questionário (Instituicao.questionario_id):
+    # substitui a antiga regra de "só existe um questionário ativo no
+    # sistema todo" — cada instituição escolhe o seu. horizonte_verde usa o
+    # questionário misto (vitrine da funcionalidade), nova_aurora usa o
+    # Karasek, e vale_do_sol fica sem nenhum vinculado de propósito (testa
+    # o estado "instituição sem questionário" no fluxo público, além de já
+    # testar "zero respostas" nos dashboards).
+    instituicoes["horizonte_verde"].questionario_id = misto_info[0].id
+    instituicoes["nova_aurora"].questionario_id = karasek_info[0].id
+
+    _gerar_respostas(instituicoes, setores, karasek_info, copsoq_info, misto_info)
 
     admin = db.session.query(Usuario).filter_by(papel=PAPEL_ADMINISTRADOR).first()
     consultores = _criar_consultores(instituicoes)
     _criar_memoria_institucional(instituicoes, admin)
     _criar_logs_demo(admin, instituicoes, karasek_info[0], consultores)
     db.session.commit()
+
+    return True
+
+
+def _setor_por_nome(instituicao_id, nome):
+    return db.session.query(Setor).filter_by(instituicao_id=instituicao_id, nome=nome).first()
+
+
+def seed_questionario_misto_demo() -> bool:
+    """Cria só o questionário misto de demonstração (Karasek + COPSOQ no
+    mesmo formulário, intercalado) com respostas de teste — sem tocar em
+    nenhum dado já existente. Complementa `seed_dev_data()` para quem já
+    tinha rodado a seed antes do questionário misto existir (essa função é
+    idempotente pelo título do questionário, não pelo nome de instituição,
+    então roda mesmo se `seed_dev_data()` já rodou há tempos). Reaproveita
+    as instituições/setores de `seed_dev_data()` se existirem — se não
+    existirem, cria só o questionário, sem respostas de teste."""
+    questionario, dominio_demanda, dominio_controle, dominio_relacoes = (
+        _criar_questionario_misto_se_nao_existir()
+    )
+    if questionario is None:
+        return False
+
+    db.session.commit()
+
+    horizonte_verde = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_1).first()
+    nova_aurora = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_2).first()
+
+    # (instituicao, setor, quantidade, media_demanda, media_controle, media_relacoes, dias_atras_max)
+    # Um grupo acima do threshold padrão (5) e um abaixo, para testar tanto
+    # o resultado visível quanto o estado "dados insuficientes" também no
+    # questionário misto.
+    grupos_misto = []
+    if horizonte_verde is not None:
+        setor = _setor_por_nome(horizonte_verde.id, "Coordenação Pedagógica")
+        if setor is not None:
+            grupos_misto.append((horizonte_verde, setor, 8, 2.0, 4.2, 4.0, 5))
+    if nova_aurora is not None:
+        setor = _setor_por_nome(nova_aurora.id, "Direção")
+        if setor is not None:
+            grupos_misto.append((nova_aurora, setor, 3, 3.6, 2.4, 2.8, 3))
+
+    for (
+        instituicao,
+        setor,
+        quantidade,
+        media_demanda,
+        media_controle,
+        media_relacoes,
+        dias_atras_max,
+    ) in grupos_misto:
+        for _ in range(quantidade):
+            payload = _payload_por_dominios(
+                [
+                    (dominio_demanda, media_demanda),
+                    (dominio_controle, media_controle),
+                    (dominio_relacoes, media_relacoes),
+                ]
+            )
+            db.session.add(
+                RespostaBruta(
+                    questionario_id=questionario.id,
+                    instituicao_id=instituicao.id,
+                    setor_id=setor.id,
+                    payload_json=payload,
+                    respondido_em=_data_aleatoria(dias_atras_max),
+                )
+            )
+
+    # Só vincula automaticamente se a instituição ainda não tinha nenhum
+    # questionário vinculado — nunca sobrescreve um vínculo que o
+    # Administrador já tenha configurado manualmente.
+    if horizonte_verde is not None and horizonte_verde.questionario_id is None:
+        horizonte_verde.questionario_id = questionario.id
+
+    db.session.commit()
+
+    for instituicao, setor, *_ in grupos_misto:
+        recalcular_resultados(instituicao.id, setor.id, questionario.id)
 
     return True

@@ -1,8 +1,9 @@
 # Instrumentos de Avaliação de Riscos Psicossociais
 
-O sistema suporta dois instrumentos validados. A escolha de qual
-instrumento aplicar (e sua versão) é feita pelo Administrador ao criar um
-questionário.
+O sistema suporta dois instrumentos validados. O Administrador escolhe o
+instrumento **por domínio** ao montar um questionário (`dominios.instrumento`)
+— um questionário pode ter só um instrumento ou combinar os dois (ver
+"Regras comuns" abaixo).
 
 ## Karasek Demand-Control
 
@@ -46,6 +47,14 @@ questionário.
   apenas renderiza o que a API retorna, já filtrado por k-anonimato.
 - Novos instrumentos devem poder ser adicionados sem alterar a estrutura
   central de `questionarios`/`dominios`/`itens` — o tipo de instrumento é
-  um atributo do questionário, e a lógica de cálculo deve ser
-  implementada como estratégia plugável no backend (ex.: um cálculo por
-  `instrumento`).
+  um atributo do **domínio** (`dominios.instrumento`), não do questionário,
+  e a lógica de cálculo deve ser implementada como estratégia plugável no
+  backend (ex.: um cálculo por `instrumento`).
+- Um questionário pode ser **misto**: combinar domínios de instrumentos
+  diferentes (ex.: Karasek + COPSOQ) no mesmo formulário. O backend agrupa
+  os domínios por instrumento, roda a estratégia de cada grupo e une os
+  resultados (`app/services/k_anonimato.py:recalcular_resultados`) — o
+  respondente vê só uma lista de perguntas, sem indicação de que há mais
+  de um instrumento por trás. `Questionario.modo_apresentacao` decide se
+  os itens aparecem em blocos (agrupados por domínio) ou intercalados
+  (alternando entre os grupos).

@@ -1,28 +1,45 @@
 import { useEffect, useState } from "react";
 
 import * as adminApi from "../../api/admin";
+import { BotaoIcone } from "../../components/common/BotaoIcone";
 import { Button } from "../../components/forms/Button";
+import { ConfirmModal } from "../../components/common/ConfirmModal";
 import { DropdownInstituicao } from "../../components/forms/DropdownInstituicao";
+import { IconeEditar, IconeExcluir } from "../../components/common/icones";
 import formStyles from "../../components/forms/FormField.module.css";
 import tabela from "../../styles/tabela.module.css";
 
-const INSTITUICAO_VAZIA = { nome: "", uf: "", municipio: "" };
+const INSTITUICAO_VAZIA = { nome: "", uf: "", municipio: "", questionario_id: "" };
 const SETOR_VAZIO = { nome: "" };
 
 export function InstituicoesPage() {
   const [instituicoes, setInstituicoes] = useState([]);
+  const [questionarios, setQuestionarios] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
   const [novaInstituicao, setNovaInstituicao] = useState(INSTITUICAO_VAZIA);
+  const [editandoInstituicaoId, setEditandoInstituicaoId] = useState(null);
+  const [confirmarDesativarInstituicao, setConfirmarDesativarInstituicao] = useState(null);
+  const [desativandoInstituicao, setDesativandoInstituicao] = useState(false);
+  const [erroModalInstituicao, setErroModalInstituicao] = useState(null);
 
   const [instituicaoSetores, setInstituicaoSetores] = useState(null);
   const [setores, setSetores] = useState([]);
   const [novoSetor, setNovoSetor] = useState(SETOR_VAZIO);
+  const [editandoSetorId, setEditandoSetorId] = useState(null);
+  const [confirmarDesativarSetor, setConfirmarDesativarSetor] = useState(null);
+  const [desativandoSetor, setDesativandoSetor] = useState(false);
+  const [erroModalSetor, setErroModalSetor] = useState(null);
 
   async function recarregarInstituicoes() {
     setCarregando(true);
     try {
-      setInstituicoes(await adminApi.listarInstituicoes());
+      const [listaInstituicoes, listaQuestionarios] = await Promise.all([
+        adminApi.listarInstituicoes(),
+        adminApi.listarQuestionarios(),
+      ]);
+      setInstituicoes(listaInstituicoes);
+      setQuestionarios(listaQuestionarios);
     } catch (erroApi) {
       setErro(erroApi.mensagem);
     } finally {
@@ -33,6 +50,20 @@ export function InstituicoesPage() {
   useEffect(() => {
     recarregarInstituicoes();
   }, []);
+
+  const questionariosAtivos = questionarios.filter((q) => q.ativo);
+
+  async function handleAlterarQuestionarioVinculado(instituicao, questionarioId) {
+    setErro(null);
+    try {
+      await adminApi.editarInstituicao(instituicao.id, {
+        questionario_id: questionarioId ? Number(questionarioId) : null,
+      });
+      await recarregarInstituicoes();
+    } catch (erroApi) {
+      setErro(erroApi.mensagem);
+    }
+  }
 
   useEffect(() => {
     if (!instituicaoSetores) {
@@ -45,11 +76,38 @@ export function InstituicoesPage() {
       .catch((erroApi) => setErro(erroApi.mensagem));
   }, [instituicaoSetores]);
 
-  async function handleCriarInstituicao(evento) {
+  function handleEditarInstituicao(instituicao) {
+    setErro(null);
+    setEditandoInstituicaoId(instituicao.id);
+    setNovaInstituicao({
+      nome: instituicao.nome,
+      uf: instituicao.uf ?? "",
+      municipio: instituicao.municipio ?? "",
+      questionario_id: instituicao.questionario_id ?? "",
+    });
+  }
+
+  function handleCancelarEdicaoInstituicao() {
+    setEditandoInstituicaoId(null);
+    setNovaInstituicao(INSTITUICAO_VAZIA);
+  }
+
+  async function handleSalvarInstituicao(evento) {
     evento.preventDefault();
     setErro(null);
     try {
-      await adminApi.criarInstituicao(novaInstituicao);
+      const payload = {
+        ...novaInstituicao,
+        questionario_id: novaInstituicao.questionario_id
+          ? Number(novaInstituicao.questionario_id)
+          : null,
+      };
+      if (editandoInstituicaoId) {
+        await adminApi.editarInstituicao(editandoInstituicaoId, payload);
+        setEditandoInstituicaoId(null);
+      } else {
+        await adminApi.criarInstituicao(payload);
+      }
       setNovaInstituicao(INSTITUICAO_VAZIA);
       await recarregarInstituicoes();
     } catch (erroApi) {
@@ -57,26 +115,53 @@ export function InstituicoesPage() {
     }
   }
 
-  async function handleAlternarAtivo(instituicao) {
+  async function handleReativarInstituicao(instituicao) {
     setErro(null);
     try {
-      if (instituicao.ativo) {
-        await adminApi.desativarInstituicao(instituicao.id);
-      } else {
-        await adminApi.editarInstituicao(instituicao.id, { ativo: true });
-      }
+      await adminApi.editarInstituicao(instituicao.id, { ativo: true });
       await recarregarInstituicoes();
     } catch (erroApi) {
       setErro(erroApi.mensagem);
     }
   }
 
-  async function handleCriarSetor(evento) {
+  async function handleConfirmarDesativacaoInstituicao() {
+    if (!confirmarDesativarInstituicao) return;
+    setDesativandoInstituicao(true);
+    setErroModalInstituicao(null);
+    try {
+      await adminApi.desativarInstituicao(confirmarDesativarInstituicao.id);
+      setConfirmarDesativarInstituicao(null);
+      await recarregarInstituicoes();
+    } catch (erroApi) {
+      setErroModalInstituicao(erroApi.mensagem);
+    } finally {
+      setDesativandoInstituicao(false);
+    }
+  }
+
+  function handleEditarSetor(setor) {
+    setErro(null);
+    setEditandoSetorId(setor.id);
+    setNovoSetor({ nome: setor.nome });
+  }
+
+  function handleCancelarEdicaoSetor() {
+    setEditandoSetorId(null);
+    setNovoSetor(SETOR_VAZIO);
+  }
+
+  async function handleSalvarSetor(evento) {
     evento.preventDefault();
     if (!instituicaoSetores) return;
     setErro(null);
     try {
-      await adminApi.criarSetor({ instituicao_id: instituicaoSetores.id, ...novoSetor });
+      if (editandoSetorId) {
+        await adminApi.editarSetor(editandoSetorId, { nome: novoSetor.nome });
+        setEditandoSetorId(null);
+      } else {
+        await adminApi.criarSetor({ instituicao_id: instituicaoSetores.id, ...novoSetor });
+      }
       setNovoSetor(SETOR_VAZIO);
       setSetores(await adminApi.listarSetores(instituicaoSetores.id));
     } catch (erroApi) {
@@ -84,13 +169,28 @@ export function InstituicoesPage() {
     }
   }
 
-  async function handleAlternarSetorAtivo(setor) {
+  async function handleReativarSetor(setor) {
     setErro(null);
     try {
-      await adminApi.editarSetor(setor.id, { ativo: !setor.ativo });
+      await adminApi.editarSetor(setor.id, { ativo: true });
       setSetores(await adminApi.listarSetores(instituicaoSetores.id));
     } catch (erroApi) {
       setErro(erroApi.mensagem);
+    }
+  }
+
+  async function handleConfirmarDesativacaoSetor() {
+    if (!confirmarDesativarSetor) return;
+    setDesativandoSetor(true);
+    setErroModalSetor(null);
+    try {
+      await adminApi.editarSetor(confirmarDesativarSetor.id, { ativo: false });
+      setConfirmarDesativarSetor(null);
+      setSetores(await adminApi.listarSetores(instituicaoSetores.id));
+    } catch (erroApi) {
+      setErroModalSetor(erroApi.mensagem);
+    } finally {
+      setDesativandoSetor(false);
     }
   }
 
@@ -117,6 +217,7 @@ export function InstituicoesPage() {
                   <th scope="col">Nome</th>
                   <th scope="col">UF</th>
                   <th scope="col">Município</th>
+                  <th scope="col">Questionário vinculado</th>
                   <th scope="col">Status</th>
                   <th scope="col">Ações</th>
                 </tr>
@@ -128,6 +229,23 @@ export function InstituicoesPage() {
                     <td>{instituicao.uf}</td>
                     <td>{instituicao.municipio}</td>
                     <td>
+                      <select
+                        className={formStyles.controle}
+                        value={instituicao.questionario_id ?? ""}
+                        onChange={(e) =>
+                          handleAlterarQuestionarioVinculado(instituicao, e.target.value)
+                        }
+                        aria-label={`Questionário vinculado a ${instituicao.nome}`}
+                      >
+                        <option value="">Nenhum</option>
+                        {questionariosAtivos.map((questionario) => (
+                          <option key={questionario.id} value={questionario.id}>
+                            {questionario.titulo}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
                       <span
                         className={`${tabela.selo} ${instituicao.ativo ? tabela.seloAtivo : tabela.seloInativo}`}
                       >
@@ -135,12 +253,25 @@ export function InstituicoesPage() {
                       </span>
                     </td>
                     <td className={tabela.acoes}>
-                      <Button
-                        variante="secundario"
-                        onClick={() => handleAlternarAtivo(instituicao)}
-                      >
-                        {instituicao.ativo ? "Desativar" : "Reativar"}
-                      </Button>
+                      <BotaoIcone
+                        icone={IconeEditar}
+                        rotulo={`Editar ${instituicao.nome}`}
+                        onClick={() => handleEditarInstituicao(instituicao)}
+                      />
+                      {instituicao.ativo ? (
+                        <BotaoIcone
+                          icone={IconeExcluir}
+                          rotulo={`Desativar ${instituicao.nome}`}
+                          onClick={() => setConfirmarDesativarInstituicao(instituicao)}
+                        />
+                      ) : (
+                        <Button
+                          variante="secundario"
+                          onClick={() => handleReativarInstituicao(instituicao)}
+                        >
+                          Reativar
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -149,8 +280,8 @@ export function InstituicoesPage() {
           </div>
         )}
 
-        <h3>Nova instituição</h3>
-        <form onSubmit={handleCriarInstituicao} style={{ maxWidth: "28rem" }}>
+        <h3>{editandoInstituicaoId ? "Editar instituição" : "Nova instituição"}</h3>
+        <form onSubmit={handleSalvarInstituicao} style={{ maxWidth: "28rem" }}>
           <div className={formStyles.campo}>
             <label htmlFor="nome-instituicao" className={formStyles.rotulo}>
               Nome
@@ -190,7 +321,40 @@ export function InstituicoesPage() {
               }
             />
           </div>
-          <Button type="submit">Cadastrar instituição</Button>
+          <div className={formStyles.campo}>
+            <label htmlFor="questionario-instituicao" className={formStyles.rotulo}>
+              Questionário vinculado
+            </label>
+            <select
+              id="questionario-instituicao"
+              className={formStyles.controle}
+              value={novaInstituicao.questionario_id}
+              onChange={(e) =>
+                setNovaInstituicao({ ...novaInstituicao, questionario_id: e.target.value })
+              }
+            >
+              <option value="">Nenhum (definir depois)</option>
+              {questionariosAtivos.map((questionario) => (
+                <option key={questionario.id} value={questionario.id}>
+                  {questionario.titulo}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <Button type="submit">
+              {editandoInstituicaoId ? "Salvar alterações" : "Cadastrar instituição"}
+            </Button>
+            {editandoInstituicaoId && (
+              <Button
+                type="button"
+                variante="secundario"
+                onClick={handleCancelarEdicaoInstituicao}
+              >
+                Cancelar edição
+              </Button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -199,7 +363,11 @@ export function InstituicoesPage() {
         <p>Selecione uma instituição para ver e gerenciar seus setores.</p>
         <DropdownInstituicao
           value={instituicaoSetores?.id}
-          onChange={setInstituicaoSetores}
+          onChange={(nova) => {
+            setInstituicaoSetores(nova);
+            setEditandoSetorId(null);
+            setNovoSetor(SETOR_VAZIO);
+          }}
           carregarInstituicoes={adminApi.listarInstituicoes}
         />
 
@@ -231,12 +399,25 @@ export function InstituicoesPage() {
                           </span>
                         </td>
                         <td className={tabela.acoes}>
-                          <Button
-                            variante="secundario"
-                            onClick={() => handleAlternarSetorAtivo(setor)}
-                          >
-                            {setor.ativo ? "Desativar" : "Reativar"}
-                          </Button>
+                          <BotaoIcone
+                            icone={IconeEditar}
+                            rotulo={`Editar ${setor.nome}`}
+                            onClick={() => handleEditarSetor(setor)}
+                          />
+                          {setor.ativo ? (
+                            <BotaoIcone
+                              icone={IconeExcluir}
+                              rotulo={`Desativar ${setor.nome}`}
+                              onClick={() => setConfirmarDesativarSetor(setor)}
+                            />
+                          ) : (
+                            <Button
+                              variante="secundario"
+                              onClick={() => handleReativarSetor(setor)}
+                            >
+                              Reativar
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -245,10 +426,12 @@ export function InstituicoesPage() {
               </div>
             )}
 
-            <form onSubmit={handleCriarSetor} style={{ maxWidth: "28rem" }}>
+            <form onSubmit={handleSalvarSetor} style={{ maxWidth: "28rem" }}>
               <div className={formStyles.campo}>
                 <label htmlFor="nome-setor" className={formStyles.rotulo}>
-                  Novo setor em {instituicaoSetores.nome}
+                  {editandoSetorId
+                    ? `Editar setor de ${instituicaoSetores.nome}`
+                    : `Novo setor em ${instituicaoSetores.nome}`}
                 </label>
                 <input
                   id="nome-setor"
@@ -258,11 +441,68 @@ export function InstituicoesPage() {
                   required
                 />
               </div>
-              <Button type="submit">Cadastrar setor</Button>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <Button type="submit">
+                  {editandoSetorId ? "Salvar alterações" : "Cadastrar setor"}
+                </Button>
+                {editandoSetorId && (
+                  <Button type="button" variante="secundario" onClick={handleCancelarEdicaoSetor}>
+                    Cancelar edição
+                  </Button>
+                )}
+              </div>
             </form>
           </>
         )}
       </div>
+
+      <ConfirmModal
+        aberto={confirmarDesativarInstituicao !== null}
+        titulo={`Desativar "${confirmarDesativarInstituicao?.nome ?? ""}"?`}
+        perigo
+        confirmando={desativandoInstituicao}
+        textoConfirmar="Desativar"
+        onCancelar={() => {
+          setConfirmarDesativarInstituicao(null);
+          setErroModalInstituicao(null);
+        }}
+        onConfirmar={handleConfirmarDesativacaoInstituicao}
+      >
+        <p>
+          A instituição deixa de aparecer no formulário público e nos
+          dropdowns de vínculo — respostas e resultados já registrados são
+          preservados, e você pode reativá-la a qualquer momento.
+        </p>
+        {erroModalInstituicao && (
+          <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+            {erroModalInstituicao}
+          </p>
+        )}
+      </ConfirmModal>
+
+      <ConfirmModal
+        aberto={confirmarDesativarSetor !== null}
+        titulo={`Desativar "${confirmarDesativarSetor?.nome ?? ""}"?`}
+        perigo
+        confirmando={desativandoSetor}
+        textoConfirmar="Desativar"
+        onCancelar={() => {
+          setConfirmarDesativarSetor(null);
+          setErroModalSetor(null);
+        }}
+        onConfirmar={handleConfirmarDesativacaoSetor}
+      >
+        <p>
+          O setor deixa de aparecer nos dropdowns do formulário público —
+          respostas já registradas são preservadas, e você pode reativá-lo
+          a qualquer momento.
+        </p>
+        {erroModalSetor && (
+          <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+            {erroModalSetor}
+          </p>
+        )}
+      </ConfirmModal>
     </section>
   );
 }

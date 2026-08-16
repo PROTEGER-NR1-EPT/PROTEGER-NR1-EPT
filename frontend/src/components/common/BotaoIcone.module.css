@@ -1,0 +1,23 @@
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  background: var(--cor-fundo);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+}
+
+.botao:hover {
+  border-color: var(--cor-primaria);
+  color: var(--cor-primaria);
+}
+
+.icone {
+  width: 1.1rem;
+  height: 1.1rem;
+}

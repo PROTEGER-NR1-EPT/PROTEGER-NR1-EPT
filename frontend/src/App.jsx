@@ -11,6 +11,7 @@ import { DashboardAdmin } from "./pages/admin/DashboardAdmin";
 import { ExportacaoPage } from "./pages/admin/ExportacaoPage";
 import { InstituicoesPage } from "./pages/admin/InstituicoesPage";
 import { LogsPage } from "./pages/admin/LogsPage";
+import { PerfilPage } from "./pages/admin/PerfilPage";
 import { QuestionariosPage } from "./pages/admin/QuestionariosPage";
 import { UsuariosPage } from "./pages/admin/UsuariosPage";
 import { DashboardConsultor } from "./pages/consultor/DashboardConsultor";
@@ -87,6 +88,7 @@ export default function App() {
             <Route path="configuracoes" element={<ConfiguracoesPage />} />
             <Route path="exportacao" element={<ExportacaoPage />} />
             <Route path="logs" element={<LogsPage />} />
+            <Route path="perfil" element={<PerfilPage />} />
           </Route>
         </Route>
 
