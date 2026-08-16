@@ -85,11 +85,20 @@ esconder o botão.
 
 ## Padrão de resposta ao aplicar k-anonimato
 
+`setor_nome`/`dominio_nome` vêm resolvidos pelo backend (Consultor e
+Administrador têm permissão para ver essa identidade — docs/04); `dominio_id`
+e `dominio_nome` vêm nulos na linha "geral" de um instrumento (ex.: quadrante
+do Karasek, que cruza dois domínios).
+
 ```json
 {
   "instituicao_id": 12,
   "setor_id": 4,
-  "dominio": "controle_sobre_trabalho",
+  "setor_nome": "Coordenação Pedagógica",
+  "questionario_id": 7,
+  "dominio_id": 9,
+  "dominio_nome": "Controle sobre o Trabalho",
+  "periodo": "consolidado",
   "n_respostas": 3,
   "threshold": 5,
   "resultado_disponivel": false,

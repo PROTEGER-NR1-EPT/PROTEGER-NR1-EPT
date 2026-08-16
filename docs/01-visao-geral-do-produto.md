@@ -43,7 +43,10 @@ pesquisa:
 
 ## Escopo do MVP (protótipo)
 
-- Frontend web responsivo (mobile-first), sem necessidade de app nativo.
+- Frontend web responsivo (mobile-first), sem necessidade de app nativo,
+  incluindo uma página institucional pública (`/`) que apresenta o projeto
+  (contexto, como funciona, privacidade, FAQ) separada do fluxo de
+  resposta ao questionário propriamente dito (`/participar` em diante).
 - Backend com API REST.
 - Autenticação apenas para Consultor e Administrador — o Usuário final
   (respondente) nunca se autentica.

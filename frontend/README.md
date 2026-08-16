@@ -94,6 +94,17 @@ comentário no topo explicando por quê: `PreferencesContext.jsx`,
 `pages/admin/AdminLayout.jsx`, `components/forms/Button.jsx`,
 `utils/resultados.js`.
 
+Em `pages/publico/`, `PaginaInicial.jsx` (rota `/`) fica **fora** do
+`PublicFlowLayout` — é a página institucional de apresentação do projeto,
+não participa do fluxo de resposta e por isso não precisa do contexto de
+instituição/setor selecionados. `LandingPage.jsx` (a tela "limpa" de
+seleção de instituição/setor, sempre foi assim) vive em `/participar`,
+seguida por `TclePage.jsx` → `QuestionarioPage.jsx` → `ConfirmacaoPage.jsx`,
+essas sim dentro do `PublicFlowLayout`. O ícone de acessibilidade
+flutuante (`components/acessibilidade/AcessibilidadeWidget.jsx`, canto
+superior direito em toda página) abre um painel com os mesmos controles de
+fonte/contraste — substituiu a barra sempre visível que existia antes.
+
 ## Decisões/limitações conhecidas
 
 - **TCLE condicional (regra 3):** `TclePage.jsx` só renderiza o termo de
@@ -103,14 +114,17 @@ comentário no topo explicando por quê: `PreferencesContext.jsx`,
   essa tela nunca aparece de fato — mas a rota `/tcle` já existe e o
   código já está pronto para o dia em que o backend passar a enviar essa
   flag, sem precisar redesenhar as rotas.
-- **Identificação de instrumento nos resultados:** `GET /resultados`
-  (docs/07) devolve linhas com `dominio_id` numérico, sem nome do domínio
-  nem do instrumento. `src/utils/resultados.js` infere o tipo de cada
-  linha (Karasek geral / Karasek por domínio / COPSOQ / indisponível)
-  pelo **formato** do `valor_agregado` retornado, documentado em
-  detalhe naquele arquivo. Como consequência, `CopsoqDominioBadge.jsx`
-  identifica o domínio como "Domínio #`id`" (sem nome) — nomear os
-  domínios exigiria uma rota nova no backend, fora do escopo desta etapa.
+- **Identificação de tipo de resultado:** `GET /resultados` (docs/07)
+  devolve linhas achatadas (uma por setor+questionário+domínio) sem um
+  campo explícito de tipo — `src/utils/resultados.js` infere o tipo de
+  cada linha (Karasek geral / Karasek por domínio / COPSOQ / indisponível)
+  pelo **formato** do `valor_agregado` retornado, documentado em detalhe
+  naquele arquivo. `setor_nome`/`dominio_nome` já vêm resolvidos pelo
+  backend (`k_anonimato.py:obter_resultados` — Consultor/Administrador têm
+  permissão para ver essa identidade, docs/04), então
+  `ResultadosInstituicao.jsx` agrupa os cartões por setor e
+  `CopsoqDominioBadge.jsx` mostra o nome do domínio sem nenhuma chamada
+  extra.
 - **Regra condicional de item:** convenção simples e só interpretada no
   frontend (o backend guarda `regra_condicional` como JSON livre, sem
   validar formato): `{ "dependeDoItem": <item_id>, "valorEsperado": <valor> }`

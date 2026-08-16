@@ -14,11 +14,14 @@ estrutura completa de pastas e decisões de arquitetura, e a seção
 
 O **frontend** (`frontend/`) também está implementado: React + Vite,
 React Router, Context API (sem Redux), cliente axios em `src/api/`
-consumindo a API do backend, CSS Modules, controles de acessibilidade
-(fonte/contraste) e todas as telas públicas/Consultor/Administrador do
-MVP. Ver `frontend/README.md` para estrutura completa e decisões
-(inclusive por que o token de sessão vive só em memória, nunca em
-localStorage/sessionStorage), e a seção "Frontend — comandos" abaixo.
+consumindo a API do backend, CSS Modules (+ Tailwind v4 para páginas
+novas), um widget de acessibilidade flutuante (fonte/contraste) e todas
+as telas públicas — incluindo a página institucional de apresentação em
+`/`, separada do fluxo de resposta que começa em `/participar` — além de
+Consultor e Administrador do MVP. Ver `frontend/README.md` para estrutura
+completa e decisões (inclusive por que o token de sessão vive só em
+memória, nunca em localStorage/sessionStorage), e a seção "Frontend —
+comandos" abaixo.
 
 ## Backend — comandos
 
