@@ -8,7 +8,7 @@ import styles from "./KanbanAcoes.module.css";
 // sem dependência nova, mesmo espírito zero-dependência do projeto para
 // mecânica de UI que não é gráfico (diferente do radar de Resultados, que
 // justificou instalar recharts).
-export function KanbanAcoes({ acoes, onEditar, onMoverStatus }) {
+export function KanbanAcoes({ acoes, onEditar, onMoverStatus, somenteLeitura }) {
   const [arrastandoId, setArrastandoId] = useState(null);
   const [colunaSobre, setColunaSobre] = useState(null);
 
@@ -32,14 +32,20 @@ export function KanbanAcoes({ acoes, onEditar, onMoverStatus }) {
           <div
             key={coluna.valor}
             className={`${styles.coluna} ${colunaSobre === coluna.valor ? styles.colunaSobre : ""}`}
-            onDragOver={(evento) => {
-              evento.preventDefault();
-              setColunaSobre(coluna.valor);
-            }}
-            onDragLeave={() =>
-              setColunaSobre((atual) => (atual === coluna.valor ? null : atual))
+            onDragOver={
+              somenteLeitura
+                ? undefined
+                : (evento) => {
+                    evento.preventDefault();
+                    setColunaSobre(coluna.valor);
+                  }
             }
-            onDrop={(evento) => handleDrop(coluna.valor, evento)}
+            onDragLeave={
+              somenteLeitura
+                ? undefined
+                : () => setColunaSobre((atual) => (atual === coluna.valor ? null : atual))
+            }
+            onDrop={somenteLeitura ? undefined : (evento) => handleDrop(coluna.valor, evento)}
           >
             <div className={styles.cabecalhoColuna}>
               <span
@@ -61,9 +67,9 @@ export function KanbanAcoes({ acoes, onEditar, onMoverStatus }) {
                   <div
                     key={acao.id}
                     className={styles.cartao}
-                    draggable
-                    onDragStart={() => setArrastandoId(acao.id)}
-                    onDragEnd={() => setArrastandoId(null)}
+                    draggable={!somenteLeitura}
+                    onDragStart={somenteLeitura ? undefined : () => setArrastandoId(acao.id)}
+                    onDragEnd={somenteLeitura ? undefined : () => setArrastandoId(null)}
                     onClick={() => onEditar(acao)}
                   >
                     <p className={styles.cartaoTitulo}>{acao.titulo}</p>

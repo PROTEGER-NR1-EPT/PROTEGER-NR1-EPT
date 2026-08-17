@@ -42,7 +42,10 @@ bearer token), exceto rotas marcadas como públicas.
 | PUT | `/auth/senha` | Altera a senha do usuário autenticado (exige senha atual) |
 | GET | `/consultor/instituicoes` | Lista instituições vinculadas ao consultor logado |
 | GET | `/consultor/instituicoes/{id}/resultados` | Resultados agregados (já filtrados por k-anonimato) |
+| GET | `/consultor/instituicoes/{id}/resultados-dashboard` | Mesmo formato do dashboard multi-filtro do Administrador (inclui `risco`/`nivel_risco`, usado pelos cards/radar/mapa de risco), escopado à instituição vinculada |
 | GET | `/consultor/instituicoes/{id}/memoria` | Registros de memória institucional |
+| GET | `/consultor/instituicoes/{id}/planos-acao` | Planos de ação (ciclos) de uma instituição vinculada — somente leitura |
+| GET | `/consultor/planos-acao/{id}/acoes` | Ações de um plano (tarefas e dependências resolvidas na leitura) — somente leitura |
 
 ## Administrador (autenticado)
 

@@ -11,8 +11,9 @@ from app.models.auth import (
     LogAtividade,
     Usuario,
 )
-from app.models.memoria import InstituicaoReferencia, RegistroMemoria
+from app.models.memoria import InstituicaoReferencia, PlanoAcao, RegistroMemoria
 from app.services.k_anonimato import recalcular_resultados
+import app.services.planos_acao as servico_planos_acao
 
 # Massa de dados fictícia para testar o sistema manualmente sem precisar
 # preencher tudo na mão pelo painel do Administrador — instituições,
@@ -41,6 +42,13 @@ def _data_aleatoria(dias_atras_max):
     return _agora() - timedelta(
         days=random.uniform(0, dias_atras_max), seconds=random.randint(0, 86399)
     )
+
+
+def _data_relativa(dias_offset):
+    """Data (sem hora) `dias_offset` dias a partir de hoje — negativo =
+    passado (prazo vencido), positivo = futuro. Usado só pelos prazos de
+    Planos de Ação, que são `db.Date`, não `db.DateTime`."""
+    return (_agora() + timedelta(days=dias_offset)).date()
 
 
 def _jitter(media_alvo, minimo, maximo):
@@ -739,5 +747,368 @@ def seed_questionario_misto_demo() -> bool:
 
     for instituicao, setor, *_ in grupos_misto:
         recalcular_resultados(instituicao.id, setor.id, questionario.id)
+
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Planos de Ação — massa de dados rica (vários ciclos/ações/tarefas/
+# dependências) para exercitar Kanban/Tabela/Calendário no Administrador e a
+# visão somente-leitura do Consultor. Complementa `seed_dev_data()` sem
+# alterar nada que já exista — idempotente pelo ciclo-marcador abaixo.
+# ---------------------------------------------------------------------------
+
+CICLO_DEMO_PLANOS_ACAO = "Mar/2026"
+
+
+def _criar_planos_acao_demo(instituicoes, admin):
+    autor_id = admin.id if admin is not None else None
+    horizonte_verde = instituicoes["horizonte_verde"]
+    nova_aurora = instituicoes["nova_aurora"]
+    vale_do_sol = instituicoes["vale_do_sol"]
+
+    # --- horizonte_verde: ciclo principal, rico o bastante pra mostrar
+    # todas as 3 colunas do Kanban, prazo vencido, dependência entre ações
+    # e checklist parcialmente concluído. ---
+    plano_hv_1 = servico_planos_acao.criar_plano(horizonte_verde.id, CICLO_DEMO_PLANOS_ACAO, autor_id)
+
+    acao_carga_horaria = servico_planos_acao.criar_acao(
+        plano_hv_1.id,
+        {
+            "titulo": "Redistribuir carga horária do turno noturno",
+            "tag": "Demanda Psicológica",
+            "status": "em_andamento",
+            "prazo": _data_relativa(20),
+            "responsavel": "Coordenação Pedagógica",
+            "participantes": ["RH", "Direção"],
+            "descricao": "Levantamento junto ao RH sobre a distribuição de carga horária do corpo docente no turno noturno.",
+            "tarefas": [
+                {"titulo": "Levantar carga horária atual por docente", "concluida": True},
+                {"titulo": "Propor nova grade de horários", "concluida": False},
+            ],
+            "anexos": [{"titulo": "Planilha de cargas horárias", "url": "https://exemplo.org/planilha-cargas"}],
+        },
+    )
+    servico_planos_acao.criar_acao(
+        plano_hv_1.id,
+        {
+            "titulo": "Criar comitê de escuta ativa docente",
+            "tag": "Relações Sociais e Liderança",
+            "status": "pendente",
+            "prazo": _data_relativa(45),
+            "responsavel": "Direção",
+            "participantes": ["Representante docente"],
+            "descricao": "Espaço permanente de escuta, complementar à roda de conversa já realizada.",
+            "tarefas": [
+                {"titulo": "Definir integrantes do comitê", "concluida": False},
+                {"titulo": "Agendar primeira reunião", "concluida": False},
+            ],
+        },
+    )
+    servico_planos_acao.criar_acao(
+        plano_hv_1.id,
+        {
+            "titulo": "Padronizar comunicação de mudanças de horário",
+            "tag": "Organização do Trabalho",
+            "status": "concluido",
+            "prazo": _data_relativa(-5),
+            "responsavel": "Secretaria Escolar",
+            "tarefas": [
+                {"titulo": "Criar modelo de comunicado", "concluida": True},
+                {"titulo": "Publicar no mural e por e-mail", "concluida": True},
+            ],
+        },
+    )
+    servico_planos_acao.criar_acao(
+        plano_hv_1.id,
+        {
+            "titulo": "Ampliar autonomia pedagógica no planejamento de aulas",
+            "tag": "Controle sobre o Trabalho",
+            "status": "pendente",
+            "prazo": _data_relativa(60),
+            "responsavel": "Coordenação Pedagógica",
+            "descricao": "Reduzir exigências de padronização que limitam a autonomia docente identificadas no diagnóstico.",
+        },
+    )
+    servico_planos_acao.criar_acao(
+        plano_hv_1.id,
+        {
+            "titulo": "Reduzir sobrecarga no período de avaliações",
+            "tag": "Exigências no Trabalho",
+            "status": "em_andamento",
+            "prazo": _data_relativa(10),
+            "responsavel": "Coordenação Pedagógica",
+            "participantes": ["Corpo Docente"],
+            # Depende da redistribuição de carga horária já em andamento —
+            # demonstra o campo depende_de_ids/"bloqueia" (calculado por
+            # inversão) na UI.
+            "depende_de_ids": [acao_carga_horaria.id],
+        },
+    )
+    servico_planos_acao.criar_acao(
+        plano_hv_1.id,
+        {
+            "titulo": "Revisar política de horas extras",
+            "tag": "Demanda Psicológica",
+            "status": "pendente",
+            "prazo": _data_relativa(-3),  # vencida e ainda não iniciada, de propósito
+        },
+    )
+
+    # Segundo ciclo da mesma instituição — mostra o histórico de ciclos no
+    # seletor, deliberadamente mais enxuto que o primeiro.
+    plano_hv_2 = servico_planos_acao.criar_plano(horizonte_verde.id, "Jun/2026", autor_id)
+    servico_planos_acao.criar_acao(
+        plano_hv_2.id,
+        {
+            "titulo": "Acompanhamento do comitê de escuta ativa",
+            "tag": "Relações Sociais e Liderança",
+            "status": "pendente",
+            "prazo": _data_relativa(90),
+        },
+    )
+    servico_planos_acao.criar_acao(
+        plano_hv_2.id,
+        {
+            "titulo": "Reavaliar redistribuição de carga horária",
+            "tag": "Demanda Psicológica",
+            "status": "pendente",
+            "prazo": _data_relativa(75),
+        },
+    )
+
+    # --- nova_aurora: ciclo com uma ação já concluída que amarra com o
+    # registro de memória institucional existente ("Criação de canal de
+    # escuta anônimo"), pra mostrar as duas telas contando a mesma história. ---
+    plano_na = servico_planos_acao.criar_plano(nova_aurora.id, "Fev/2026", autor_id)
+    servico_planos_acao.criar_acao(
+        plano_na.id,
+        {
+            "titulo": "Formalizar canal de escuta anônimo",
+            "tag": "Relações Sociais e Liderança",
+            "status": "concluido",
+            "prazo": _data_relativa(-15),
+            "responsavel": "Direção",
+            "tarefas": [
+                {"titulo": "Instalar caixa de sugestões", "concluida": True},
+                {"titulo": "Divulgar canal à equipe", "concluida": True},
+            ],
+        },
+    )
+    servico_planos_acao.criar_acao(
+        plano_na.id,
+        {
+            "titulo": "Mapear pontos de sobrecarga no corpo docente",
+            "tag": "Demanda Psicológica",
+            "status": "em_andamento",
+            "prazo": _data_relativa(25),
+            "responsavel": "Direção",
+        },
+    )
+    servico_planos_acao.criar_acao(
+        plano_na.id,
+        {
+            "titulo": "Estruturar plano de comunicação interna",
+            "tag": "Organização do Trabalho",
+            "status": "pendente",
+            "prazo": _data_relativa(40),
+        },
+    )
+
+    # --- vale_do_sol: ainda sem respostas de questionário no seed (de
+    # propósito, ver _gerar_respostas) — ciclo reflete exatamente isso. ---
+    plano_vs = servico_planos_acao.criar_plano(vale_do_sol.id, "Jan/2026", autor_id)
+    servico_planos_acao.criar_acao(
+        plano_vs.id,
+        {
+            "titulo": "Diagnóstico inicial de riscos psicossociais",
+            "status": "concluido",
+            "prazo": _data_relativa(-30),
+            "responsavel": "Direção",
+        },
+    )
+    servico_planos_acao.criar_acao(
+        plano_vs.id,
+        {
+            "titulo": "Planejar aplicação do questionário institucional",
+            "status": "pendente",
+            "prazo": _data_relativa(15),
+            "descricao": "Instituição ainda sem questionário vinculado nem respostas — este é o primeiro passo.",
+        },
+    )
+
+
+def seed_planos_acao_demo() -> bool:
+    """Cria uma massa rica de Planos de Ação (vários ciclos, ações em todos
+    os status, tarefas, dependência entre ações e anexos) para as 3
+    instituições de `seed_dev_data()` — sem tocar em nenhum dado já
+    existente. Idempotente pelo ciclo-marcador `CICLO_DEMO_PLANOS_ACAO` em
+    horizonte_verde. Requer que `seed_dev_data()` já tenha rodado (precisa
+    das instituições); se elas não existirem, não faz nada."""
+    horizonte_verde = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_1).first()
+    nova_aurora = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_2).first()
+    vale_do_sol = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_3).first()
+    if horizonte_verde is None or nova_aurora is None or vale_do_sol is None:
+        return False
+
+    ja_existe = (
+        db.session.query(PlanoAcao)
+        .filter_by(instituicao_id=horizonte_verde.id, ciclo=CICLO_DEMO_PLANOS_ACAO)
+        .first()
+        is not None
+    )
+    if ja_existe:
+        return False
+
+    random.seed(43)  # reprodutível, seed diferente da respostas pra não repetir o mesmo padrão
+
+    instituicoes = {
+        "horizonte_verde": horizonte_verde,
+        "nova_aurora": nova_aurora,
+        "vale_do_sol": vale_do_sol,
+    }
+    admin = db.session.query(Usuario).filter_by(papel=PAPEL_ADMINISTRADOR).first()
+    _criar_planos_acao_demo(instituicoes, admin)
+
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Respostas extras — amplia a cobertura de setor×questionário já criada por
+# `_gerar_respostas()` (mais grupos cruzando o threshold de k-anonimato, mais
+# variação de nível de risco entre baixo/moderado/alto/crítico) e acrescenta
+# um setor novo, só para o painel de Resultados (cards/radar/mapa de risco)
+# ficar mais rico de ver — sem duplicar nem alterar as respostas já
+# existentes. Idempotente pelo setor-marcador "Apoio Técnico" (ver abaixo).
+# ---------------------------------------------------------------------------
+
+SETOR_DEMO_EXTRA = "Apoio Técnico"
+
+
+def _criar_respostas_extra(horizonte_verde, nova_aurora, karasek_info, copsoq_info):
+    karasek, dominio_demanda, dominio_controle = karasek_info
+    copsoq, dominio_exigencias, dominio_organizacao, dominio_relacoes = copsoq_info
+
+    setor_apoio = Setor(instituicao_id=horizonte_verde.id, nome=SETOR_DEMO_EXTRA, ativo=True)
+    db.session.add(setor_apoio)
+    db.session.flush()
+
+    hv_secretaria = _setor_por_nome(horizonte_verde.id, "Secretaria Escolar")
+    na_direcao = _setor_por_nome(nova_aurora.id, "Direção")
+    na_docentes = _setor_por_nome(nova_aurora.id, "Corpo Docente")
+
+    # (instituicao, setor, dominio_demanda_alvo, dominio_controle_alvo, quantidade, dias_atras_max)
+    grupos_karasek_extra = [
+        # Setor novo, perfil favorável (demanda baixa, controle alto) — cor
+        # verde/azul no mapa de risco, contraste com o Corpo Docente (crítico).
+        (horizonte_verde, setor_apoio, 2.0, 4.0, 6, 12),
+    ]
+    for instituicao, setor, media_demanda, media_controle, quantidade, dias_atras_max in grupos_karasek_extra:
+        for _ in range(quantidade):
+            payload = _payload_por_dominios(
+                [(dominio_demanda, media_demanda), (dominio_controle, media_controle)]
+            )
+            db.session.add(
+                RespostaBruta(
+                    questionario_id=karasek.id,
+                    instituicao_id=instituicao.id,
+                    setor_id=setor.id,
+                    payload_json=payload,
+                    respondido_em=_data_aleatoria(dias_atras_max),
+                )
+            )
+
+    # (instituicao, setor, exigencias, organizacao, relacoes, quantidade, dias_atras_max)
+    grupos_copsoq_extra = [
+        # Setor novo — favorável nas 3 dimensões do COPSOQ também.
+        (horizonte_verde, setor_apoio, 4.0, 4.3, 3.8, 6, 12),
+        # Secretaria só tinha Karasek (3, abaixo do threshold) — COPSOQ
+        # cruza o threshold e mostra um perfil favorável.
+        (horizonte_verde, hv_secretaria, 4.2, 3.8, 4.0, 6, 18),
+        # Direção da Nova Aurora ainda não tinha COPSOQ — perfil
+        # desfavorável de propósito, pra ter uma linha crítica no mapa.
+        (nova_aurora, na_direcao, 1.6, 2.0, 2.2, 6, 8),
+        # Corpo Docente da Nova Aurora tinha só 4 respostas de COPSOQ
+        # (abaixo do threshold) — mais 3 completam o grupo já existente e
+        # cruzam o threshold, mantendo a mesma média-alvo original.
+        (nova_aurora, na_docentes, 2.8, 3.2, 3.6, 3, 55),
+    ]
+    for (
+        instituicao,
+        setor,
+        media_exigencias,
+        media_organizacao,
+        media_relacoes,
+        quantidade,
+        dias_atras_max,
+    ) in grupos_copsoq_extra:
+        for _ in range(quantidade):
+            payload = _payload_por_dominios(
+                [
+                    (dominio_exigencias, media_exigencias),
+                    (dominio_organizacao, media_organizacao),
+                    (dominio_relacoes, media_relacoes),
+                ]
+            )
+            db.session.add(
+                RespostaBruta(
+                    questionario_id=copsoq.id,
+                    instituicao_id=instituicao.id,
+                    setor_id=setor.id,
+                    payload_json=payload,
+                    respondido_em=_data_aleatoria(dias_atras_max),
+                )
+            )
+
+    db.session.commit()
+
+    for instituicao, setor, *_ in grupos_karasek_extra:
+        recalcular_resultados(instituicao.id, setor.id, karasek.id)
+    for instituicao, setor, *_ in grupos_copsoq_extra:
+        recalcular_resultados(instituicao.id, setor.id, copsoq.id)
+
+
+def seed_respostas_extra() -> bool:
+    """Amplia a massa de respostas de `seed_dev_data()` pra o painel de
+    Resultados (cards, radar 'Visão geral', 'Mapa de risco') ficar mais rico
+    de ver: cria o setor 'Apoio Técnico' (Horizonte Verde) com respostas nos
+    dois instrumentos, dá cobertura de COPSOQ a setores que só tinham
+    Karasek (ou nenhuma resposta ainda), e completa o grupo Corpo
+    Docente/COPSOQ da Nova Aurora, que estava abaixo do threshold de
+    k-anonimato. Não altera nem duplica nenhuma resposta já existente.
+    Idempotente pelo setor-marcador 'Apoio Técnico'. Requer que
+    `seed_dev_data()` já tenha rodado."""
+    horizonte_verde = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_1).first()
+    nova_aurora = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_2).first()
+    if horizonte_verde is None or nova_aurora is None:
+        return False
+
+    ja_existe = _setor_por_nome(horizonte_verde.id, SETOR_DEMO_EXTRA) is not None
+    if ja_existe:
+        return False
+
+    karasek = db.session.query(Questionario).filter_by(titulo="Pesquisa de Riscos Psicossociais 2026.1").first()
+    copsoq = (
+        db.session.query(Questionario)
+        .filter_by(titulo="Pesquisa de Riscos Psicossociais 2025.2 (encerrada)")
+        .first()
+    )
+    if karasek is None or copsoq is None:
+        return False
+
+    random.seed(44)
+
+    dominio_demanda = next(d for d in karasek.dominios if d.chave == "demanda")
+    dominio_controle = next(d for d in karasek.dominios if d.chave == "controle")
+    dominio_exigencias = next(d for d in copsoq.dominios if d.chave == "exigencias")
+    dominio_organizacao = next(d for d in copsoq.dominios if d.chave == "organizacao")
+    dominio_relacoes = next(d for d in copsoq.dominios if d.chave == "relacoes")
+
+    _criar_respostas_extra(
+        horizonte_verde,
+        nova_aurora,
+        (karasek, dominio_demanda, dominio_controle),
+        (copsoq, dominio_exigencias, dominio_organizacao, dominio_relacoes),
+    )
 
     return True

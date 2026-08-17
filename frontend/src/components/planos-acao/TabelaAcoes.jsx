@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { BotaoIcone } from "../common/BotaoIcone";
-import { IconeEditar, IconeExcluir } from "../common/icones";
+import { IconeEditar, IconeExcluir, IconeVer } from "../common/icones";
 import { formatarDataBR } from "../../utils/data";
 import { rotuloStatus } from "../../utils/statusAcao";
 import tabela from "../../styles/tabela.module.css";
@@ -18,7 +18,7 @@ const COLUNAS = [
 // Primeira tabela ordenável por coluna do projeto — sem lib (útil pra
 // listas pequenas como um plano de ação), clique no cabeçalho alterna
 // asc/desc.
-export function TabelaAcoes({ acoes, onEditar, onExcluir }) {
+export function TabelaAcoes({ acoes, onEditar, onExcluir, somenteLeitura }) {
   const [ordenacao, setOrdenacao] = useState({ coluna: "prazo", direcao: "asc" });
 
   function alternarOrdenacao(coluna) {
@@ -70,16 +70,26 @@ export function TabelaAcoes({ acoes, onEditar, onExcluir }) {
                 <td>{acao.responsavel || "—"}</td>
                 <td>{totalTarefas > 0 ? `${tarefasConcluidas}/${totalTarefas}` : "—"}</td>
                 <td className={tabela.acoes}>
-                  <BotaoIcone
-                    icone={IconeEditar}
-                    rotulo={`Editar ${acao.titulo}`}
-                    onClick={() => onEditar(acao)}
-                  />
-                  <BotaoIcone
-                    icone={IconeExcluir}
-                    rotulo={`Excluir ${acao.titulo}`}
-                    onClick={() => onExcluir(acao)}
-                  />
+                  {somenteLeitura ? (
+                    <BotaoIcone
+                      icone={IconeVer}
+                      rotulo={`Ver ${acao.titulo}`}
+                      onClick={() => onEditar(acao)}
+                    />
+                  ) : (
+                    <>
+                      <BotaoIcone
+                        icone={IconeEditar}
+                        rotulo={`Editar ${acao.titulo}`}
+                        onClick={() => onEditar(acao)}
+                      />
+                      <BotaoIcone
+                        icone={IconeExcluir}
+                        rotulo={`Excluir ${acao.titulo}`}
+                        onClick={() => onExcluir(acao)}
+                      />
+                    </>
+                  )}
                 </td>
               </tr>
             );

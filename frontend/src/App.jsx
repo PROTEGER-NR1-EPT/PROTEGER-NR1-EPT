@@ -16,7 +16,9 @@ import { PlanosAcaoPage } from "./pages/admin/PlanosAcaoPage";
 import { QuestionariosPage } from "./pages/admin/QuestionariosPage";
 import { ResultadosPage } from "./pages/admin/ResultadosPage";
 import { UsuariosPage } from "./pages/admin/UsuariosPage";
+import { ConsultorLayout } from "./pages/consultor/ConsultorLayout";
 import { DashboardConsultor } from "./pages/consultor/DashboardConsultor";
+import { PlanosAcaoConsultor } from "./pages/consultor/PlanosAcaoConsultor";
 import { ResultadosInstituicao } from "./pages/consultor/ResultadosInstituicao";
 import { ConfirmacaoPage } from "./pages/publico/ConfirmacaoPage";
 import { LandingPage } from "./pages/publico/LandingPage";
@@ -74,11 +76,12 @@ export default function App() {
         </Route>
 
         <Route element={<ProtectedRoute papeisPermitidos={["consultor"]} />}>
-          <Route path="/consultor" element={<DashboardConsultor />} />
-          <Route
-            path="/consultor/instituicoes/:instituicaoId"
-            element={<ResultadosInstituicao />}
-          />
+          <Route path="/consultor" element={<ConsultorLayout />}>
+            <Route index element={<DashboardConsultor />} />
+            <Route path="instituicoes/:instituicaoId" element={<ResultadosInstituicao />} />
+            <Route path="planos-acao" element={<PlanosAcaoConsultor />} />
+            <Route path="perfil" element={<PerfilPage />} />
+          </Route>
         </Route>
 
         <Route element={<ProtectedRoute papeisPermitidos={["administrador"]} />}>

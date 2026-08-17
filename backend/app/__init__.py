@@ -239,3 +239,56 @@ def _registrar_comandos_cli(app):
             return
 
         print(f"Questionário misto de demonstração criado: {TITULO_QUESTIONARIO_MISTO}")
+
+    @app.cli.command("seed-planos-acao")
+    def seed_planos_acao_cmd():
+        """Cria uma massa rica de Planos de Ação (vários ciclos, ações em
+        todos os status, tarefas, dependência entre ações e anexos) para as
+        3 instituições de `seed-dev-data`, sem apagar/alterar nenhum dado já
+        existente — útil pra ver o Kanban/Tabela/Calendário (Administrador e
+        Consultor) povoados. Idempotente. Requer que `seed-dev-data` já
+        tenha rodado. Recusa rodar fora de FLASK_ENV=development."""
+        if app.config["FLASK_ENV"] != "development":
+            print(
+                "Recusado: este comando só roda com FLASK_ENV=development "
+                "(configurado atualmente como "
+                f"'{app.config['FLASK_ENV']}')."
+            )
+            return
+
+        from app.seed import CICLO_DEMO_PLANOS_ACAO, seed_planos_acao_demo
+
+        if not seed_planos_acao_demo():
+            print(
+                "Nada a fazer: dados de teste (seed-dev-data) ainda não existem, ou o "
+                f"ciclo '{CICLO_DEMO_PLANOS_ACAO}' já foi criado antes."
+            )
+            return
+
+        print("Planos de ação de demonstração criados: 4 ciclos, várias ações por instituição.")
+
+    @app.cli.command("seed-mais-respostas")
+    def seed_mais_respostas_cmd():
+        """Amplia a massa de respostas de `seed-dev-data` pra o painel de
+        Resultados (cards, radar 'Visão geral', 'Mapa de risco') ficar mais
+        rico de ver — sem apagar/alterar nenhuma resposta já existente.
+        Idempotente. Requer que `seed-dev-data` já tenha rodado. Recusa
+        rodar fora de FLASK_ENV=development."""
+        if app.config["FLASK_ENV"] != "development":
+            print(
+                "Recusado: este comando só roda com FLASK_ENV=development "
+                "(configurado atualmente como "
+                f"'{app.config['FLASK_ENV']}')."
+            )
+            return
+
+        from app.seed import SETOR_DEMO_EXTRA, seed_respostas_extra
+
+        if not seed_respostas_extra():
+            print(
+                "Nada a fazer: dados de teste (seed-dev-data) ainda não existem, ou o "
+                f"setor '{SETOR_DEMO_EXTRA}' já foi criado antes."
+            )
+            return
+
+        print("Respostas extras criadas: mais cobertura de setor×questionário para o painel de Resultados.")

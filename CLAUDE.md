@@ -37,6 +37,8 @@ flask db upgrade          # aplica as migrations nos 3 bancos (Flask-Migrate --m
 flask bootstrap-admin     # cria o 1º Administrador a partir de ADMIN_BOOTSTRAP_EMAIL/PASSWORD (idempotente)
 flask seed-dev-data       # opcional: massa de dados fictícia p/ testar o sistema (idempotente, só em FLASK_ENV=development)
 flask seed-questionario-misto  # opcional: complementa a seed acima só com o questionário misto (Karasek+COPSOQ), sem apagar nada existente
+flask seed-planos-acao    # opcional: complementa a seed acima com Planos de Ação ricos (vários ciclos/status/tarefas/dependências)
+flask seed-mais-respostas # opcional: complementa a seed acima com mais respostas, pro painel de Resultados (cards/radar/mapa de risco) ficar mais rico
 
 python run.py             # servidor de desenvolvimento em http://localhost:8000
 pytest                    # testes: k-anonimato, Karasek, COPSOQ (app/services/)

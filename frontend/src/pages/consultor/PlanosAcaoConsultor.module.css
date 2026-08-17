@@ -1,0 +1,85 @@
+.secaoSeletor {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  background: var(--cor-fundo-alt);
+  padding: var(--espaco-3) var(--espaco-4);
+  margin-bottom: var(--espaco-4);
+}
+
+.cabecalhoPlano {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-2);
+}
+
+.tituloPlano {
+  margin: 0;
+}
+
+.subtituloPlano {
+  margin: 0.15rem 0 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.9rem;
+}
+
+.badgeConcluidas {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cor-sucesso);
+  background: var(--cor-sucesso-fundo);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  white-space: nowrap;
+}
+
+.barraProgresso {
+  display: flex;
+  height: 0.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--cor-fundo-alt);
+  margin-bottom: var(--espaco-4);
+}
+
+.segmentoPendente {
+  background: var(--cor-atencao);
+}
+
+.segmentoAndamento {
+  background: var(--cor-primaria);
+}
+
+.segmentoConcluido {
+  background: var(--cor-sucesso);
+}
+
+.abas {
+  display: flex;
+  gap: var(--espaco-1);
+  border-bottom: 1px solid var(--cor-borda);
+  margin-bottom: var(--espaco-4);
+}
+
+.aba {
+  border: none;
+  background: none;
+  padding: var(--espaco-2) var(--espaco-3);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.aba:hover {
+  color: var(--cor-texto);
+}
+
+.abaAtiva {
+  color: var(--cor-primaria);
+  border-bottom-color: var(--cor-primaria);
+}

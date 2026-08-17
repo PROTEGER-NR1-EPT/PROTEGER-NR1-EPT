@@ -1,0 +1,46 @@
+.tituloAcao {
+  margin: 0 0 var(--espaco-2);
+}
+
+.linhaMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-3);
+}
+
+.badgeStatus {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cor-primaria-texto);
+  border-radius: 999px;
+  padding: 0.2rem 0.75rem;
+}
+
+.prazo {
+  font-size: 0.9rem;
+  color: var(--cor-texto-secundario);
+}
+
+.campoTexto {
+  margin: 0 0 var(--espaco-3);
+}
+
+.listaTarefas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.itemTarefa {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-1);
+}
+
+.textoConcluido {
+  text-decoration: line-through;
+  color: var(--cor-texto-secundario);
+}

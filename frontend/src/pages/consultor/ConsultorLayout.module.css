@@ -1,0 +1,270 @@
+.envoltorio {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: calc(100vh - 8rem);
+}
+
+/* --- Sidebar: mobile-first como barra inferior fixa (estilo app) --- */
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  display: flex;
+  flex-direction: row;
+  background: var(--cor-fundo-alt);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.nav {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  flex: 0 0 auto;
+  min-width: 4.25rem;
+  padding: var(--espaco-2) var(--espaco-1);
+  text-decoration: none;
+  color: var(--cor-texto-secundario);
+  border-radius: var(--raio-borda);
+}
+
+.nav a:hover {
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+}
+
+.linkAtivo {
+  color: var(--cor-primaria) !important;
+}
+
+.icone {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+}
+
+.rotulo {
+  font-size: 0.65rem;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 4rem;
+}
+
+/* Rodapé (status do usuário + encolher) só faz sentido em sidebar lateral;
+   na barra inferior mobile não há espaço e o cabeçalho global já mostra
+   nome + Sair. */
+.rodape {
+  display: none;
+}
+
+.conteudo {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--espaco-4) var(--espaco-3);
+  padding-bottom: calc(var(--espaco-4) + 4.5rem);
+}
+
+/* --- A partir daqui, telas largas: sidebar lateral colapsável --- */
+
+@media (min-width: 640px) {
+  .envoltorio {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: var(--espaco-3);
+    left: auto;
+    right: auto;
+    bottom: auto;
+    flex-direction: column;
+    align-self: flex-start;
+    width: 15rem;
+    flex-shrink: 0;
+    margin: var(--espaco-3) 0 var(--espaco-3) var(--espaco-3);
+    border: 1px solid var(--cor-borda);
+    border-top: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    max-height: calc(100vh - 2 * var(--espaco-3));
+    overflow: hidden;
+    transition: width 0.15s ease;
+  }
+
+  .sidebarRecolhida {
+    width: 4.5rem;
+  }
+
+  .nav {
+    flex-direction: column;
+    overflow-x: visible;
+    overflow-y: auto;
+    padding: var(--espaco-2);
+    gap: var(--espaco-1);
+  }
+
+  .nav a {
+    flex-direction: row;
+    justify-content: flex-start;
+    min-width: 0;
+    width: 100%;
+    padding: var(--espaco-2);
+  }
+
+  .rotulo {
+    font-size: 0.9rem;
+    max-width: none;
+  }
+
+  .sidebarRecolhida .rotulo {
+    display: none;
+  }
+
+  .sidebarRecolhida .nav a {
+    justify-content: center;
+  }
+
+  .rodape {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaco-2);
+    padding: var(--espaco-2);
+    border-top: 1px solid var(--cor-borda);
+  }
+
+  .botaoRecolher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: var(--espaco-2);
+    border: none;
+    border-radius: var(--raio-borda);
+    background: none;
+    color: var(--cor-texto-secundario);
+    cursor: pointer;
+  }
+
+  .botaoRecolher:hover {
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+  }
+
+  .iconeInvertido {
+    transform: rotate(180deg);
+  }
+
+  .usuario {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-1);
+  }
+
+  .sidebarRecolhida .usuario {
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--espaco-1);
+  }
+
+  .linkUsuario {
+    display: flex;
+    align-items: center;
+    gap: var(--espaco-2);
+    min-width: 0;
+    flex: 1;
+    padding: var(--espaco-1);
+    border-radius: var(--raio-borda);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .linkUsuario:hover,
+  .linkUsuarioAtivo {
+    background: var(--cor-fundo);
+  }
+
+  .avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--cor-primaria);
+    color: var(--cor-primaria-texto);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .infoUsuario {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .sidebarRecolhida .infoUsuario {
+    display: none;
+  }
+
+  .sidebarRecolhida .linkUsuario {
+    justify-content: center;
+  }
+
+  .nomeUsuario {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .papelUsuario {
+    font-size: 0.75rem;
+    color: var(--cor-texto-secundario);
+  }
+
+  .botaoSair {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    color: var(--cor-texto-secundario);
+    background: none;
+    border: none;
+    border-radius: var(--raio-borda);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .botaoSair:hover {
+    background: var(--cor-fundo);
+    color: var(--cor-perigo);
+  }
+
+  .conteudo {
+    padding: var(--espaco-4) var(--espaco-3) var(--espaco-4) var(--espaco-3);
+  }
+}

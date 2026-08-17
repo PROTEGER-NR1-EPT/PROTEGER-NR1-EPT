@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import { listarMinhasInstituicoes, obterMemoria, obterResultados } from "../../api/consultor";
+import {
+  listarMinhasInstituicoes,
+  obterMemoria,
+  obterResultados,
+  obterResultadosDashboard,
+} from "../../api/consultor";
 import { CopsoqDominioBadge } from "../../components/resultados/CopsoqDominioBadge";
 import { KarasekQuadrante } from "../../components/resultados/KarasekQuadrante";
 import { ResultadoIndisponivel } from "../../components/resultados/ResultadoIndisponivel";
+import { ResultadosDashboard } from "../../components/resultados/ResultadosDashboard";
 import tabela from "../../styles/tabela.module.css";
 import { classificarResultado } from "../../utils/resultados";
 import styles from "./ResultadosInstituicao.module.css";
@@ -14,6 +20,7 @@ export function ResultadosInstituicao() {
 
   const [instituicao, setInstituicao] = useState(null);
   const [resultados, setResultados] = useState([]);
+  const [resultadosDashboard, setResultadosDashboard] = useState([]);
   const [memoria, setMemoria] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
@@ -24,13 +31,15 @@ export function ResultadosInstituicao() {
     Promise.all([
       listarMinhasInstituicoes(),
       obterResultados(instituicaoId),
+      obterResultadosDashboard(instituicaoId),
       obterMemoria(instituicaoId),
     ])
-      .then(([instituicoesResposta, resultadosResposta, memoriaResposta]) => {
+      .then(([instituicoesResposta, resultadosResposta, dashboardResposta, memoriaResposta]) => {
         setInstituicao(
           instituicoesResposta.find((i) => i.id === Number(instituicaoId)) ?? null
         );
         setResultados(resultadosResposta);
+        setResultadosDashboard(dashboardResposta);
         setMemoria(memoriaResposta);
       })
       .catch((erroApi) => setErro(erroApi.mensagem))
@@ -78,6 +87,10 @@ export function ResultadosInstituicao() {
 
         {resultados.length === 0 && (
           <p className={tabela.semDados}>Ainda não há resultados para esta instituição.</p>
+        )}
+
+        {resultados.length > 0 && (
+          <ResultadosDashboard resultados={resultadosDashboard} carregando={false} />
         )}
 
         {gruposPorSetor.map((grupo) => (
