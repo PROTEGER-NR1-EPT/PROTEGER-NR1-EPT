@@ -12,6 +12,7 @@ import { ExportacaoPage } from "./pages/admin/ExportacaoPage";
 import { InstituicoesPage } from "./pages/admin/InstituicoesPage";
 import { LogsPage } from "./pages/admin/LogsPage";
 import { PerfilPage } from "./pages/admin/PerfilPage";
+import { PlanosAcaoPage } from "./pages/admin/PlanosAcaoPage";
 import { QuestionariosPage } from "./pages/admin/QuestionariosPage";
 import { ResultadosPage } from "./pages/admin/ResultadosPage";
 import { UsuariosPage } from "./pages/admin/UsuariosPage";
@@ -84,6 +85,7 @@ export default function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<DashboardAdmin />} />
             <Route path="resultados" element={<ResultadosPage />} />
+            <Route path="planos-acao" element={<PlanosAcaoPage />} />
             <Route path="instituicoes" element={<InstituicoesPage />} />
             <Route path="questionarios" element={<QuestionariosPage />} />
             <Route path="usuarios" element={<UsuariosPage />} />

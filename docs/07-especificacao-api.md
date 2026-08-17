@@ -65,6 +65,11 @@ bearer token), exceto rotas marcadas como públicas.
 | GET/PUT | `/admin/configuracoes` | Threshold de k-anonimato, toggles de IA, provedor LLM |
 | GET | `/admin/logs` | Log de atividade |
 | POST/GET | `/admin/memoria` | Criar/consultar registros de memória institucional |
+| GET/POST | `/admin/instituicoes/{id}/planos-acao` | Listar/criar planos de ação (ciclos) de uma instituição |
+| GET/POST | `/admin/planos-acao/{id}/acoes` | Listar/criar ações de um plano (tarefas e dependências resolvidas na leitura) |
+| PUT/DELETE | `/admin/acoes/{id}` | Editar (inclui status/ordem do Kanban) / excluir uma ação |
+| PUT | `/admin/tarefas/{id}` | Marcar/desmarcar uma tarefa do checklist |
+| POST | `/admin/planos-acao/{id}/gerar-sugestoes` | Gerar ações-rascunho a partir de dimensões em risco alto/crítico (regra determinística, sem LLM) |
 | GET | `/admin/estatisticas` | Contagens gerais para o painel do Administrador (instituições, questionários, usuários, respostas, alerta de k-anonimato e ranking por instituição) |
 
 ## IA (opcional — apenas se toggle ativado)

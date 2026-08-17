@@ -44,6 +44,10 @@ Registros históricos vinculados a instituições já cadastradas.
 | `instituicoes_referencia` | id, instituicao_id, nome | Espelho leve do cadastro de instituições, para não depender do banco anônimo em tempo real |
 | `registros_memoria` | id, instituicao_id, tipo, titulo, descricao, anexo_url, criado_em | Documentos, atas de roda de conversa, ações realizadas |
 | `linha_do_tempo` | id, instituicao_id, evento, data_evento, registro_memoria_id | Eventos institucionais relevantes para o histórico |
+| `planos_acao` | id, instituicao_id, ciclo, criado_por_usuario_id, criado_em | Plano de ação por instituição/ciclo (ex.: "Mar/2026") |
+| `acoes_plano` | id, plano_id, titulo, tag, status, prazo, responsavel, participantes (JSON), anexos (JSON), ordem | `responsavel`/`participantes` são texto livre — não há cadastro de pessoa da instituição; `anexos` é lista de links, sem upload real |
+| `tarefas_acao` | id, acao_id, titulo, concluida, ordem | Checklist de uma ação |
+| `dependencias_acao` | id, acao_id, depende_de_acao_id | "Bloqueia" é a leitura invertida desta mesma relação, sem coluna própria |
 
 ## Regras de integridade entre bancos
 

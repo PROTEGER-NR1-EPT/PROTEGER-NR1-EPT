@@ -14,6 +14,7 @@ const CHAVE_RECOLHIDA = "proteger-nr1-admin-sidebar-recolhida";
 const LINKS = [
   { to: "/admin", rotulo: "Visão geral", fim: true, Icone: IconeVisaoGeral },
   { to: "/admin/resultados", rotulo: "Resultados", Icone: IconeResultados },
+  { to: "/admin/planos-acao", rotulo: "Planos de ação", Icone: IconePlanosDeAcao },
   { to: "/admin/instituicoes", rotulo: "Instituições e setores", Icone: IconeInstituicoes },
   { to: "/admin/questionarios", rotulo: "Questionários", Icone: IconeQuestionarios },
   { to: "/admin/usuarios", rotulo: "Usuários", Icone: IconeUsuarios },
@@ -139,6 +140,16 @@ function IconeResultados({ className }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function IconePlanosDeAcao({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <rect x="3" y="4" width="5" height="16" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="9.5" y="4" width="5" height="10" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="16" y="4" width="5" height="13" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }

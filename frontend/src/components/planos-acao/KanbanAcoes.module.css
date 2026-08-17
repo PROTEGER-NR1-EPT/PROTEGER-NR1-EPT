@@ -1,0 +1,127 @@
+.colunas {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: var(--espaco-2);
+}
+
+.coluna {
+  flex: 1 1 16rem;
+  min-width: 16rem;
+  background: var(--cor-fundo-alt);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-2);
+  transition: background-color 0.1s ease;
+}
+
+.colunaSobre {
+  background: var(--cor-fundo);
+  border-color: var(--cor-primaria);
+}
+
+.cabecalhoColuna {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-2);
+  margin-bottom: var(--espaco-2);
+}
+
+.pontoStatus {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tituloColuna {
+  margin: 0;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.contadorColuna {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+}
+
+.listaCartoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  min-height: 3rem;
+}
+
+.cartao {
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-3);
+  cursor: grab;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.cartao:hover {
+  border-color: var(--cor-primaria);
+}
+
+.cartao:active {
+  cursor: grabbing;
+}
+
+.cartaoTitulo {
+  margin: 0 0 var(--espaco-2);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.cartaoMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1);
+  margin-bottom: var(--espaco-2);
+}
+
+.tagChip {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--cor-risco-moderado-fundo);
+  color: var(--cor-risco-moderado);
+}
+
+.prazo {
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+}
+
+.cartaoRodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-2);
+  font-size: 0.75rem;
+  color: var(--cor-texto-secundario);
+}
+
+.progressoTarefas {
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.colunaVazia {
+  font-size: 0.8rem;
+  color: var(--cor-texto-secundario);
+  text-align: center;
+  padding: var(--espaco-3) 0;
+  margin: 0;
+}

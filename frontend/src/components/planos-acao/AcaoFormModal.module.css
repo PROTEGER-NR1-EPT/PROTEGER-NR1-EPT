@@ -1,0 +1,157 @@
+.sobreposicao {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-4) var(--espaco-3);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 40rem;
+  max-height: calc(100vh - 2 * var(--espaco-4));
+  overflow: hidden;
+  background: var(--cor-fundo);
+  border-radius: var(--raio-borda);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.cabecalho {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-3) var(--espaco-4);
+  background: var(--cor-primaria);
+  color: var(--cor-primaria-texto);
+}
+
+.titulo {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.botaoFechar {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 var(--espaco-1);
+}
+
+.botaoFechar:hover {
+  opacity: 0.75;
+}
+
+.corpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--espaco-4);
+}
+
+.rodape {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.linhaCampos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+.linhaCampos > * {
+  flex: 1 1 10rem;
+}
+
+.secaoLista {
+  margin-top: var(--espaco-2);
+  margin-bottom: var(--espaco-3);
+}
+
+.tituloSecaoLista {
+  margin: 0 0 var(--espaco-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.linhaItemLista {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-2);
+}
+
+.linhaItemLista > input {
+  flex: 1;
+}
+
+.botaoRemoverItem {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  background: var(--cor-fundo);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.botaoRemoverItem:hover {
+  border-color: var(--cor-perigo);
+  color: var(--cor-perigo);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--cor-fundo-alt);
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  padding: 0.15rem 0.4rem 0.15rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.chipRemover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.chipRemover:hover {
+  background: var(--cor-perigo-fundo);
+  color: var(--cor-perigo);
+}

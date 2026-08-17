@@ -133,6 +133,7 @@ def _registrar_blueprints(app):
     from app.blueprints.admin import bp as admin_bp
     from app.blueprints.auth import bp as auth_bp
     from app.blueprints.consultor import bp as consultor_bp
+    from app.blueprints.planos_acao import bp as planos_acao_bp
     from app.blueprints.publico import bp as publico_bp
 
     # Blueprint "guarda-chuva" apenas para compor o prefixo /api/v1 com o
@@ -144,6 +145,10 @@ def _registrar_blueprints(app):
     api.register_api(auth_bp)
     api.register_api(consultor_bp)
     api.register_api(admin_bp)
+    # Planos de Ação: blueprint próprio (mesmo url_prefix "/admin") para não
+    # deixar admin.py/schemas/admin.py ainda maiores — funcionalidade grande
+    # o suficiente para justificar arquivo dedicado.
+    api.register_api(planos_acao_bp)
     app.register_api(api)
 
 
