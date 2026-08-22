@@ -29,8 +29,6 @@ function nomeTelaAtual(pathname) {
   if (pathname === "/admin/questionarios") return "Questionários (Administrador)";
   if (pathname === "/admin/usuarios") return "Usuários (Administrador)";
   if (pathname === "/admin/configuracoes") return "Configurações do sistema (Administrador)";
-  if (pathname === "/admin/exportacao") return "Exportação de dados (Administrador)";
-  if (pathname === "/admin/logs") return "Log de atividade (Administrador)";
   if (pathname === "/admin/assistente-ia") return "Assistente IA (Administrador)";
   if (pathname === "/admin/perfil") return "Perfil (Administrador)";
 

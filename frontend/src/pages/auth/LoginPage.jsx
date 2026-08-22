@@ -2,7 +2,7 @@
 // Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "../../components/forms/Button";
 import formStyles from "../../components/forms/FormField.module.css";
@@ -32,6 +32,11 @@ function IconeEntrar() {
 export function LoginPage() {
   const { entrar, entrando } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Mensagem opcional passada por um redirecionamento (ex.: depois de um
+  // reset de sistema em Configurações) — mecanismo genérico via router
+  // state, não específico de nenhum fluxo.
+  const mensagemRedirecionamento = location.state?.mensagem ?? null;
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState(null);
@@ -54,6 +59,11 @@ export function LoginPage() {
           <IconeEntrar />
           <h1 className={styles.titulo}>Entrar</h1>
           <p className={styles.introducao}>Acesso restrito a Consultores e Administradores.</p>
+          {mensagemRedirecionamento && (
+            <p className={styles.mensagemRedirecionamento} role="status">
+              {mensagemRedirecionamento}
+            </p>
+          )}
 
           <form className={styles.formulario} onSubmit={handleSubmit}>
             {erro && (

@@ -148,9 +148,10 @@ export async function obterResultadosDashboard({
 // --- Exportação CSV ------------------------------------------------------
 
 // Só deve ser chamada após confirmação explícita do usuário na UI — ver
-// ExportacaoPage.jsx. `confirmo_export_dados_sensiveis: true` é enviado
-// sempre aqui porque esta função só é invocada depois que a tela já
-// coletou essa confirmação; a rota não é disparada em nenhum outro lugar.
+// aba "Exportação de dados" em ConfiguracoesPage.jsx.
+// `confirmo_export_dados_sensiveis: true` é enviado sempre aqui porque
+// esta função só é invocada depois que a tela já coletou essa
+// confirmação; a rota não é disparada em nenhum outro lugar.
 export async function exportarRespostasCsv({ instituicaoId, setorId, questionarioId }) {
   const params = { confirmo_export_dados_sensiveis: true };
   if (instituicaoId) params.instituicao_id = instituicaoId;
@@ -178,6 +179,16 @@ export async function obterConfiguracoes() {
 
 export async function atualizarConfiguracoes(alteracoes) {
   const { data } = await api.put("/admin/configuracoes", alteracoes);
+  return data;
+}
+
+// Ação irreversível — apaga todos os dados do sistema, exceto contas
+// Administrador. Ver aba "Resetar sistema" em ConfiguracoesPage.jsx.
+export async function resetarSistema(fraseConfirmacao, senhaAtual) {
+  const { data } = await api.post("/admin/sistema/resetar", {
+    frase_confirmacao: fraseConfirmacao,
+    senha_atual: senhaAtual,
+  });
   return data;
 }
 

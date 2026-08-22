@@ -43,6 +43,15 @@
   font-size: 0.9rem;
 }
 
+.mensagemRedirecionamento {
+  color: var(--cor-sucesso);
+  background: var(--cor-sucesso-fundo);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-2) var(--espaco-3);
+  margin: 0 0 var(--espaco-3);
+  font-size: 0.9rem;
+}
+
 .botaoEntrar {
   width: 100%;
   margin-top: var(--espaco-2);

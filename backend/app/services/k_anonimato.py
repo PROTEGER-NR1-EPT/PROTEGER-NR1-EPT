@@ -29,20 +29,27 @@ PERIODO_CONSOLIDADO = "consolidado"
 # ---------------------------------------------------------------------------
 
 
+def _valores_padrao() -> dict:
+    """Valores de fábrica de ConfiguracaoSistema, lidos das env vars atuais
+    — usado tanto para criar a linha id=1 na primeira leitura (abaixo)
+    quanto para devolvê-la ao padrão num reset de sistema
+    (services/reset_sistema.py)."""
+    return {
+        "k_anonimato_threshold": current_app.config["K_ANONIMATO_THRESHOLD_DEFAULT"],
+        "ia_sugestao_questionario_enabled": False,
+        "ia_analise_resultados_enabled": False,
+        "ia_chat_enabled": False,
+        "llm_provider": current_app.config["LLM_PROVIDER_DEFAULT"],
+        "llm_api_key": current_app.config["LLM_API_KEY_DEFAULT"],
+        "llm_base_url": current_app.config["LLM_BASE_URL_DEFAULT"],
+        "llm_model": current_app.config["LLM_MODEL_DEFAULT"],
+    }
+
+
 def obter_configuracao() -> ConfiguracaoSistema:
     config = db.session.get(ConfiguracaoSistema, 1)
     if config is None:
-        config = ConfiguracaoSistema(
-            id=1,
-            k_anonimato_threshold=current_app.config["K_ANONIMATO_THRESHOLD_DEFAULT"],
-            ia_sugestao_questionario_enabled=False,
-            ia_analise_resultados_enabled=False,
-            ia_chat_enabled=False,
-            llm_provider=current_app.config["LLM_PROVIDER_DEFAULT"],
-            llm_api_key=current_app.config["LLM_API_KEY_DEFAULT"],
-            llm_base_url=current_app.config["LLM_BASE_URL_DEFAULT"],
-            llm_model=current_app.config["LLM_MODEL_DEFAULT"],
-        )
+        config = ConfiguracaoSistema(id=1, **_valores_padrao())
         db.session.add(config)
         db.session.commit()
     return config

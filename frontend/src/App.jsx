@@ -12,9 +12,7 @@ import { AssistenteIaPage } from "./pages/assistente-ia/AssistenteIaPage";
 import { AdminLayout } from "./pages/admin/AdminLayout";
 import { ConfiguracoesPage } from "./pages/admin/ConfiguracoesPage";
 import { DashboardAdmin } from "./pages/admin/DashboardAdmin";
-import { ExportacaoPage } from "./pages/admin/ExportacaoPage";
 import { InstituicoesPage } from "./pages/admin/InstituicoesPage";
-import { LogsPage } from "./pages/admin/LogsPage";
 import { PerfilPage } from "./pages/admin/PerfilPage";
 import { PlanosAcaoPage } from "./pages/admin/PlanosAcaoPage";
 import { QuestionariosPage } from "./pages/admin/QuestionariosPage";
@@ -99,8 +97,6 @@ export default function App() {
             <Route path="usuarios" element={<UsuariosPage />} />
             <Route path="assistente-ia" element={<AssistenteIaPage />} />
             <Route path="configuracoes" element={<ConfiguracoesPage />} />
-            <Route path="exportacao" element={<ExportacaoPage />} />
-            <Route path="logs" element={<LogsPage />} />
             <Route path="perfil" element={<PerfilPage />} />
           </Route>
         </Route>

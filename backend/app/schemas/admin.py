@@ -390,6 +390,20 @@ class AtualizarConfiguracoesBody(BaseModel):
     )
 
 
+FRASE_CONFIRMACAO_RESET = "RESETAR SISTEMA"
+
+
+class ResetarSistemaBody(BaseModel):
+    frase_confirmacao: str = Field(
+        ...,
+        description=f"Precisa ser exatamente '{FRASE_CONFIRMACAO_RESET}' (mostrada na tela).",
+        examples=[FRASE_CONFIRMACAO_RESET],
+    )
+    senha_atual: str = Field(
+        ..., min_length=1, description="Senha atual do Administrador, para confirmar a identidade."
+    )
+
+
 # ---------------------------------------------------------------------------
 # Log de atividade
 # ---------------------------------------------------------------------------

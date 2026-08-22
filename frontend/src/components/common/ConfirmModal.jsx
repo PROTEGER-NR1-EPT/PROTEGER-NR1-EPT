@@ -16,6 +16,7 @@ export function ConfirmModal({
   children,
   textoConfirmar = "Confirmar",
   textoCancelar = "Cancelar",
+  textoConfirmando = "Excluindo...",
   perigo = false,
   confirmando = false,
   onConfirmar,
@@ -63,7 +64,7 @@ export function ConfirmModal({
             onClick={onConfirmar}
             disabled={confirmando}
           >
-            {confirmando ? "Excluindo..." : textoConfirmar}
+            {confirmando ? textoConfirmando : textoConfirmar}
           </Button>
         </div>
       </div>

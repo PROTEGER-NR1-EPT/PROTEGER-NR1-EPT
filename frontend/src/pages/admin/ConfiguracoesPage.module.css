@@ -1,9 +1,9 @@
 .abas {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--espaco-1);
   border-bottom: 1px solid var(--cor-borda);
   margin-bottom: var(--espaco-4);
-  max-width: 32rem;
 }
 
 .aba {
@@ -16,6 +16,7 @@
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
+  white-space: nowrap;
 }
 
 .aba:hover {
@@ -35,6 +36,25 @@
   padding: var(--espaco-4);
   margin-bottom: var(--espaco-4);
   max-width: 32rem;
+}
+
+/* Log de atividade precisa de mais espaço horizontal que os formulários
+   estreitos das outras abas (a tabela tem 5 colunas, incluindo detalhes
+   em JSON) — sem isso, o cartão de 32rem corta as últimas colunas. */
+.cartaoLargo {
+  max-width: none;
+}
+
+/* Aba "Resetar sistema" — mesmo cartão base, só com destaque visual de
+   perigo (ação irreversível), reaproveitando os tokens de cor já usados
+   em avisos destrutivos no resto do projeto. */
+.cartaoPerigo {
+  border-color: var(--cor-perigo);
+}
+
+.cartaoPerigo .tituloCartao,
+.cartaoPerigo .iconeCartao {
+  color: var(--cor-perigo);
 }
 
 .cabecalhoCartao {

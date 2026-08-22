@@ -2,11 +2,19 @@
 // Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import * as adminApi from "../../api/admin";
+import { ConfirmModal } from "../../components/common/ConfirmModal";
 import { Button } from "../../components/forms/Button";
+import { DropdownInstituicao } from "../../components/forms/DropdownInstituicao";
+import { DropdownSetor } from "../../components/forms/DropdownSetor";
 import formStyles from "../../components/forms/FormField.module.css";
+import { useAuth } from "../../hooks/useAuth";
+import tabela from "../../styles/tabela.module.css";
 import styles from "./ConfiguracoesPage.module.css";
+
+const FRASE_CONFIRMACAO_RESET = "RESETAR SISTEMA";
 
 function IconeEscudo({ className }) {
   return (
@@ -60,11 +68,73 @@ function IconeConexao({ className }) {
   );
 }
 
+// Mesmo desenho de AdminLayout.jsx antes de "Exportação de dados"/"Log de
+// atividade" saírem do menu principal e virarem abas aqui.
+function IconeExportacao({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M12 3v12M7 10l5 5 5-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M4 19h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconeLogs({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M12 7v5l3.5 2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconePerigo({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M12 3l10 18H2L12 3z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M12 10v4M12 17h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Abas de config propriamente ditas (salvas juntas por handleSalvar, num
+// único <form>) — Exportação/Logs/Resetar entraram depois, mas não fazem
+// parte desse form (ver comentário em ABAS_FORM_CONFIG mais abaixo).
 const ABAS = [
   { valor: "k-anonimato", rotulo: "k-anonimato" },
   { valor: "ia", rotulo: "Recursos de IA" },
   { valor: "llm", rotulo: "Provedor LLM" },
+  { valor: "exportacao", rotulo: "Exportação de dados" },
+  { valor: "logs", rotulo: "Log de atividade" },
+  { valor: "reset", rotulo: "Resetar sistema" },
 ];
+
+// Exportação (tem seu próprio formulário/botão), Logs (não tem
+// formulário, só filtro+tabela) e Resetar (tem seu próprio modal de
+// confirmação) não podem ficar dentro do <form onSubmit={handleSalvar}>
+// das configurações de fato — o form inteiro (incluindo o botão "Salvar
+// configurações") fica oculto nessas três abas.
+const ABAS_FORM_CONFIG = ["k-anonimato", "ia", "llm"];
 
 // Base URLs oficiais (documentação de cada provedor) para o endpoint
 // compatível com OpenAI — preenchidas automaticamente ao trocar de
@@ -93,6 +163,9 @@ const MODELOS_PROVEDOR = {
 };
 
 export function ConfiguracoesPage() {
+  const navigate = useNavigate();
+  const { sair } = useAuth();
+
   const [config, setConfig] = useState(null);
   const [novaChaveApi, setNovaChaveApi] = useState("");
   const [carregando, setCarregando] = useState(true);
@@ -101,6 +174,66 @@ export function ConfiguracoesPage() {
   const [mensagem, setMensagem] = useState(null);
   const [abaAtiva, setAbaAtiva] = useState("k-anonimato");
 
+  // --- Exportação de dados (ex-ExportacaoPage.jsx) ------------------------
+  const [instituicaoExportacao, setInstituicaoExportacao] = useState(null);
+  const [setorExportacao, setSetorExportacao] = useState(null);
+  const [questionarioIdExportacao, setQuestionarioIdExportacao] = useState("");
+  const [questionariosExportacao, setQuestionariosExportacao] = useState([]);
+  const [confirmadoExportacao, setConfirmadoExportacao] = useState(false);
+  const [exportando, setExportando] = useState(false);
+  const [erroExportacao, setErroExportacao] = useState(null);
+  const [mensagemExportacao, setMensagemExportacao] = useState(null);
+
+  // --- Log de atividade (ex-LogsPage.jsx) ---------------------------------
+  const [logs, setLogs] = useState([]);
+  const [usuariosLogs, setUsuariosLogs] = useState([]);
+  const [usuarioIdLogs, setUsuarioIdLogs] = useState("");
+  const [acaoLogs, setAcaoLogs] = useState("");
+  const [carregandoLogs, setCarregandoLogs] = useState(true);
+  const [erroLogs, setErroLogs] = useState(null);
+
+  // --- Resetar sistema -----------------------------------------------------
+  const [mostrarModalReset, setMostrarModalReset] = useState(false);
+  const [fraseReset, setFraseReset] = useState("");
+  const [senhaAtualReset, setSenhaAtualReset] = useState("");
+  const [resetando, setResetando] = useState(false);
+  const [erroReset, setErroReset] = useState(null);
+
+  function handleAbrirModalReset() {
+    setFraseReset("");
+    setSenhaAtualReset("");
+    setErroReset(null);
+    setMostrarModalReset(true);
+  }
+
+  async function handleConfirmarReset() {
+    if (fraseReset !== FRASE_CONFIRMACAO_RESET) {
+      setErroReset(`Digite exatamente "${FRASE_CONFIRMACAO_RESET}" para confirmar.`);
+      return;
+    }
+    if (!senhaAtualReset) {
+      setErroReset("Informe sua senha atual.");
+      return;
+    }
+    setResetando(true);
+    setErroReset(null);
+    try {
+      await adminApi.resetarSistema(fraseReset, senhaAtualReset);
+      // O reset revoga todas as sessões, inclusive a desta — sair() já
+      // tolera o token não valer mais no servidor (try/finally em
+      // AuthContext.jsx) e limpa o estado local antes de redirecionar.
+      await sair();
+      navigate("/login", {
+        replace: true,
+        state: { mensagem: "Sistema resetado com sucesso. Faça login novamente." },
+      });
+    } catch (erroApi) {
+      setErroReset(erroApi.mensagem);
+    } finally {
+      setResetando(false);
+    }
+  }
+
   useEffect(() => {
     adminApi
       .obterConfiguracoes()
@@ -108,6 +241,57 @@ export function ConfiguracoesPage() {
       .catch((erroApi) => setErro(erroApi.mensagem))
       .finally(() => setCarregando(false));
   }, []);
+
+  useEffect(() => {
+    adminApi.listarQuestionarios().then(setQuestionariosExportacao).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    adminApi.listarUsuarios().then(setUsuariosLogs).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setCarregandoLogs(true);
+    adminApi
+      .listarLogs({ usuario_id: usuarioIdLogs || undefined, acao: acaoLogs || undefined })
+      .then(setLogs)
+      .catch((erroApi) => setErroLogs(erroApi.mensagem))
+      .finally(() => setCarregandoLogs(false));
+  }, [usuarioIdLogs, acaoLogs]);
+
+  // Nunca dispara a exportação sozinha ao entrar na tela (regra 5) — só
+  // roda quando o Administrador clica no botão, depois de marcar o
+  // checkbox de confirmação.
+  async function handleExportar(evento) {
+    evento.preventDefault();
+    if (!confirmadoExportacao) return;
+    setExportando(true);
+    setErroExportacao(null);
+    setMensagemExportacao(null);
+    try {
+      const { blob, nomeArquivo } = await adminApi.exportarRespostasCsv({
+        instituicaoId: instituicaoExportacao?.id,
+        setorId: setorExportacao?.id,
+        questionarioId: questionarioIdExportacao || undefined,
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = nomeArquivo;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      setMensagemExportacao("Exportação concluída — verifique os downloads do navegador.");
+      setConfirmadoExportacao(false);
+    } catch (erroApi) {
+      setErroExportacao(erroApi.mensagem);
+    } finally {
+      setExportando(false);
+    }
+  }
 
   async function handleSalvar(evento) {
     evento.preventDefault();
@@ -174,7 +358,7 @@ export function ConfiguracoesPage() {
         ))}
       </div>
 
-      <form onSubmit={handleSalvar}>
+      <form onSubmit={handleSalvar} hidden={!ABAS_FORM_CONFIG.includes(abaAtiva)}>
         <div className={styles.cartao} hidden={abaAtiva !== "k-anonimato"}>
           <div className={styles.cabecalhoCartao}>
             <IconeEscudo className={styles.iconeCartao} />
@@ -346,6 +530,249 @@ export function ConfiguracoesPage() {
           {salvando ? "Salvando..." : "Salvar configurações"}
         </Button>
       </form>
+
+      <div className={styles.cartao} hidden={abaAtiva !== "exportacao"}>
+        <div className={styles.cabecalhoCartao}>
+          <IconeExportacao className={styles.iconeCartao} />
+          <h2 className={styles.tituloCartao}>Exportação de dados</h2>
+        </div>
+
+        <div
+          className={tabela.secaoAdmin}
+          style={{
+            background: "var(--cor-perigo-fundo)",
+            color: "var(--cor-perigo)",
+            padding: "1rem",
+            borderRadius: "var(--raio-borda)",
+          }}
+        >
+          <p>
+            <strong>Aviso de sensibilidade dos dados.</strong> Esta
+            exportação contorna o filtro de k-anonimato do dashboard: o CSV
+            contém uma linha por resposta individual (desagregada). Embora
+            não tenha nome, e-mail ou qualquer identificador direto, esses
+            dados são considerados sensíveis pela LGPD e podem ser
+            reidentificáveis por cruzamento (ex.: setor muito pequeno). A
+            guarda e o uso do arquivo exportado são de sua responsabilidade.
+            Esta exportação fica registrada no log de atividade.
+          </p>
+        </div>
+
+        <form onSubmit={handleExportar} style={{ maxWidth: "28rem" }}>
+          <h3>Filtros (opcionais)</h3>
+          <DropdownInstituicao
+            value={instituicaoExportacao?.id}
+            onChange={(nova) => {
+              setInstituicaoExportacao(nova);
+              setSetorExportacao(null);
+            }}
+            carregarInstituicoes={adminApi.listarInstituicoes}
+          />
+          <DropdownSetor
+            instituicaoId={instituicaoExportacao?.id}
+            value={setorExportacao?.id}
+            onChange={setSetorExportacao}
+            carregarSetores={adminApi.listarSetores}
+          />
+          <div className={formStyles.campo}>
+            <label htmlFor="questionario-export" className={formStyles.rotulo}>
+              Questionário
+            </label>
+            <select
+              id="questionario-export"
+              className={formStyles.controle}
+              value={questionarioIdExportacao}
+              onChange={(e) => setQuestionarioIdExportacao(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {questionariosExportacao.map((questionario) => (
+                <option key={questionario.id} value={questionario.id}>
+                  {questionario.titulo}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <label style={{ display: "block", margin: "1rem 0" }}>
+            <input
+              type="checkbox"
+              checked={confirmadoExportacao}
+              onChange={(e) => setConfirmadoExportacao(e.target.checked)}
+            />{" "}
+            Estou ciente da sensibilidade destes dados e confirmo a
+            exportação.
+          </label>
+
+          {erroExportacao && (
+            <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+              {erroExportacao}
+            </p>
+          )}
+          {mensagemExportacao && <p role="status">{mensagemExportacao}</p>}
+
+          <Button type="submit" disabled={!confirmadoExportacao || exportando}>
+            {exportando ? "Exportando..." : "Exportar CSV"}
+          </Button>
+        </form>
+      </div>
+
+      <div className={`${styles.cartao} ${styles.cartaoLargo}`} hidden={abaAtiva !== "logs"}>
+        <div className={styles.cabecalhoCartao}>
+          <IconeLogs className={styles.iconeCartao} />
+          <h2 className={styles.tituloCartao}>Log de atividade</h2>
+        </div>
+
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", maxWidth: "40rem" }}>
+          <div className={formStyles.campo} style={{ flex: "1 1 12rem" }}>
+            <label htmlFor="filtro-usuario" className={formStyles.rotulo}>
+              Usuário
+            </label>
+            <select
+              id="filtro-usuario"
+              className={formStyles.controle}
+              value={usuarioIdLogs}
+              onChange={(e) => setUsuarioIdLogs(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {usuariosLogs.map((usuario) => (
+                <option key={usuario.id} value={usuario.id}>
+                  {usuario.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className={formStyles.campo} style={{ flex: "1 1 12rem" }}>
+            <label htmlFor="filtro-acao" className={formStyles.rotulo}>
+              Ação
+            </label>
+            <input
+              id="filtro-acao"
+              className={formStyles.controle}
+              value={acaoLogs}
+              onChange={(e) => setAcaoLogs(e.target.value)}
+              placeholder="ex.: exportar_respostas_csv"
+            />
+          </div>
+        </div>
+
+        {erroLogs && (
+          <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+            {erroLogs}
+          </p>
+        )}
+        {carregandoLogs ? (
+          <p>Carregando...</p>
+        ) : (
+          <div className={tabela.envoltorioTabela}>
+            <table className={tabela.tabela}>
+              <thead>
+                <tr>
+                  <th scope="col">Quando</th>
+                  <th scope="col">Usuário</th>
+                  <th scope="col">Ação</th>
+                  <th scope="col">Entidade</th>
+                  <th scope="col">Detalhes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log) => (
+                  <tr key={log.id}>
+                    <td>{new Date(log.criado_em).toLocaleString("pt-BR")}</td>
+                    <td>{usuariosLogs.find((u) => u.id === log.usuario_id)?.nome ?? log.usuario_id}</td>
+                    <td>{log.acao}</td>
+                    <td>
+                      {log.entidade}
+                      {log.entidade_id ? ` #${log.entidade_id}` : ""}
+                    </td>
+                    <td>
+                      <code>{log.detalhes ? JSON.stringify(log.detalhes) : "—"}</code>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className={`${styles.cartao} ${styles.cartaoPerigo}`} hidden={abaAtiva !== "reset"}>
+        <div className={styles.cabecalhoCartao}>
+          <IconePerigo className={styles.iconeCartao} />
+          <h2 className={styles.tituloCartao}>Resetar sistema</h2>
+        </div>
+        <div
+          className={tabela.secaoAdmin}
+          style={{
+            background: "var(--cor-perigo-fundo)",
+            color: "var(--cor-perigo)",
+            padding: "1rem",
+            borderRadius: "var(--raio-borda)",
+            marginBottom: "var(--espaco-3)",
+          }}
+        >
+          <p>
+            <strong>Ação irreversível.</strong> Apaga permanentemente todos os dados
+            operacionais: instituições, setores, questionários, respostas, resultados
+            agregados, planos de ação, memória institucional e conversas de chat — de
+            todos os usuários. Todas as sessões (inclusive a sua) são encerradas.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong>É preservado:</strong> todas as contas com papel Administrador já
+            cadastradas. As configurações do sistema (k-anonimato, IA, provedor LLM)
+            voltam ao padrão de fábrica.
+          </p>
+        </div>
+        <Button type="button" variante="perigo" onClick={handleAbrirModalReset}>
+          Resetar sistema
+        </Button>
+      </div>
+
+      <ConfirmModal
+        aberto={mostrarModalReset}
+        titulo="Confirmar reset do sistema"
+        perigo
+        confirmando={resetando}
+        textoConfirmar="Resetar sistema"
+        textoConfirmando="Resetando..."
+        onConfirmar={handleConfirmarReset}
+        onCancelar={() => setMostrarModalReset(false)}
+      >
+        <p>
+          Esta ação não pode ser desfeita. Para confirmar, digite exatamente{" "}
+          <strong>{FRASE_CONFIRMACAO_RESET}</strong> e informe sua senha atual.
+        </p>
+        <div className={formStyles.campo}>
+          <label htmlFor="frase-reset" className={formStyles.rotulo}>
+            Frase de confirmação
+          </label>
+          <input
+            id="frase-reset"
+            className={formStyles.controle}
+            value={fraseReset}
+            onChange={(e) => setFraseReset(e.target.value)}
+            placeholder={FRASE_CONFIRMACAO_RESET}
+            autoComplete="off"
+          />
+        </div>
+        <div className={formStyles.campo}>
+          <label htmlFor="senha-reset" className={formStyles.rotulo}>
+            Senha atual
+          </label>
+          <input
+            id="senha-reset"
+            type="password"
+            className={formStyles.controle}
+            value={senhaAtualReset}
+            onChange={(e) => setSenhaAtualReset(e.target.value)}
+            autoComplete="current-password"
+          />
+        </div>
+        {erroReset && (
+          <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+            {erroReset}
+          </p>
+        )}
+      </ConfirmModal>
     </section>
   );
 }

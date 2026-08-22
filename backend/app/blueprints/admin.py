@@ -9,7 +9,7 @@ from flask_openapi3 import APIBlueprint, Tag
 from sqlalchemy import func
 
 from app.auth.decorators import requer_papel
-from app.auth.security import gerar_hash_senha
+from app.auth.security import gerar_hash_senha, verificar_senha
 from app.blueprints import erro_json
 from app.extensions import db
 from app.models.anonimo import Dominio, Instituicao, Item, Questionario, RespostaBruta, ResultadoAgregado, Setor
@@ -29,6 +29,7 @@ from app.schemas.admin import (
     EstatisticasResponse,
     ExportRespostasQuery,
     FiltroResultadosQuery,
+    FRASE_CONFIRMACAO_RESET,
     ListaInstituicoesAdminResponse,
     ListaLogsResponse,
     ListaMemoriaAdminResponse,
@@ -41,6 +42,7 @@ from app.schemas.admin import (
     ListarSetoresQuery,
     MemoriaBody,
     QuestionarioIdPath,
+    ResetarSistemaBody,
     SetorIdPath,
     UsuarioIdPath,
     UsuarioInstituicaoVinculoPath,
@@ -49,6 +51,7 @@ from app.schemas.admin import (
 from app.schemas.comuns import ConfirmadoResponse, IdCriadoResponse, respostas_erro
 from app.schemas.consultor import ListaResultadosResponse
 from app.schemas.publico import InstituicaoIdPath
+from app.services import reset_sistema
 from app.services.estatisticas import contar_grupos_abaixo_threshold, montar_totais
 from app.services.exportacao import exportar_respostas_csv
 from app.services.instrumentos import instrumento_invalido, instrumentos_disponiveis
@@ -1023,6 +1026,37 @@ def atualizar_configuracoes(body: AtualizarConfiguracoesBody):
         campos_alterados.append("llm_api_key (valor omitido do log)")
     _registrar_log("atualizar_configuracoes", "configuracoes_sistema", config.id, {"campos": campos_alterados})
     db.session.commit()
+    return {"confirmado": True}
+
+
+@bp.post(
+    "/sistema/resetar",
+    summary="Resetar sistema (apagar todos os dados)",
+    description=(
+        "Ação irreversível: apaga todos os dados operacionais dos 3 bancos "
+        "(instituições, questionários, respostas, resultados, planos de "
+        "ação, memória institucional, conversas de chat, sessões, log de "
+        "atividade), preserva todas as contas com papel Administrador e "
+        "devolve as configurações do sistema ao padrão de fábrica. Exige "
+        f"`frase_confirmacao` igual a '{FRASE_CONFIRMACAO_RESET}' e a senha "
+        "atual do Administrador — qualquer uma incorreta, nada é alterado. "
+        "Todas as sessões (inclusive a de quem executa) são revogadas: a "
+        "próxima chamada autenticada, de qualquer pessoa, recebe 401."
+    ),
+    responses={200: ConfirmadoResponse, **respostas_erro(400, 401, 403)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def resetar_sistema_rota(body: ResetarSistemaBody):
+    if body.frase_confirmacao != FRASE_CONFIRMACAO_RESET:
+        return erro_json(
+            "frase_confirmacao_invalida",
+            f"Digite exatamente '{FRASE_CONFIRMACAO_RESET}' para confirmar.",
+            400,
+        )
+    if not verificar_senha(body.senha_atual, g.usuario.senha_hash):
+        return erro_json("senha_atual_invalida", "Senha atual incorreta.", 400)
+
+    reset_sistema.resetar_sistema(g.usuario)
     return {"confirmado": True}
 
 

@@ -29,8 +29,6 @@ const LINKS = [
     apenasSeChatDisponivel: true,
   },
   { to: "/admin/configuracoes", rotulo: "Configurações", Icone: IconeConfiguracoes },
-  { to: "/admin/exportacao", rotulo: "Exportação de dados", Icone: IconeExportacao },
-  { to: "/admin/logs", rotulo: "Log de atividade", Icone: IconeLogs },
 ];
 
 export function AdminLayout() {
@@ -313,38 +311,6 @@ function IconeConfiguracoes({ className }) {
       />
       <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <circle cx="12" cy="12" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  );
-}
-
-function IconeExportacao({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
-      <path
-        d="M12 3v12M7 10l5 5 5-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M4 19h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconeLogs({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
-      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M12 7v5l3.5 2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }

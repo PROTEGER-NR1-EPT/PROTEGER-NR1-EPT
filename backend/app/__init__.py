@@ -301,3 +301,35 @@ def _registrar_comandos_cli(app):
             return
 
         print("Respostas extras criadas: mais cobertura de setor×questionário para o painel de Resultados.")
+
+    import click
+
+    @app.cli.command("resetar-sistema")
+    @click.option(
+        "--confirmar",
+        is_flag=True,
+        default=False,
+        help="Obrigatória — confirma que você quer apagar todos os dados do sistema.",
+    )
+    def resetar_sistema_cmd(confirmar):
+        """Apaga TODOS os dados operacionais dos 3 bancos (instituições,
+        questionários, respostas, resultados, planos de ação, memória
+        institucional, conversas de chat, sessões, log de atividade),
+        preserva as contas com papel Administrador e devolve as
+        configurações do sistema ao padrão de fábrica. Irreversível — não é
+        gateado por FLASK_ENV (funciona em produção), por isso exige
+        --confirmar. Mesmo caminho de código de POST /admin/sistema/resetar
+        (services/reset_sistema.py)."""
+        if not confirmar:
+            print(
+                "Recusado: esta ação apaga TODOS os dados do sistema, exceto contas "
+                "Administrador. Rode de novo com --confirmar para prosseguir."
+            )
+            return
+
+        from app.services.reset_sistema import resetar_sistema
+
+        contagens = resetar_sistema(usuario_executor=None)
+        print("Sistema resetado. Registros apagados por tabela:")
+        for tabela, quantidade in contagens.items():
+            print(f"  - {tabela}: {quantidade}")
