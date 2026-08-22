@@ -2,6 +2,8 @@
 // Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
 
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import * as adminApi from "../../api/admin";
 import * as chatApi from "../../api/chat";
@@ -15,6 +17,20 @@ import formStyles from "../../components/forms/FormField.module.css";
 import { useAuth } from "../../hooks/useAuth";
 import { useChatAjuda } from "../../hooks/useChatAjuda";
 import styles from "./AssistenteIaPage.module.css";
+
+// Componentes customizados pro Markdown das respostas do assistente: links
+// abrem em nova aba (senão te tiram da aplicação sem aviso) e tabelas
+// ganham um wrapper com scroll horizontal (evita estourar o layout da
+// mensagem em telas estreitas). Sem rehype-raw — a IA nunca tem HTML bruto
+// renderizado, só os elementos que o react-markdown já produz com segurança.
+const componentesMarkdown = {
+  a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+  table: (props) => (
+    <div className={styles.tabelaMarkdown}>
+      <table {...props} />
+    </div>
+  ),
+};
 
 function dispararDownload(blob, nomeArquivo) {
   const url = URL.createObjectURL(blob);
@@ -87,6 +103,17 @@ export function AssistenteIaPage() {
   const [excluindoTudo, setExcluindoTudo] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [erroAcao, setErroAcao] = useState(null);
+  const [copiadoChave, setCopiadoChave] = useState(null);
+
+  async function handleCopiar(texto, chave) {
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopiadoChave(chave);
+      setTimeout(() => setCopiadoChave((atual) => (atual === chave ? null : atual)), 2000);
+    } catch {
+      setErroAcao("Não foi possível copiar o texto.");
+    }
+  }
 
   function handleTrocarUsuarioAlvo(evento) {
     setUsuarioAlvoId(evento.target.value);
@@ -323,20 +350,45 @@ export function AssistenteIaPage() {
                   como usar o sistema.
                 </p>
               )}
-              {mensagens.map((mensagem, indice) =>
-                mensagem.papel === "usuario" ? (
-                  <div key={`${mensagem.criado_em}-${indice}`} className={styles.mensagemUsuario}>
-                    {mensagem.conteudo}
-                  </div>
-                ) : (
-                  <div key={`${mensagem.criado_em}-${indice}`} className={styles.linhaAssistente}>
+              {mensagens.map((mensagem, indice) => {
+                const chave = `${mensagem.criado_em}-${indice}`;
+                if (mensagem.papel === "usuario") {
+                  return (
+                    <div key={chave} className={styles.mensagemUsuario}>
+                      {mensagem.conteudo}
+                    </div>
+                  );
+                }
+                return (
+                  <div key={chave} className={styles.linhaAssistente}>
                     <span className={styles.avatarAssistente} aria-hidden="true">
                       IA
                     </span>
-                    <p className={styles.textoAssistente}>{mensagem.conteudo}</p>
+                    <div className={styles.colunaAssistente}>
+                      <div className={styles.textoAssistente}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={componentesMarkdown}>
+                          {mensagem.conteudo}
+                        </ReactMarkdown>
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.botaoCopiar}
+                        onClick={() => handleCopiar(mensagem.conteudo, chave)}
+                      >
+                        {copiadoChave === chave ? (
+                          <>
+                            <IconeCheck className={styles.iconePequeno} /> Copiado
+                          </>
+                        ) : (
+                          <>
+                            <IconeCopiar className={styles.iconePequeno} /> Copiar
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                )
-              )}
+                );
+              })}
               {enviando && (
                 <div className={styles.linhaAssistente}>
                   <span className={styles.avatarAssistente} aria-hidden="true">
@@ -461,6 +513,37 @@ function IconeEnviar({ className }) {
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
       <path
         d="M4 12h16M13 5l7 7-7 7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconeCopiar({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <rect x="9" y="9" width="11" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M15 9V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v7.5A1.5 1.5 0 0 0 6 15h3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconeCheck({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M5 12.5l4.5 4.5L19 7"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"

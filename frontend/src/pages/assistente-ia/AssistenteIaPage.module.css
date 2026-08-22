@@ -274,14 +274,123 @@
   font-weight: 700;
 }
 
-.textoAssistente {
-  margin: 0;
+.colunaAssistente {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  flex: 1;
+  min-width: 0;
   padding-top: 0.2rem;
+}
+
+/* Conteúdo em Markdown da resposta — os seletores abaixo estilizam os
+   elementos que o react-markdown pode gerar (p/listas/código/tabelas...).
+   Só tokens de cor/espaçamento, pra continuar legível no alto contraste. */
+.textoAssistente {
   font-size: 0.95rem;
   line-height: 1.5;
-  white-space: pre-wrap;
   word-break: break-word;
   color: var(--cor-texto);
+}
+
+.textoAssistente > :first-child {
+  margin-top: 0;
+}
+
+.textoAssistente > :last-child {
+  margin-bottom: 0;
+}
+
+.textoAssistente p {
+  margin: 0 0 var(--espaco-2);
+}
+
+.textoAssistente ul,
+.textoAssistente ol {
+  margin: 0 0 var(--espaco-2);
+  padding-left: var(--espaco-4);
+}
+
+.textoAssistente li {
+  margin-bottom: var(--espaco-1);
+}
+
+.textoAssistente code {
+  background: var(--cor-fundo-alt);
+  border-radius: var(--raio-borda);
+  padding: 0.15em 0.4em;
+  font-size: 0.85em;
+  font-family: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
+}
+
+.textoAssistente pre {
+  background: var(--cor-fundo-alt);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-2);
+  margin: 0 0 var(--espaco-2);
+  overflow-x: auto;
+}
+
+.textoAssistente pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+
+.textoAssistente blockquote {
+  margin: 0 0 var(--espaco-2);
+  padding-left: var(--espaco-2);
+  border-left: 3px solid var(--cor-borda);
+  color: var(--cor-texto-secundario);
+}
+
+.textoAssistente hr {
+  margin: var(--espaco-2) 0;
+  border: none;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.textoAssistente strong {
+  font-weight: 700;
+}
+
+.tabelaMarkdown {
+  overflow-x: auto;
+  margin: 0 0 var(--espaco-2);
+}
+
+.tabelaMarkdown table {
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.tabelaMarkdown th,
+.tabelaMarkdown td {
+  border: 1px solid var(--cor-borda);
+  padding: var(--espaco-1) var(--espaco-2);
+  text-align: left;
+}
+
+.tabelaMarkdown th {
+  background: var(--cor-fundo-alt);
+}
+
+.botaoCopiar {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: var(--espaco-1) 0;
+}
+
+.botaoCopiar:hover {
+  color: var(--cor-primaria);
 }
 
 .avisoSomenteLeitura {
