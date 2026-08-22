@@ -10,6 +10,7 @@ class MensagemChatItem(BaseModel):
     papel: Literal["usuario", "assistente"]
     conteudo: str
     criado_em: str = Field(..., description="ISO 8601, UTC.")
+    conversa_id: int
 
 
 class ListaMensagensChatResponse(BaseModel):
@@ -27,6 +28,10 @@ class EnviarMensagemChatBody(BaseModel):
         None,
         description="Instituição sobre a qual perguntar resultados agregados. Consultor só pode informar uma instituição à qual está vinculado (403 caso contrário); Administrador pode informar qualquer uma.",
     )
+    conversa_id: Optional[int] = Field(
+        None,
+        description="Conversa em que a mensagem entra. Se omitido, usa/continua a conversa mais recente do usuário (ou cria uma, se não houver nenhuma) — usado pelo widget flutuante.",
+    )
 
 
 class MensagemChatResponse(MensagemChatItem):
@@ -36,7 +41,7 @@ class MensagemChatResponse(MensagemChatItem):
 class FiltroMensagensChatQuery(BaseModel):
     usuario_id: Optional[int] = Field(
         None,
-        description="Somente Administrador pode consultar/excluir/exportar o histórico de outro usuário; Consultor só pode acessar o próprio (403 caso contrário). Omitido = o próprio usuário autenticado.",
+        description="Somente Administrador pode consultar/excluir/exportar o histórico (ou conversas) de outro usuário; Consultor só pode acessar o próprio (403 caso contrário). Omitido = o próprio usuário autenticado.",
     )
 
 
@@ -45,3 +50,21 @@ class StatusChatResponse(BaseModel):
         ...,
         description="true quando o chat está ativado e o provedor LLM (provider + chave + modelo) está totalmente configurado.",
     )
+
+
+class ConversaChatItem(BaseModel):
+    id: int
+    titulo: Optional[str] = Field(
+        None, description="Gerado automaticamente a partir da 1ª mensagem; null enquanto a conversa não tem nenhuma."
+    )
+    criado_em: str = Field(..., description="ISO 8601, UTC.")
+    atualizado_em: str = Field(..., description="ISO 8601, UTC.")
+    quantidade_mensagens: int
+
+
+class ListaConversasChatResponse(BaseModel):
+    conversas: list[ConversaChatItem]
+
+
+class ConversaIdPath(BaseModel):
+    conversa_id: int

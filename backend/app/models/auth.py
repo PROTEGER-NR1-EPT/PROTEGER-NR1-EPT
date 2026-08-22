@@ -88,6 +88,30 @@ class LogAtividade(db.Model):
     )
 
 
+class ConversaChat(db.Model):
+    """Uma conversa distinta do chat de ajuda — agrupa mensagens_chat. Um
+    usuário pode ter várias, como threads separadas (ver
+    app/services/chat_ia.py). `titulo` é gerado a partir da 1ª mensagem do
+    usuário (None enquanto a conversa não tem nenhuma)."""
+
+    __bind_key__ = "auth"
+    __tablename__ = "conversas_chat"
+
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(
+        db.Integer, db.ForeignKey("usuarios.id"), nullable=False, index=True
+    )
+    titulo = db.Column(db.String(80), nullable=True)
+    criado_em = db.Column(db.DateTime(timezone=True), nullable=False, default=_agora)
+    # index: ordena a lista de conversas por "mais recente primeiro" e
+    # resolve a "conversa ativa" do widget flutuante — precisa ser tocado
+    # explicitamente (conversa.atualizado_em = _agora()) a cada mensagem,
+    # já que um INSERT em mensagens_chat não aciona o onupdate desta linha.
+    atualizado_em = db.Column(
+        db.DateTime(timezone=True), nullable=False, default=_agora, onupdate=_agora, index=True
+    )
+
+
 class MensagemChat(db.Model):
     """Histórico do chat de ajuda contextual, por usuário (Consultor ou
     Administrador) — ver app/services/chat_ia.py."""
@@ -96,8 +120,18 @@ class MensagemChat(db.Model):
     __tablename__ = "mensagens_chat"
 
     id = db.Column(db.Integer, primary_key=True)
+    # Redundante com conversa.usuario_id (mesmo bind) — mantido pra não
+    # reescrever as queries de auditoria existentes (_resolver_usuario_alvo
+    # em services/chat_ia.py). Sempre gravado a partir do usuário
+    # autenticado da requisição, nunca copiado de conversa.usuario_id.
     usuario_id = db.Column(
         db.Integer, db.ForeignKey("usuarios.id"), nullable=False, index=True
+    )
+    conversa_id = db.Column(
+        db.Integer,
+        db.ForeignKey("conversas_chat.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     papel = db.Column(db.String(20), nullable=False)  # "usuario" | "assistente"
     conteudo = db.Column(db.Text, nullable=False)

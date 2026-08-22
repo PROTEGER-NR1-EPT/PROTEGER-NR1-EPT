@@ -9,22 +9,31 @@ import * as chatApi from "../api/chat";
 // reaproveitado tanto pelo widget flutuante (ChatAjudaWidget.jsx) quanto
 // pela página dedicada (pages/assistente-ia/AssistenteIaPage.jsx), que só
 // diferem na UI ao redor (painel flutuante vs. página cheia, com seletor
-// de instituição/usuário).
+// de instituição/usuário/conversa).
 //
 // - `tela`/`instituicaoId`: contexto mandado ao backend a cada mensagem
 //   (nunca persistido — ver services/chat_ia.py).
+// - `conversaId`: quando informado, opera sobre essa conversa específica
+//   (GET/DELETE /chat/conversas/{id}/...) — é o caminho da página, que
+//   gerencia múltiplas conversas. Quando omitido (widget flutuante, que
+//   não tem UI de conversas), usa o caminho "legado" /chat/mensagens
+//   (todas as mensagens do usuário) — e o backend, ao enviar sem
+//   `conversa_id`, continua/cria a conversa mais recente automaticamente.
 // - `usuarioId`: só Administrador pode informar um id diferente do
 //   próprio, pra auditar a conversa de outro usuário.
 // - `somenteLeitura`: desabilita `enviar` — usado quando o Administrador
-//   está visualizando o histórico de outra pessoa (não é lugar de mandar
+//   está visualizando a conversa de outra pessoa (não é lugar de mandar
 //   mensagem em nome dela).
-// - `autoCarregar`: controla se o histórico é buscado agora (a página
-//   sempre quer isso; o widget só quer buscar quando o painel abre pela
-//   primeira vez — passa a própria flag `aberto`).
+// - `autoCarregar`: controla se o histórico é buscado agora. O widget
+//   passa a própria flag `aberto` (só busca quando o painel abre). A
+//   página passa `conversaId != null` — só busca depois que uma conversa
+//   foi selecionada, pra não misturar o histórico legado "todas as
+//   mensagens" com uma conversa específica antes da seleção existir.
 export function useChatAjuda({
   tela,
   instituicaoId,
   usuarioId,
+  conversaId,
   somenteLeitura = false,
   autoCarregar = true,
 } = {}) {
@@ -36,12 +45,14 @@ export function useChatAjuda({
   const carregar = useCallback(() => {
     setCarregandoHistorico(true);
     setErro(null);
-    chatApi
-      .listarMensagens(usuarioId)
+    const promessa = conversaId
+      ? chatApi.listarMensagensConversa(conversaId, usuarioId)
+      : chatApi.listarMensagens(usuarioId);
+    promessa
       .then((dados) => setMensagens(dados.mensagens))
       .catch((erroApi) => setErro(erroApi.mensagem))
       .finally(() => setCarregandoHistorico(false));
-  }, [usuarioId]);
+  }, [conversaId, usuarioId]);
 
   useEffect(() => {
     if (autoCarregar) carregar();
@@ -60,7 +71,7 @@ export function useChatAjuda({
     ]);
 
     try {
-      const resposta = await chatApi.enviarMensagem(limpo, { tela, instituicaoId });
+      const resposta = await chatApi.enviarMensagem(limpo, { tela, instituicaoId, conversaId });
       setMensagens((atual) => [...atual, resposta]);
     } catch (erroApi) {
       setErro(erroApi.mensagem);

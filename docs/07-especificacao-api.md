@@ -80,13 +80,31 @@ bearer token), exceto rotas marcadas como públicas.
 
 | Método | Rota | Descrição |
 |---|---|---|
-| POST | `/admin/ia/questionario/sugestao` | Geração assistida de itens de questionário |
-| POST | `/admin/ia/resultados/analise` | Análise assistida de resultados agregados |
-| POST | `/ia/chat` | Chat de ajuda contextual (disponível conforme papel/tela) |
+| POST | `/admin/ia/questionario/sugestao` | Geração assistida de itens de questionário (ainda não implementado) |
+| POST | `/admin/ia/resultados/analise` | Análise assistida de resultados agregados (ainda não implementado) |
 
 Todas as rotas de IA devem verificar o toggle correspondente **no
 backend** antes de processar — nunca confiar apenas em o frontend
 esconder o botão.
+
+### Chat de ajuda contextual (`/chat/*`) — implementado
+
+Consultor e Administrador logados; disponível conforme `ia_chat_enabled`
+e provedor LLM configurado (`GET /chat/status`). Uma pessoa pode ter
+várias conversas distintas — cada uma com seu próprio fio de mensagens.
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/chat/status` | `{disponivel: bool}` — usado pelo frontend pra decidir se mostra o widget/menu |
+| POST | `/chat/conversas` | Cria uma nova conversa (sempre para o próprio usuário) |
+| GET | `/chat/conversas` | Lista as conversas do usuário (Administrador pode informar `usuario_id` p/ auditar outro) |
+| GET | `/chat/conversas/{id}/mensagens` | Mensagens de uma conversa |
+| DELETE | `/chat/conversas/{id}` | Exclui uma conversa |
+| GET | `/chat/conversas/{id}/export` | Exporta uma conversa (CSV) |
+| POST | `/chat/mensagens` | Envia mensagem (`conversa_id` opcional — omitido = continua/cria a mais recente; `instituicao_id` opcional — Consultor só de instituição vinculada) |
+| GET | `/chat/mensagens` | Histórico completo do usuário (todas as conversas) |
+| DELETE | `/chat/mensagens` | Exclui todas as conversas do usuário |
+| GET | `/chat/mensagens/export` | Exporta todas as conversas do usuário (CSV) |
 
 ## Padrão de resposta de erro
 

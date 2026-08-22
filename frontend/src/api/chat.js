@@ -8,8 +8,46 @@ export async function obterStatus() {
   return data;
 }
 
+// --- Conversas — cada uma com seu próprio fio de mensagens -------------
+
+export async function criarConversa() {
+  const { data } = await api.post("/chat/conversas");
+  return data;
+}
+
 // usuarioId: só Administrador pode informar um id diferente do próprio,
-// pra auditar a conversa de outro usuário — Consultor recebe 403.
+// pra auditar as conversas de outro usuário — Consultor recebe 403.
+export async function listarConversas(usuarioId) {
+  const { data } = await api.get("/chat/conversas", {
+    params: usuarioId ? { usuario_id: usuarioId } : {},
+  });
+  return data;
+}
+
+export async function listarMensagensConversa(conversaId, usuarioId) {
+  const { data } = await api.get(`/chat/conversas/${conversaId}/mensagens`, {
+    params: usuarioId ? { usuario_id: usuarioId } : {},
+  });
+  return data;
+}
+
+export async function excluirConversa(conversaId, usuarioId) {
+  const { data } = await api.delete(`/chat/conversas/${conversaId}`, {
+    params: usuarioId ? { usuario_id: usuarioId } : {},
+  });
+  return data;
+}
+
+export async function exportarConversaCsv(conversaId, usuarioId) {
+  const resposta = await api.get(`/chat/conversas/${conversaId}/export`, {
+    params: usuarioId ? { usuario_id: usuarioId } : {},
+    responseType: "blob",
+  });
+  return { blob: resposta.data, nomeArquivo: _nomeArquivo(resposta, "conversa.csv") };
+}
+
+// --- Ações "todas as conversas de uma vez" (bulk) -----------------------
+
 export async function listarMensagens(usuarioId) {
   const { data } = await api.get("/chat/mensagens", {
     params: usuarioId ? { usuario_id: usuarioId } : {},
@@ -31,19 +69,21 @@ export async function exportarHistoricoCsv(usuarioId) {
     params: usuarioId ? { usuario_id: usuarioId } : {},
     responseType: "blob",
   });
-
-  const disposicao = resposta.headers["content-disposition"] || "";
-  const nomeCasado = disposicao.match(/filename=([^;]+)/);
-  const nomeArquivo = nomeCasado ? nomeCasado[1].trim() : "historico_chat.csv";
-
-  return { blob: resposta.data, nomeArquivo };
+  return { blob: resposta.data, nomeArquivo: _nomeArquivo(resposta, "historico_chat.csv") };
 }
 
-export async function enviarMensagem(mensagem, { tela, instituicaoId } = {}) {
+function _nomeArquivo(resposta, padrao) {
+  const disposicao = resposta.headers["content-disposition"] || "";
+  const nomeCasado = disposicao.match(/filename=([^;]+)/);
+  return nomeCasado ? nomeCasado[1].trim() : padrao;
+}
+
+export async function enviarMensagem(mensagem, { tela, instituicaoId, conversaId } = {}) {
   const { data } = await api.post("/chat/mensagens", {
     mensagem,
     tela: tela ?? null,
     instituicao_id: instituicaoId ?? null,
+    conversa_id: conversaId ?? null,
   });
   return data;
 }

@@ -4,10 +4,16 @@
 """Chat de ajuda contextual — usa o provedor LLM configurado pelo
 Administrador (tabela configuracoes_sistema, sempre lida do banco em tempo
 de requisição, nunca cacheada — mesmo padrão de services/k_anonimato.py).
+
+Uma pessoa pode ter várias conversas distintas (ConversaChat), cada uma
+com seu próprio fio de mensagens (MensagemChat.conversa_id) — o contexto
+mandado ao provedor LLM é sempre escopado à conversa, nunca ao usuário
+inteiro, para não vazar conteúdo de uma thread pra outra.
 """
 
 import csv
 import io
+import re
 from datetime import datetime, timezone
 
 import openai
@@ -15,11 +21,19 @@ from openai import OpenAI
 
 from app.extensions import db
 from app.models.anonimo import Instituicao
-from app.models.auth import PAPEL_ADMINISTRADOR, PAPEL_CONSULTOR, ConsultorInstituicao, LogAtividade, MensagemChat
+from app.models.auth import (
+    PAPEL_ADMINISTRADOR,
+    PAPEL_CONSULTOR,
+    ConsultorInstituicao,
+    ConversaChat,
+    LogAtividade,
+    MensagemChat,
+)
 from app.services.k_anonimato import obter_configuracao, obter_resultados
 
 LIMITE_HISTORICO_EXIBIDO = 200
 LIMITE_HISTORICO_CONTEXTO = 20  # últimas N mensagens enviadas ao modelo, como contexto
+LIMITE_TITULO = 50
 
 SYSTEM_PROMPT = (
     "Você é o assistente de ajuda do PROTEGER-NR1 EPT, uma plataforma de "
@@ -90,6 +104,128 @@ def _resolver_usuario_alvo(usuario_atual, usuario_id_alvo: int | None) -> int:
     return usuario_id_alvo
 
 
+def _gerar_titulo(texto: str, limite: int = LIMITE_TITULO) -> str:
+    texto = re.sub(r"\s+", " ", texto).strip()
+    if len(texto) <= limite:
+        return texto
+    return texto[:limite].rstrip() + "…"
+
+
+def _resolver_conversa_pertencente(usuario_id: int, conversa_id: int) -> ConversaChat:
+    conversa = ConversaChat.query.filter_by(id=conversa_id, usuario_id=usuario_id).first()
+    if conversa is None:
+        # 404, não 403 — não confirma nem nega a existência de uma
+        # conversa que pertence a outro usuário.
+        raise ChatIndisponivelError("conversa_nao_encontrada", "Conversa não encontrada.", 404)
+    return conversa
+
+
+def criar_conversa(usuario) -> dict:
+    # Sempre para o próprio usuário autenticado — não existe "criar
+    # conversa em nome de outro usuário", nem para Administrador.
+    conversa = ConversaChat(usuario_id=usuario.id)
+    db.session.add(conversa)
+    db.session.commit()
+    return _serializar_conversa(conversa)
+
+
+def obter_ou_criar_conversa_ativa(usuario_id: int) -> ConversaChat:
+    conversa = (
+        ConversaChat.query.filter_by(usuario_id=usuario_id)
+        .order_by(ConversaChat.atualizado_em.desc())
+        .first()
+    )
+    if conversa is not None:
+        return conversa
+    conversa = ConversaChat(usuario_id=usuario_id)
+    db.session.add(conversa)
+    db.session.flush()  # garante conversa.id sem fechar a transação — o
+    # commit acontece junto com a 1ª mensagem, em enviar_mensagem.
+    return conversa
+
+
+def listar_conversas(usuario_atual, usuario_id_alvo: int | None = None) -> list[dict]:
+    usuario_id = _resolver_usuario_alvo(usuario_atual, usuario_id_alvo)
+    # INNER JOIN esconde conversas ainda sem nenhuma mensagem (criadas via
+    # POST /chat/conversas mas abandonadas) — mesmo comportamento visível
+    # de "novo chat" do ChatGPT.
+    resultados = (
+        db.session.query(ConversaChat, db.func.count(MensagemChat.id))
+        .join(MensagemChat, MensagemChat.conversa_id == ConversaChat.id)
+        .filter(ConversaChat.usuario_id == usuario_id)
+        .group_by(ConversaChat.id)
+        .order_by(ConversaChat.atualizado_em.desc())
+        .all()
+    )
+    return [_serializar_conversa(c, total) for c, total in resultados]
+
+
+def listar_mensagens_conversa(
+    usuario_atual, conversa_id: int, usuario_id_alvo: int | None = None
+) -> list[dict]:
+    usuario_id = _resolver_usuario_alvo(usuario_atual, usuario_id_alvo)
+    conversa = _resolver_conversa_pertencente(usuario_id, conversa_id)
+    mensagens = (
+        MensagemChat.query.filter_by(conversa_id=conversa.id)
+        .order_by(MensagemChat.criado_em.asc())
+        .limit(LIMITE_HISTORICO_EXIBIDO)
+        .all()
+    )
+    return [_serializar(m) for m in mensagens]
+
+
+def excluir_conversa(usuario_atual, conversa_id: int, usuario_id_alvo: int | None = None) -> int:
+    usuario_id = _resolver_usuario_alvo(usuario_atual, usuario_id_alvo)
+    conversa = _resolver_conversa_pertencente(usuario_id, conversa_id)
+    quantidade = MensagemChat.query.filter_by(conversa_id=conversa.id).count()
+
+    log = LogAtividade(
+        usuario_id=usuario_atual.id,
+        acao="excluir_conversa_chat",
+        entidade="conversas_chat",
+        entidade_id=conversa.id,
+        detalhes={"usuario_alvo_id": usuario_id, "quantidade_mensagens": quantidade},
+    )
+    db.session.add(log)
+    db.session.delete(conversa)  # ON DELETE CASCADE apaga as mensagens
+    db.session.commit()
+    return quantidade
+
+
+def exportar_conversa_csv(
+    usuario_atual, conversa_id: int, usuario_id_alvo: int | None = None
+) -> tuple[str, str]:
+    usuario_id = _resolver_usuario_alvo(usuario_atual, usuario_id_alvo)
+    conversa = _resolver_conversa_pertencente(usuario_id, conversa_id)
+    mensagens = (
+        MensagemChat.query.filter_by(conversa_id=conversa.id)
+        .order_by(MensagemChat.criado_em.asc())
+        .all()
+    )
+
+    buffer = io.StringIO()
+    escritor = csv.writer(buffer)
+    escritor.writerow(["id", "papel", "conteudo", "criado_em"])
+    for m in mensagens:
+        escritor.writerow([m.id, m.papel, m.conteudo, m.criado_em.isoformat()])
+
+    log = LogAtividade(
+        usuario_id=usuario_atual.id,
+        acao="exportar_conversa_chat",
+        entidade="conversas_chat",
+        entidade_id=conversa.id,
+        detalhes={"usuario_alvo_id": usuario_id, "total_linhas": len(mensagens)},
+    )
+    db.session.add(log)
+    db.session.commit()
+
+    agora = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    # Nome do arquivo usa só o id numérico — nunca interpolar
+    # conversa.titulo (texto livre do usuário) no Content-Disposition.
+    nome_arquivo = f"conversa-{conversa.id}-{agora}.csv"
+    return buffer.getvalue(), nome_arquivo
+
+
 def listar_historico(usuario_atual, usuario_id_alvo: int | None = None) -> list[dict]:
     usuario_id = _resolver_usuario_alvo(usuario_atual, usuario_id_alvo)
     mensagens = (
@@ -103,7 +239,10 @@ def listar_historico(usuario_atual, usuario_id_alvo: int | None = None) -> list[
 
 def excluir_historico(usuario_atual, usuario_id_alvo: int | None = None) -> int:
     usuario_id = _resolver_usuario_alvo(usuario_atual, usuario_id_alvo)
-    quantidade = MensagemChat.query.filter_by(usuario_id=usuario_id).delete()
+    quantidade = MensagemChat.query.filter_by(usuario_id=usuario_id).count()
+    # Apaga via ConversaChat (não MensagemChat direto): o ON DELETE CASCADE
+    # da FK cuida das mensagens de cada conversa apagada.
+    ConversaChat.query.filter_by(usuario_id=usuario_id).delete()
 
     log = LogAtividade(
         usuario_id=usuario_atual.id,
@@ -126,9 +265,9 @@ def exportar_historico_csv(usuario_atual, usuario_id_alvo: int | None = None) ->
 
     buffer = io.StringIO()
     escritor = csv.writer(buffer)
-    escritor.writerow(["id", "papel", "conteudo", "criado_em"])
+    escritor.writerow(["id", "conversa_id", "papel", "conteudo", "criado_em"])
     for m in mensagens:
-        escritor.writerow([m.id, m.papel, m.conteudo, m.criado_em.isoformat()])
+        escritor.writerow([m.id, m.conversa_id, m.papel, m.conteudo, m.criado_em.isoformat()])
 
     log = LogAtividade(
         usuario_id=usuario_atual.id,
@@ -145,7 +284,11 @@ def exportar_historico_csv(usuario_atual, usuario_id_alvo: int | None = None) ->
 
 
 def enviar_mensagem(
-    usuario, texto: str, tela: str | None = None, instituicao_id: int | None = None
+    usuario,
+    texto: str,
+    tela: str | None = None,
+    instituicao_id: int | None = None,
+    conversa_id: int | None = None,
 ) -> dict:
     config = obter_configuracao()
 
@@ -172,12 +315,27 @@ def enviar_mensagem(
             )
         resumo_instituicao = _resumo_resultados_instituicao(instituicao_id)
 
-    mensagem_usuario = MensagemChat(usuario_id=usuario.id, papel="usuario", conteudo=texto)
+    # Mensagem sempre entra na conversa do próprio remetente — nunca em
+    # nome de outro usuário, nem por Administrador. Sem conversa_id
+    # explícito, continua/cria a mais recente (é o caminho do widget
+    # flutuante, que não tem UI de conversas).
+    if conversa_id is not None:
+        conversa = _resolver_conversa_pertencente(usuario.id, conversa_id)
+    else:
+        conversa = obter_ou_criar_conversa_ativa(usuario.id)
+
+    mensagem_usuario = MensagemChat(
+        usuario_id=usuario.id, conversa_id=conversa.id, papel="usuario", conteudo=texto
+    )
     db.session.add(mensagem_usuario)
+    if conversa.titulo is None:
+        conversa.titulo = _gerar_titulo(texto)
+    conversa.atualizado_em = datetime.now(timezone.utc)
+    db.session.add(conversa)
     db.session.commit()
 
     historico_recente = (
-        MensagemChat.query.filter_by(usuario_id=usuario.id)
+        MensagemChat.query.filter_by(conversa_id=conversa.id)
         .order_by(MensagemChat.criado_em.desc())
         .limit(LIMITE_HISTORICO_CONTEXTO)
         .all()
@@ -237,9 +395,11 @@ def enviar_mensagem(
         )
 
     mensagem_assistente = MensagemChat(
-        usuario_id=usuario.id, papel="assistente", conteudo=texto_resposta
+        usuario_id=usuario.id, conversa_id=conversa.id, papel="assistente", conteudo=texto_resposta
     )
     db.session.add(mensagem_assistente)
+    conversa.atualizado_em = datetime.now(timezone.utc)
+    db.session.add(conversa)
     db.session.commit()
 
     return _serializar(mensagem_assistente)
@@ -250,4 +410,15 @@ def _serializar(mensagem: MensagemChat) -> dict:
         "papel": mensagem.papel,
         "conteudo": mensagem.conteudo,
         "criado_em": mensagem.criado_em.isoformat(),
+        "conversa_id": mensagem.conversa_id,
+    }
+
+
+def _serializar_conversa(conversa: ConversaChat, quantidade_mensagens: int = 0) -> dict:
+    return {
+        "id": conversa.id,
+        "titulo": conversa.titulo,
+        "criado_em": conversa.criado_em.isoformat(),
+        "atualizado_em": conversa.atualizado_em.isoformat(),
+        "quantidade_mensagens": quantidade_mensagens,
     }
