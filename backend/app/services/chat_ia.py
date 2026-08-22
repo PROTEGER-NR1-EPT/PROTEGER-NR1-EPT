@@ -17,7 +17,6 @@ import re
 from datetime import datetime, timezone
 
 import openai
-from openai import OpenAI
 
 from app.extensions import db
 from app.models.anonimo import Instituicao
@@ -29,6 +28,7 @@ from app.models.auth import (
     LogAtividade,
     MensagemChat,
 )
+from app.services import llm_client
 from app.services.k_anonimato import obter_configuracao, obter_resultados
 
 LIMITE_HISTORICO_EXIBIDO = 200
@@ -361,24 +361,15 @@ def enviar_mensagem(
             "fornecidos acima."
         )
 
-    mensagens_api = [{"role": "system", "content": prompt_sistema}] + [
+    mensagens_historico = [
         {"role": "user" if m.papel == "usuario" else "assistant", "content": m.conteudo}
         for m in reversed(historico_recente)
     ]
 
-    cliente = OpenAI(
-        api_key=config.llm_api_key,
-        base_url=config.llm_base_url or None,
-        timeout=30.0,
-    )
-
     try:
-        resposta = cliente.chat.completions.create(
-            model=config.llm_model,
-            messages=mensagens_api,
-            max_tokens=1024,
+        texto_resposta = llm_client.chamar_llm(
+            config, prompt_sistema, mensagens_historico, max_tokens=1024, timeout=30.0
         )
-        texto_resposta = resposta.choices[0].message.content or ""
     except openai.APIError:
         raise ChatIndisponivelError(
             "erro_provedor_llm",

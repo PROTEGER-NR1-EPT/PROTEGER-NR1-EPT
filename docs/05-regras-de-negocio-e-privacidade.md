@@ -55,6 +55,22 @@
   integralmente com todos os toggles de LLM desativados.
 - Recursos de IA nunca podem ser pré-requisito de um fluxo crítico.
 
+## Salvaguardas de escopo dos recursos de IA
+
+- Toda resposta gerada por IA (Chat de ajuda, Criação assistida de
+  questionário, Análise assistida de resultados, e qualquer recurso de
+  IA futuro) é restrita ao tema do sistema PROTEGER-NR1 EPT — a IA pode
+  cumprimentar com cordialidade ("bom dia", "boa noite" etc.) e manter
+  tom gentil, mas recusa educadamente qualquer pedido fora desse escopo.
+- Essa regra é aplicada via `GUARDRAIL_ESCOPO`, em
+  `backend/app/services/llm_client.py`, sempre concatenada ao prompt de
+  sistema específico de cada funcionalidade.
+- **Toda nova funcionalidade de IA deve chamar o provedor LLM através de
+  `services/llm_client.chamar_llm()` — nunca instanciar `OpenAI(...)`
+  diretamente num service novo.** É esse ponto de entrada único que
+  garante a salvaguarda de escopo sem depender de cada implementação
+  futura lembrar de replicá-la.
+
 ## LGPD — princípios gerais aplicados
 
 - Minimização de dados: coletar apenas o necessário para o cálculo dos

@@ -15,9 +15,9 @@ cada chamada gera um texto novo, nada é gravado no banco.
 """
 
 import openai
-from openai import OpenAI
 
 from app.schemas.admin import ResultadoDimensaoItem
+from app.services import llm_client
 from app.services.k_anonimato import obter_configuracao
 
 SYSTEM_PROMPT = (
@@ -94,22 +94,14 @@ def gerar_analise(resultados: list[ResultadoDimensaoItem]) -> str:
 
     mensagem_usuario = _formatar_resultados(resultados)
 
-    cliente = OpenAI(
-        api_key=config.llm_api_key,
-        base_url=config.llm_base_url or None,
-        timeout=60.0,
-    )
-
     try:
-        resposta = cliente.chat.completions.create(
-            model=config.llm_model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": mensagem_usuario},
-            ],
+        return llm_client.chamar_llm(
+            config,
+            SYSTEM_PROMPT,
+            [{"role": "user", "content": mensagem_usuario}],
             max_tokens=LIMITE_TOKENS_RESPOSTA,
+            timeout=60.0,
         )
-        return resposta.choices[0].message.content or ""
     except openai.APIError:
         raise AnaliseIndisponivelError(
             "erro_provedor_llm",

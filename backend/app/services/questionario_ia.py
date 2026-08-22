@@ -18,10 +18,10 @@ import json
 import re
 
 import openai
-from openai import OpenAI
 from pydantic import ValidationError
 
 from app.schemas.admin import CriarQuestionarioBody
+from app.services import llm_client
 from app.services.instrumentos import instrumento_invalido, instrumentos_disponiveis
 from app.services.instrumentos.karasek import CHAVE_CONTROLE, CHAVE_DEMANDA
 from app.services.k_anonimato import obter_configuracao
@@ -147,22 +147,14 @@ def gerar_sugestao(pedido: str, instrumento_preferido: str | None = None) -> Cri
     if instrumento_preferido:
         mensagem_usuario += f"\n\n(Instrumento preferido: {instrumento_preferido})"
 
-    cliente = OpenAI(
-        api_key=config.llm_api_key,
-        base_url=config.llm_base_url or None,
-        timeout=60.0,
-    )
-
     try:
-        resposta = cliente.chat.completions.create(
-            model=config.llm_model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": mensagem_usuario},
-            ],
+        texto_resposta = llm_client.chamar_llm(
+            config,
+            SYSTEM_PROMPT,
+            [{"role": "user", "content": mensagem_usuario}],
             max_tokens=LIMITE_TOKENS_RESPOSTA,
+            timeout=60.0,
         )
-        texto_resposta = resposta.choices[0].message.content or ""
     except openai.APIError:
         raise SugestaoIndisponivelError(
             "erro_provedor_llm",
