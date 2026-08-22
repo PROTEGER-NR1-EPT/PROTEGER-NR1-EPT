@@ -51,7 +51,7 @@ from app.schemas.consultor import ListaResultadosResponse
 from app.schemas.publico import InstituicaoIdPath
 from app.services.estatisticas import contar_grupos_abaixo_threshold, montar_totais
 from app.services.exportacao import exportar_respostas_csv
-from app.services.instrumentos import instrumentos_disponiveis
+from app.services.instrumentos import instrumento_invalido, instrumentos_disponiveis
 from app.services.k_anonimato import obter_configuracao, obter_resultados, obter_threshold
 from app.services.resultados_dashboard import obter_resultados_dashboard
 
@@ -293,15 +293,13 @@ def editar_setor(path: SetorIdPath, body: EditarSetorBody):
 
 
 def _validar_instrumentos_dominios(dominios_dados):
-    for dominio_dados in dominios_dados or []:
-        instrumento = dominio_dados.get("instrumento")
-        if instrumento not in instrumentos_disponiveis():
-            return erro_json(
-                "instrumento_invalido",
-                f"Domínio '{dominio_dados.get('nome', '')}': instrumento deve ser um de: "
-                f"{instrumentos_disponiveis()}.",
-                400,
-            )
+    nome_invalido = instrumento_invalido(dominios_dados)
+    if nome_invalido is not None:
+        return erro_json(
+            "instrumento_invalido",
+            f"Domínio '{nome_invalido}': instrumento deve ser um de: {instrumentos_disponiveis()}.",
+            400,
+        )
     return None
 
 

@@ -212,10 +212,8 @@ export function ConfiguracoesPage() {
           <p className={styles.descricaoCartao}>
             Desligados por padrão. O sistema funciona por completo com
             todos os toggles desativados — nenhuma tela essencial depende
-            de IA. O Chat de ajuda contextual já está implementado (requer
-            provedor LLM configurado ao lado); criação assistida de
-            questionário e análise assistida de resultados continuam
-            reservadas para uma versão futura.
+            de IA. As três funcionalidades já estão implementadas e
+            requerem provedor LLM configurado ao lado.
           </p>
 
           <div className={styles.listaToggles}>

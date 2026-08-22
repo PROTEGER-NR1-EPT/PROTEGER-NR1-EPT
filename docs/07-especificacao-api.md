@@ -80,12 +80,20 @@ bearer token), exceto rotas marcadas como públicas.
 
 | Método | Rota | Descrição |
 |---|---|---|
-| POST | `/admin/ia/questionario/sugestao` | Geração assistida de itens de questionário (ainda não implementado) |
-| POST | `/admin/ia/resultados/analise` | Análise assistida de resultados agregados (ainda não implementado) |
+| GET | `/admin/ia/questionario/status` | Disponibilidade da criação assistida de questionário (`ia_sugestao_questionario_enabled` + provedor LLM configurado) |
+| POST | `/admin/ia/questionario/sugestao` | Gera um rascunho de questionário (domínios + itens) a partir de um pedido em texto livre — não grava nada no banco, só retorna o rascunho no formato de `POST /admin/questionarios` para revisão do Administrador |
 
 Todas as rotas de IA devem verificar o toggle correspondente **no
 backend** antes de processar — nunca confiar apenas em o frontend
 esconder o botão.
+
+`POST /admin/ia/questionario/sugestao` valida a resposta da IA contra o
+mesmo schema Pydantic usado por `POST /admin/questionarios`
+(`CriarQuestionarioBody`) e contra a mesma checagem de instrumento —
+domínios `karasek` precisam ter chaves exatamente `demanda`/`controle`,
+igual à exigência de `app/services/instrumentos/karasek.py`. Se a IA
+responder algo fora desse formato, retorna 502 `ia_resposta_invalida`
+pedindo para tentar novamente.
 
 ### Chat de ajuda contextual (`/chat/*`) — implementado
 
@@ -105,6 +113,23 @@ várias conversas distintas — cada uma com seu próprio fio de mensagens.
 | GET | `/chat/mensagens` | Histórico completo do usuário (todas as conversas) |
 | DELETE | `/chat/mensagens` | Exclui todas as conversas do usuário |
 | GET | `/chat/mensagens/export` | Exporta todas as conversas do usuário (CSV) |
+
+### Análise assistida de resultados (`/ia/resultados/*`) — implementado
+
+Consultor e Administrador logados; disponível conforme
+`ia_analise_resultados_enabled` e provedor LLM configurado
+(`GET /ia/resultados/status`). A análise processa exatamente a lista de
+dimensões que o frontend já tem carregada na tela (mesmo formato de
+`GET /admin/resultados` ou
+`GET /consultor/instituicoes/{id}/resultados-dashboard`, já filtrada por
+k-anonimato) — o backend não refaz a consulta nem recebe filtros de
+instituição/setor, só o recorte já exibido. Sem persistência: cada
+chamada gera um texto novo.
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/ia/resultados/status` | `{disponivel: bool}` — usado pelo frontend pra decidir se mostra a aba "Análise IA" |
+| POST | `/ia/resultados/analise` | Gera uma análise em Markdown (`{resultados: [...]}` → `{analise: "..."}`) a partir de até 300 dimensões |
 
 ## Padrão de resposta de erro
 

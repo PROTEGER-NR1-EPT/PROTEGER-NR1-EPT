@@ -1,14 +1,16 @@
 // Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
 // Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import * as iaApi from "../../api/ia";
 import { classificarNivelRisco } from "../../utils/risco";
+import { AnaliseIaPainel } from "./AnaliseIaPainel";
 import { MapaRiscoHeatmap } from "./MapaRiscoHeatmap";
 import { RadarDimensoes } from "./RadarDimensoes";
 import styles from "./ResultadosDashboard.module.css";
 
-const ABAS = [
+const ABAS_BASE = [
   { valor: "visao-geral", rotulo: "Visão geral" },
   { valor: "mapa-risco", rotulo: "Mapa de risco" },
 ];
@@ -65,6 +67,18 @@ function IconeIndisponivel({ className }) {
 // `risco`/`nivel_risco` — já escopada do lado do backend).
 export function ResultadosDashboard({ resultados, carregando }) {
   const [abaAtiva, setAbaAtiva] = useState("visao-geral");
+  const [analiseDisponivel, setAnaliseDisponivel] = useState(false);
+
+  useEffect(() => {
+    iaApi
+      .obterStatusAnaliseResultados()
+      .then((dados) => setAnaliseDisponivel(dados.disponivel))
+      .catch(() => {});
+  }, []);
+
+  const abas = analiseDisponivel
+    ? [...ABAS_BASE, { valor: "analise-ia", rotulo: "Análise IA" }]
+    : ABAS_BASE;
 
   const disponiveis = useMemo(
     () => resultados.filter((r) => r.resultado_disponivel),
@@ -137,7 +151,7 @@ export function ResultadosDashboard({ resultados, carregando }) {
 
       <div className={styles.painel}>
         <div className={styles.abas} role="tablist" aria-label="Visualização de resultados">
-          {ABAS.map((aba) => (
+          {abas.map((aba) => (
             <button
               key={aba.valor}
               type="button"
@@ -156,8 +170,10 @@ export function ResultadosDashboard({ resultados, carregando }) {
             <p>Carregando resultados...</p>
           ) : abaAtiva === "visao-geral" ? (
             <RadarDimensoes dados={dadosRadar} />
-          ) : (
+          ) : abaAtiva === "mapa-risco" ? (
             <MapaRiscoHeatmap resultados={resultados} />
+          ) : (
+            <AnaliseIaPainel resultados={resultados} />
           )}
         </div>
       </div>

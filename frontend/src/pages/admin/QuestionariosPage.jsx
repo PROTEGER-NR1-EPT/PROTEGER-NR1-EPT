@@ -95,6 +95,38 @@ export function QuestionariosPage() {
   const [excluindo, setExcluindo] = useState(false);
   const [erroExclusao, setErroExclusao] = useState(null);
 
+  const [sugestaoDisponivel, setSugestaoDisponivel] = useState(false);
+  const [mostrarPainelIa, setMostrarPainelIa] = useState(false);
+  const [pedidoIa, setPedidoIa] = useState("");
+  const [instrumentoPreferidoIa, setInstrumentoPreferidoIa] = useState("");
+  const [gerandoIa, setGerandoIa] = useState(false);
+  const [erroIa, setErroIa] = useState(null);
+
+  useEffect(() => {
+    adminApi
+      .obterStatusSugestaoQuestionario()
+      .then((dados) => setSugestaoDisponivel(dados.disponivel))
+      .catch(() => {});
+  }, []);
+
+  async function handleGerarComIa(evento) {
+    evento.preventDefault();
+    setGerandoIa(true);
+    setErroIa(null);
+    try {
+      const rascunho = await adminApi.gerarSugestaoQuestionario(pedidoIa, instrumentoPreferidoIa);
+      setForm(questionarioParaForm(rascunho));
+      setMensagem("Rascunho gerado pela IA — revise os domínios e itens abaixo antes de salvar.");
+      setMostrarPainelIa(false);
+      setPedidoIa("");
+      setInstrumentoPreferidoIa("");
+    } catch (erroApi) {
+      setErroIa(erroApi.mensagem);
+    } finally {
+      setGerandoIa(false);
+    }
+  }
+
   async function recarregar() {
     setCarregando(true);
     try {
@@ -328,6 +360,85 @@ export function QuestionariosPage() {
 
       <div className={tabela.secaoAdmin}>
         <h2>{editandoId ? "Editar questionário" : "Novo questionário"}</h2>
+
+        {!editandoId && sugestaoDisponivel && !mostrarPainelIa && (
+          <Button
+            type="button"
+            variante="secundario"
+            className={styles.botaoAbrirPainelIa}
+            onClick={() => setMostrarPainelIa(true)}
+          >
+            <IconeIA className={styles.iconePequenoIa} /> Gerar com IA
+          </Button>
+        )}
+
+        {!editandoId && sugestaoDisponivel && mostrarPainelIa && (
+          <form className={styles.painelIa} onSubmit={handleGerarComIa}>
+            <div className={styles.cabecalhoPainelIa}>
+              <IconeIA className={styles.iconePequenoIa} />
+              <strong>Gerar questionário com IA</strong>
+            </div>
+            <p className={styles.descricaoPainelIa}>
+              Descreva o questionário que você quer — a IA gera um rascunho de domínios e itens
+              para você revisar e ajustar abaixo antes de salvar.
+            </p>
+            <div className={formStyles.campo}>
+              <label htmlFor="pedido-ia" className={formStyles.rotulo}>
+                O que você precisa?
+              </label>
+              <textarea
+                id="pedido-ia"
+                className={formStyles.controle}
+                rows={3}
+                maxLength={1000}
+                value={pedidoIa}
+                onChange={(e) => setPedidoIa(e.target.value)}
+                placeholder="Ex.: Questionário Karasek sobre sobrecarga de trabalho, com 4 itens por domínio."
+                required
+              />
+            </div>
+            <div className={formStyles.campo}>
+              <label htmlFor="instrumento-preferido-ia" className={formStyles.rotulo}>
+                Instrumento (opcional)
+              </label>
+              <select
+                id="instrumento-preferido-ia"
+                className={formStyles.controle}
+                value={instrumentoPreferidoIa}
+                onChange={(e) => setInstrumentoPreferidoIa(e.target.value)}
+              >
+                <option value="">Deixe a IA decidir</option>
+                {INSTRUMENTOS.map((instrumento) => (
+                  <option key={instrumento.valor} value={instrumento.valor}>
+                    {instrumento.rotulo}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {erroIa && (
+              <p role="alert" className={styles.erroPainelIa}>
+                {erroIa}
+              </p>
+            )}
+            <div className={styles.acoesPainelIa}>
+              <Button type="submit" disabled={gerandoIa || !pedidoIa.trim()}>
+                {gerandoIa ? "Gerando..." : "Gerar"}
+              </Button>
+              <Button
+                type="button"
+                variante="secundario"
+                onClick={() => {
+                  setMostrarPainelIa(false);
+                  setErroIa(null);
+                }}
+                disabled={gerandoIa}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        )}
+
         <form onSubmit={handleSalvarQuestionario}>
           <div className={styles.linhaCampos}>
             <div className={formStyles.campo}>
@@ -593,5 +704,21 @@ export function QuestionariosPage() {
         )}
       </ConfirmModal>
     </section>
+  );
+}
+
+// Mesmo desenho de ConfiguracoesPage.jsx:IconeIA — cada arquivo tem seu
+// próprio ícone local, seguindo o padrão de ícones já usado no projeto.
+function IconeIA({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

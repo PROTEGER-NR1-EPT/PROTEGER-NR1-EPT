@@ -66,6 +66,21 @@ export async function excluirQuestionario(id) {
   return data;
 }
 
+// --- Criação assistida de questionário (IA) -------------------------------
+
+export async function obterStatusSugestaoQuestionario() {
+  const { data } = await api.get("/admin/ia/questionario/status");
+  return data;
+}
+
+export async function gerarSugestaoQuestionario(pedido, instrumentoPreferido) {
+  const { data } = await api.post("/admin/ia/questionario/sugestao", {
+    pedido,
+    instrumento_preferido: instrumentoPreferido || null,
+  });
+  return data;
+}
+
 // --- Usuários e vínculos -----------------------------------------------
 
 export async function listarUsuarios() {

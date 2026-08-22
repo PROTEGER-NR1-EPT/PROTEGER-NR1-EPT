@@ -1,0 +1,142 @@
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.mensagemVazia {
+  margin: 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.9rem;
+}
+
+.descricao {
+  margin: 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.9rem;
+  max-width: 42rem;
+}
+
+.erro {
+  margin: 0;
+  color: var(--cor-perigo);
+  font-size: 0.9rem;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-3);
+}
+
+.botaoTexto {
+  border: none;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.botaoTexto:hover {
+  color: var(--cor-primaria);
+}
+
+.botaoTexto:disabled {
+  color: var(--cor-texto-secundario);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Conteúdo em Markdown da análise — mesmos seletores de
+   AssistenteIaPage.module.css, só tokens de cor/espaçamento (sem cor
+   fixa, pra continuar legível no alto contraste). */
+.textoAnalise {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  word-break: break-word;
+  color: var(--cor-texto);
+}
+
+.textoAnalise > :first-child {
+  margin-top: 0;
+}
+
+.textoAnalise > :last-child {
+  margin-bottom: 0;
+}
+
+.textoAnalise p {
+  margin: 0 0 var(--espaco-2);
+}
+
+.textoAnalise ul,
+.textoAnalise ol {
+  margin: 0 0 var(--espaco-2);
+  padding-left: var(--espaco-4);
+}
+
+.textoAnalise li {
+  margin-bottom: var(--espaco-1);
+}
+
+.textoAnalise code {
+  background: var(--cor-fundo-alt);
+  border-radius: var(--raio-borda);
+  padding: 0.15em 0.4em;
+  font-size: 0.85em;
+  font-family: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
+}
+
+.textoAnalise pre {
+  background: var(--cor-fundo-alt);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-2);
+  margin: 0 0 var(--espaco-2);
+  overflow-x: auto;
+}
+
+.textoAnalise pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+
+.textoAnalise blockquote {
+  margin: 0 0 var(--espaco-2);
+  padding-left: var(--espaco-2);
+  border-left: 3px solid var(--cor-borda);
+  color: var(--cor-texto-secundario);
+}
+
+.textoAnalise hr {
+  margin: var(--espaco-2) 0;
+  border: none;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.textoAnalise strong {
+  font-weight: 700;
+}
+
+.tabelaMarkdown {
+  overflow-x: auto;
+  margin: 0 0 var(--espaco-2);
+}
+
+.tabelaMarkdown table {
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.tabelaMarkdown th,
+.tabelaMarkdown td {
+  border: 1px solid var(--cor-borda);
+  padding: var(--espaco-1) var(--espaco-2);
+  text-align: left;
+}
+
+.tabelaMarkdown th {
+  background: var(--cor-fundo-alt);
+}

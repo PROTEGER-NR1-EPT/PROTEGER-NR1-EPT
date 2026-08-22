@@ -23,3 +23,51 @@
 .linhaCampos > * {
   flex: 1 1 8rem;
 }
+
+.botaoAbrirPainelIa {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  width: fit-content;
+  margin-bottom: var(--espaco-3);
+}
+
+.iconePequenoIa {
+  width: 1rem;
+  height: 1rem;
+}
+
+.painelIa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  background: var(--cor-fundo-alt);
+  padding: var(--espaco-3);
+  margin-bottom: var(--espaco-3);
+}
+
+.cabecalhoPainelIa {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  color: var(--cor-primaria);
+}
+
+.descricaoPainelIa {
+  margin: 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.9rem;
+}
+
+.erroPainelIa {
+  margin: 0;
+  color: var(--cor-perigo);
+  font-size: 0.9rem;
+}
+
+.acoesPainelIa {
+  display: flex;
+  gap: var(--espaco-2);
+}

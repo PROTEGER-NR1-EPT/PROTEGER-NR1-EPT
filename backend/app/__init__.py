@@ -137,8 +137,10 @@ def _registrar_blueprints(app):
     from app.blueprints.auth import bp as auth_bp
     from app.blueprints.chat import bp as chat_bp
     from app.blueprints.consultor import bp as consultor_bp
+    from app.blueprints.ia import bp as ia_bp
     from app.blueprints.planos_acao import bp as planos_acao_bp
     from app.blueprints.publico import bp as publico_bp
+    from app.blueprints.resultados_ia import bp as resultados_ia_bp
 
     # Blueprint "guarda-chuva" apenas para compor o prefixo /api/v1 com o
     # prefixo próprio de cada blueprint filho (registro aninhado combina
@@ -154,6 +156,8 @@ def _registrar_blueprints(app):
     # o suficiente para justificar arquivo dedicado.
     api.register_api(planos_acao_bp)
     api.register_api(chat_bp)
+    api.register_api(ia_bp)
+    api.register_api(resultados_ia_bp)
     app.register_api(api)
 
 

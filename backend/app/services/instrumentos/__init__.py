@@ -14,6 +14,19 @@ def instrumentos_disponiveis() -> list[str]:
     return list(_REGISTRO.keys())
 
 
+def instrumento_invalido(dominios_dados) -> str | None:
+    """Nome do primeiro domínio cujo `instrumento` não está registrado em
+    `_REGISTRO`, ou None se todos forem válidos. Usado tanto na
+    criação/edição manual de questionário (app/blueprints/admin.py) quanto
+    na criação assistida por IA (app/services/questionario_ia.py) — só
+    dados puros aqui, sem acoplamento a Flask/erro_json."""
+    disponiveis = instrumentos_disponiveis()
+    for dominio_dados in dominios_dados or []:
+        if dominio_dados.get("instrumento") not in disponiveis:
+            return dominio_dados.get("nome", "")
+    return None
+
+
 def obter_estrategia(instrumento: str):
     """Novos instrumentos são adicionados registrando uma nova
     InstrumentoEstrategia aqui — sem alterar a estrutura central de
