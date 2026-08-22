@@ -30,3 +30,10 @@ Ao planejar uma funcionalidade nova, comece por `02-arquitetura-tecnica.md` e
 consulte `04` e `07` para o fluxo e contrato de API específicos do que está
 sendo implementado. `05` e `06` são obrigatórios sempre que a funcionalidade
 tocar em dados de resposta, resultados ou exportação.
+
+## Guia de uso (para quem usa o sistema, não para quem desenvolve)
+
+A pasta `guia/` tem um manual de uso do sistema — como ele funciona e como
+usá-lo, escrito para Administrador, Consultor e quem responde o
+questionário, sem jargão técnico. É pensado para virar a Wiki do projeto no
+GitHub. Comece por `guia/00-indice.md`.
