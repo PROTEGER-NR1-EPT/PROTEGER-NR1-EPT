@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 from flask_openapi3 import Info, OpenAPI
 from flask_openapi3.models.security_scheme import SecurityScheme
 
@@ -132,6 +135,7 @@ def _registrar_blueprints(app):
 
     from app.blueprints.admin import bp as admin_bp
     from app.blueprints.auth import bp as auth_bp
+    from app.blueprints.chat import bp as chat_bp
     from app.blueprints.consultor import bp as consultor_bp
     from app.blueprints.planos_acao import bp as planos_acao_bp
     from app.blueprints.publico import bp as publico_bp
@@ -149,6 +153,7 @@ def _registrar_blueprints(app):
     # deixar admin.py/schemas/admin.py ainda maiores — funcionalidade grande
     # o suficiente para justificar arquivo dedicado.
     api.register_api(planos_acao_bp)
+    api.register_api(chat_bp)
     app.register_api(api)
 
 

@@ -1,3 +1,6 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 import { Outlet, Route, Routes } from "react-router-dom";
 
 import { Footer } from "./components/layout/Footer";
@@ -5,6 +8,7 @@ import { Header } from "./components/layout/Header";
 import { PublicRoute } from "./routes/PublicRoute";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { LoginPage } from "./pages/auth/LoginPage";
+import { AssistenteIaPage } from "./pages/assistente-ia/AssistenteIaPage";
 import { AdminLayout } from "./pages/admin/AdminLayout";
 import { ConfiguracoesPage } from "./pages/admin/ConfiguracoesPage";
 import { DashboardAdmin } from "./pages/admin/DashboardAdmin";
@@ -80,6 +84,7 @@ export default function App() {
             <Route index element={<DashboardConsultor />} />
             <Route path="instituicoes/:instituicaoId" element={<ResultadosInstituicao />} />
             <Route path="planos-acao" element={<PlanosAcaoConsultor />} />
+            <Route path="assistente-ia" element={<AssistenteIaPage />} />
             <Route path="perfil" element={<PerfilPage />} />
           </Route>
         </Route>
@@ -92,6 +97,7 @@ export default function App() {
             <Route path="instituicoes" element={<InstituicoesPage />} />
             <Route path="questionarios" element={<QuestionariosPage />} />
             <Route path="usuarios" element={<UsuariosPage />} />
+            <Route path="assistente-ia" element={<AssistenteIaPage />} />
             <Route path="configuracoes" element={<ConfiguracoesPage />} />
             <Route path="exportacao" element={<ExportacaoPage />} />
             <Route path="logs" element={<LogsPage />} />

@@ -1,3 +1,6 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 import axios from "axios";
 
 // VITE_API_BASE_URL aponta para a raiz do backend (ex.: http://localhost:8000),

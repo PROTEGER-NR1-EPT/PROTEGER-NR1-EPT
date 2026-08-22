@@ -1,3 +1,6 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 // Status de uma ação de Plano de Ação — 3 valores fixos (backend valida o
 // mesmo conjunto em STATUS_ACAO_VALIDOS, models/memoria.py). Cores
 // reaproveitadas de tokens.css (sem token novo): pendente=atenção,

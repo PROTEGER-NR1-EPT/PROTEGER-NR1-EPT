@@ -20,6 +20,16 @@
   gap: var(--espaco-2);
 }
 
+.linhaSelectCiclo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+}
+
+.linhaSelectCiclo select {
+  flex: 1 1 auto;
+}
+
 .cabecalhoPlano {
   display: flex;
   align-items: flex-start;

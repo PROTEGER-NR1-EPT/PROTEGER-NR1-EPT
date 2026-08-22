@@ -1,23 +1,36 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/useAuth";
+import { useChatDisponivel } from "../../hooks/useChatDisponivel";
 import styles from "./ConsultorLayout.module.css";
 
 const CHAVE_RECOLHIDA = "proteger-nr1-consultor-sidebar-recolhida";
 
 // Mesma ideia de AdminLayout.jsx (navegação persistente entre as páginas do
-// Consultor), mas com só 2 itens de menu — Resultados e Planos de ação —
-// já que o Consultor só enxerga essas duas áreas (mais o próprio perfil e
-// sair, no rodapé).
+// Consultor), mas com só 2 itens de menu fixos — Resultados e Planos de
+// ação — mais "Assistente IA" quando o chat estiver disponível (ver
+// useChatDisponivel), já que o Consultor só enxerga essas áreas (mais o
+// próprio perfil e sair, no rodapé).
 const LINKS = [
   { to: "/consultor", rotulo: "Resultados", fim: true, Icone: IconeResultados },
   { to: "/consultor/planos-acao", rotulo: "Planos de ação", Icone: IconePlanosDeAcao },
+  {
+    to: "/consultor/assistente-ia",
+    rotulo: "Assistente IA",
+    Icone: IconeAssistenteIA,
+    apenasSeChatDisponivel: true,
+  },
 ];
 
 export function ConsultorLayout() {
   const { usuario, sair } = useAuth();
   const navigate = useNavigate();
+  const chatDisponivel = useChatDisponivel();
+  const links = LINKS.filter((link) => !link.apenasSeChatDisponivel || chatDisponivel);
   const [recolhida, setRecolhida] = useState(() => {
     try {
       return window.localStorage.getItem(CHAVE_RECOLHIDA) === "true";
@@ -45,7 +58,7 @@ export function ConsultorLayout() {
         className={`${styles.sidebar} ${recolhida ? styles.sidebarRecolhida : ""}`}
       >
         <nav className={styles.nav} aria-label="Navegação do consultor">
-          {LINKS.map(({ to, rotulo, fim, Icone }) => (
+          {links.map(({ to, rotulo, fim, Icone }) => (
             <NavLink
               key={to}
               to={to}
@@ -131,6 +144,28 @@ function IconePlanosDeAcao({ className }) {
       <rect x="3" y="4" width="5" height="16" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <rect x="9.5" y="4" width="5" height="10" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <rect x="16" y="4" width="5" height="13" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function IconeAssistenteIA({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M4 4h16v11H8l-4 4V4z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 6.5l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.5"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

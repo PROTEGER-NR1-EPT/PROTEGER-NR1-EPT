@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 import os
 
 
@@ -34,6 +37,7 @@ class Config:
     LLM_PROVIDER_DEFAULT = os.environ.get("LLM_PROVIDER") or None
     LLM_API_KEY_DEFAULT = os.environ.get("LLM_API_KEY") or None
     LLM_BASE_URL_DEFAULT = os.environ.get("LLM_BASE_URL") or None
+    LLM_MODEL_DEFAULT = os.environ.get("LLM_MODEL") or None
 
     CORS_ORIGINS = [
         origem.strip()

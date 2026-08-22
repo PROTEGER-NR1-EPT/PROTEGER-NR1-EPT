@@ -56,7 +56,7 @@ de logs em `05-regras-de-negocio-e-privacidade.md`).
 - Cliente HTTP único, formato compatível com API da OpenAI (permite
   trocar apenas a base URL/chave para alternar provedor).
 - Provedores suportados: **Anthropic, OpenAI, Gemini, OpenRouter, NVIDIA
-  Build**.
+  Build, Cohere**.
 - Três funcionalidades independentemente ativáveis pelo Administrador:
   1. Criação assistida de questionário
   2. Análise assistida de resultados

@@ -15,3 +15,9 @@ pytest==8.3.3
 flask-openapi3==4.3.2
 flask-openapi3-scalar==1.44.15
 pydantic==2.13.4
+
+# --- Chat de ajuda contextual (app/services/chat_ia.py) ---
+# Única dependência de rede externa do backend: chama o provedor LLM
+# configurado pelo Administrador via endpoint compatível com OpenAI
+# (client.chat.completions.create, base_url customizável).
+openai==3.3.1

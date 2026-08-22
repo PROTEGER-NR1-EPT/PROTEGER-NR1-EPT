@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 from datetime import datetime, timezone
 
 from app.extensions import db
@@ -195,6 +198,7 @@ class ConfiguracaoSistema(db.Model):
     llm_provider = db.Column(db.String(30), nullable=True)
     llm_api_key = db.Column(db.String(255), nullable=True)
     llm_base_url = db.Column(db.String(255), nullable=True)
+    llm_model = db.Column(db.String(100), nullable=True)
 
     atualizado_em = db.Column(
         db.DateTime(timezone=True), nullable=False, default=_agora, onupdate=_agora

@@ -1,3 +1,6 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 import { useEffect, useState } from "react";
 
 import * as adminApi from "../../api/admin";
@@ -6,7 +9,9 @@ import { AcaoFormModal } from "../../components/planos-acao/AcaoFormModal";
 import { CalendarioAcoes } from "../../components/planos-acao/CalendarioAcoes";
 import { KanbanAcoes } from "../../components/planos-acao/KanbanAcoes";
 import { TabelaAcoes } from "../../components/planos-acao/TabelaAcoes";
+import { BotaoIcone } from "../../components/common/BotaoIcone";
 import { ConfirmModal } from "../../components/common/ConfirmModal";
+import { IconeEditar, IconeExcluir } from "../../components/common/icones";
 import { Button } from "../../components/forms/Button";
 import { DropdownInstituicao } from "../../components/forms/DropdownInstituicao";
 import formStyles from "../../components/forms/FormField.module.css";
@@ -25,6 +30,14 @@ export function PlanosAcaoPage() {
   const [novoCiclo, setNovoCiclo] = useState("");
   const [criandoCiclo, setCriandoCiclo] = useState(false);
 
+  const [editandoCiclo, setEditandoCiclo] = useState(false);
+  const [cicloEditado, setCicloEditado] = useState("");
+  const [salvandoCiclo, setSalvandoCiclo] = useState(false);
+
+  const [confirmarExclusaoPlano, setConfirmarExclusaoPlano] = useState(null);
+  const [excluindoPlano, setExcluindoPlano] = useState(false);
+  const [erroModalExclusaoPlano, setErroModalExclusaoPlano] = useState(null);
+
   const [acoes, setAcoes] = useState([]);
   const [carregandoAcoes, setCarregandoAcoes] = useState(false);
   const [erro, setErro] = useState(null);
@@ -42,6 +55,7 @@ export function PlanosAcaoPage() {
   const [erroModalExclusao, setErroModalExclusao] = useState(null);
 
   useEffect(() => {
+    setEditandoCiclo(false);
     if (!instituicaoId) {
       setPlanos([]);
       setPlanoSelecionadoId(null);
@@ -98,6 +112,47 @@ export function PlanosAcaoPage() {
       setErro(erroApi.mensagem);
     } finally {
       setCriandoCiclo(false);
+    }
+  }
+
+  function handleIniciarEdicaoCiclo() {
+    setCicloEditado(planoSelecionado.ciclo);
+    setErro(null);
+    setEditandoCiclo(true);
+  }
+
+  async function handleSalvarCiclo(evento) {
+    evento.preventDefault();
+    if (!cicloEditado.trim()) return;
+    setSalvandoCiclo(true);
+    setErro(null);
+    try {
+      const cicloSalvo = cicloEditado.trim();
+      await planosAcaoApi.editarPlano(planoSelecionadoId, cicloSalvo);
+      setPlanos((atual) =>
+        atual.map((p) => (p.id === planoSelecionadoId ? { ...p, ciclo: cicloSalvo } : p))
+      );
+      setEditandoCiclo(false);
+    } catch (erroApi) {
+      setErro(erroApi.mensagem);
+    } finally {
+      setSalvandoCiclo(false);
+    }
+  }
+
+  async function handleConfirmarExclusaoPlano() {
+    setExcluindoPlano(true);
+    setErroModalExclusaoPlano(null);
+    try {
+      await planosAcaoApi.excluirPlano(confirmarExclusaoPlano.id);
+      const restantes = planos.filter((p) => p.id !== confirmarExclusaoPlano.id);
+      setPlanos(restantes);
+      setPlanoSelecionadoId(restantes.length > 0 ? restantes[0].id : null);
+      setConfirmarExclusaoPlano(null);
+    } catch (erroApi) {
+      setErroModalExclusaoPlano(erroApi.mensagem);
+    } finally {
+      setExcluindoPlano(false);
     }
   }
 
@@ -207,25 +262,71 @@ export function PlanosAcaoPage() {
 
         {instituicaoId && (
           <div className={styles.linhaCiclo}>
-            <div className={formStyles.campo} style={{ marginBottom: 0, flex: "1 1 16rem" }}>
-              <label htmlFor="plano-ciclo" className={formStyles.rotulo}>
-                Ciclo
-              </label>
-              <select
-                id="plano-ciclo"
-                className={formStyles.controle}
-                value={planoSelecionadoId ?? ""}
-                onChange={(e) => setPlanoSelecionadoId(Number(e.target.value) || null)}
-                disabled={planos.length === 0}
-              >
-                {planos.length === 0 && <option value="">Nenhum ciclo cadastrado</option>}
-                {planos.map((plano) => (
-                  <option key={plano.id} value={plano.id}>
-                    {plano.ciclo}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {editandoCiclo ? (
+              <form className={styles.formNovoCiclo} onSubmit={handleSalvarCiclo}>
+                <div className={formStyles.campo} style={{ marginBottom: 0, flex: "1 1 16rem" }}>
+                  <label htmlFor="ciclo-editado" className={formStyles.rotulo}>
+                    Renomear ciclo
+                  </label>
+                  <input
+                    id="ciclo-editado"
+                    className={formStyles.controle}
+                    value={cicloEditado}
+                    onChange={(e) => setCicloEditado(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" disabled={salvandoCiclo || !cicloEditado.trim()}>
+                  {salvandoCiclo ? "Salvando..." : "Salvar"}
+                </Button>
+                <Button
+                  type="button"
+                  variante="secundario"
+                  onClick={() => setEditandoCiclo(false)}
+                  disabled={salvandoCiclo}
+                >
+                  Cancelar
+                </Button>
+              </form>
+            ) : (
+              <div className={formStyles.campo} style={{ marginBottom: 0, flex: "1 1 16rem" }}>
+                <label htmlFor="plano-ciclo" className={formStyles.rotulo}>
+                  Ciclo
+                </label>
+                <div className={styles.linhaSelectCiclo}>
+                  <select
+                    id="plano-ciclo"
+                    className={formStyles.controle}
+                    value={planoSelecionadoId ?? ""}
+                    onChange={(e) => setPlanoSelecionadoId(Number(e.target.value) || null)}
+                    disabled={planos.length === 0}
+                  >
+                    {planos.length === 0 && <option value="">Nenhum ciclo cadastrado</option>}
+                    {planos.map((plano) => (
+                      <option key={plano.id} value={plano.id}>
+                        {plano.ciclo}
+                      </option>
+                    ))}
+                  </select>
+                  {planoSelecionado && (
+                    <>
+                      <BotaoIcone
+                        icone={IconeEditar}
+                        rotulo={`Renomear ciclo ${planoSelecionado.ciclo}`}
+                        onClick={handleIniciarEdicaoCiclo}
+                      />
+                      <BotaoIcone
+                        icone={IconeExcluir}
+                        rotulo={`Excluir ciclo ${planoSelecionado.ciclo}`}
+                        onClick={() => {
+                          setErroModalExclusaoPlano(null);
+                          setConfirmarExclusaoPlano(planoSelecionado);
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             <form className={styles.formNovoCiclo} onSubmit={handleCriarCiclo}>
               <div className={formStyles.campo} style={{ marginBottom: 0 }}>
@@ -353,6 +454,29 @@ export function PlanosAcaoPage() {
         {erroModalExclusao && (
           <p role="alert" style={{ color: "var(--cor-perigo)" }}>
             {erroModalExclusao}
+          </p>
+        )}
+      </ConfirmModal>
+
+      <ConfirmModal
+        aberto={confirmarExclusaoPlano !== null}
+        titulo={`Excluir o ciclo "${confirmarExclusaoPlano?.ciclo ?? ""}"?`}
+        perigo
+        confirmando={excluindoPlano}
+        textoConfirmar="Excluir"
+        onCancelar={() => {
+          setConfirmarExclusaoPlano(null);
+          setErroModalExclusaoPlano(null);
+        }}
+        onConfirmar={handleConfirmarExclusaoPlano}
+      >
+        <p>
+          O ciclo e todas as suas ações, tarefas e dependências são removidos
+          permanentemente — isso não pode ser desfeito.
+        </p>
+        {erroModalExclusaoPlano && (
+          <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+            {erroModalExclusaoPlano}
           </p>
         )}
       </ConfirmModal>

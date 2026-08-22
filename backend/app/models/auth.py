@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 from datetime import datetime, timezone
 
 from app.extensions import db
@@ -80,6 +83,24 @@ class LogAtividade(db.Model):
     entidade = db.Column(db.String(100), nullable=True)
     entidade_id = db.Column(db.Integer, nullable=True)
     detalhes = db.Column(db.JSON, nullable=True)
+    criado_em = db.Column(
+        db.DateTime(timezone=True), nullable=False, default=_agora, index=True
+    )
+
+
+class MensagemChat(db.Model):
+    """Histórico do chat de ajuda contextual, por usuário (Consultor ou
+    Administrador) — ver app/services/chat_ia.py."""
+
+    __bind_key__ = "auth"
+    __tablename__ = "mensagens_chat"
+
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(
+        db.Integer, db.ForeignKey("usuarios.id"), nullable=False, index=True
+    )
+    papel = db.Column(db.String(20), nullable=False)  # "usuario" | "assistente"
+    conteudo = db.Column(db.Text, nullable=False)
     criado_em = db.Column(
         db.DateTime(timezone=True), nullable=False, default=_agora, index=True
     )

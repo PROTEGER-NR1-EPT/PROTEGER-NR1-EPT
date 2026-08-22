@@ -1,3 +1,6 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 import { api } from "./client";
 
 // --- Planos (ciclos) -------------------------------------------------------
@@ -9,6 +12,16 @@ export async function listarPlanos(instituicaoId) {
 
 export async function criarPlano(instituicaoId, ciclo) {
   const { data } = await api.post(`/admin/instituicoes/${instituicaoId}/planos-acao`, { ciclo });
+  return data;
+}
+
+export async function editarPlano(planoId, ciclo) {
+  const { data } = await api.put(`/admin/planos-acao/${planoId}`, { ciclo });
+  return data;
+}
+
+export async function excluirPlano(planoId) {
+  const { data } = await api.delete(`/admin/planos-acao/${planoId}`);
   return data;
 }
 

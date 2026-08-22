@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 """Schemas de Planos de Ação — app/blueprints/planos_acao.py.
 
 Mesma convenção de Editar*Body do resto do projeto: campos opcionais,
@@ -106,6 +109,10 @@ class ListaPlanosResponse(RootModel[list[PlanoResponse]]):
 
 
 class CriarPlanoBody(BaseModel):
+    ciclo: str = Field(..., min_length=1, examples=["Mar/2026"])
+
+
+class EditarPlanoBody(BaseModel):
     ciclo: str = Field(..., min_length=1, examples=["Mar/2026"])
 
 

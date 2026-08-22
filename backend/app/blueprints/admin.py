@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
@@ -972,6 +975,7 @@ def obter_configuracoes():
         "ia_chat_enabled": config.ia_chat_enabled,
         "llm_provider": config.llm_provider,
         "llm_base_url": config.llm_base_url,
+        "llm_model": config.llm_model,
         "llm_api_key_configurada": bool(config.llm_api_key),
     }
 
@@ -1012,7 +1016,7 @@ def atualizar_configuracoes(body: AtualizarConfiguracoesBody):
         if campo in dados:
             setattr(config, campo, bool(dados[campo]))
 
-    for campo in ("llm_provider", "llm_api_key", "llm_base_url"):
+    for campo in ("llm_provider", "llm_api_key", "llm_base_url", "llm_model"):
         if campo in dados:
             setattr(config, campo, dados[campo])
 

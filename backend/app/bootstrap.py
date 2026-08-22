@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 from app.auth.security import gerar_hash_senha
 from app.extensions import db
 from app.models.auth import PAPEL_ADMINISTRADOR, Usuario

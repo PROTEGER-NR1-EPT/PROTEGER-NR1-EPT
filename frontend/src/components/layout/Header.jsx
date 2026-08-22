@@ -1,12 +1,19 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 import { Link, useNavigate } from "react-router-dom";
 
 import { AcessibilidadeWidget } from "../acessibilidade/AcessibilidadeWidget";
+import { ChatAjudaWidget } from "../chat/ChatAjudaWidget";
 import { useAuth } from "../../hooks/useAuth";
+import { useChatDisponivel } from "../../hooks/useChatDisponivel";
 import styles from "./Header.module.css";
 
 export function Header() {
   const { estaAutenticado, usuario, papel, sair } = useAuth();
   const navigate = useNavigate();
+  const papelValido = papel === "consultor" || papel === "administrador";
+  const chatDisponivel = useChatDisponivel(estaAutenticado && papelValido);
 
   async function handleSair() {
     await sair();
@@ -16,6 +23,7 @@ export function Header() {
   return (
     <header className={styles.cabecalho}>
       <AcessibilidadeWidget />
+      {estaAutenticado && papelValido && chatDisponivel && <ChatAjudaWidget />}
       <div className={`container ${styles.barra}`}>
         <Link to="/" className={styles.marca}>
           <img src="/logo-icone.png" alt="" className={styles.logo} />

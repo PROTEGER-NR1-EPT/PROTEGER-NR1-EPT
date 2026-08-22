@@ -71,7 +71,7 @@ Backend API
 │   └── Threshold de k-anonimato, toggles de LLM, logs
 └── Módulo de IA (opcional, desativável)
     ├── Cliente HTTP único, formato compatível OpenAI
-    └── Providers: Anthropic, OpenAI, Gemini, OpenRouter, NVIDIA Build
+    └── Providers: Anthropic, OpenAI, Gemini, OpenRouter, NVIDIA Build, Cohere
 ```
 
 ## Requisitos não funcionais

@@ -1,3 +1,6 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 // Ícones de ação reutilizados em várias telas administrativas (editar/
 // excluir) — mesmo padrão de SVG inline usado no resto do projeto
 // (DashboardAdmin.jsx, AcessibilidadeWidget.jsx), sem depender de nenhuma

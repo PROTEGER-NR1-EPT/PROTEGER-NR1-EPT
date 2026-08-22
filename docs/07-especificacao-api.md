@@ -69,6 +69,7 @@ bearer token), exceto rotas marcadas como públicas.
 | GET | `/admin/logs` | Log de atividade |
 | POST/GET | `/admin/memoria` | Criar/consultar registros de memória institucional |
 | GET/POST | `/admin/instituicoes/{id}/planos-acao` | Listar/criar planos de ação (ciclos) de uma instituição |
+| PUT/DELETE | `/admin/planos-acao/{id}` | Editar (renomear ciclo) / excluir um plano de ação (cascata: ações, tarefas e dependências) |
 | GET/POST | `/admin/planos-acao/{id}/acoes` | Listar/criar ações de um plano (tarefas e dependências resolvidas na leitura) |
 | PUT/DELETE | `/admin/acoes/{id}` | Editar (inclui status/ordem do Kanban) / excluir uma ação |
 | PUT | `/admin/tarefas/{id}` | Marcar/desmarcar uma tarefa do checklist |

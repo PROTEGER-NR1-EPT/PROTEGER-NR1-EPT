@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 """Schemas do papel Administrador — app/blueprints/admin.py.
 
 Convenção usada nos bodies de edição (Editar*Body): todos os campos são
@@ -366,6 +369,7 @@ class ConfiguracoesResponse(BaseModel):
     ia_chat_enabled: bool
     llm_provider: Optional[str] = Field(None, examples=["anthropic"])
     llm_base_url: Optional[str] = None
+    llm_model: Optional[str] = Field(None, examples=["claude-sonnet-5"])
     llm_api_key_configurada: bool = Field(
         ..., description="true/false apenas — a chave em si nunca é devolvida pela API em texto plano."
     )
@@ -377,10 +381,13 @@ class AtualizarConfiguracoesBody(BaseModel):
     ia_analise_resultados_enabled: Optional[bool] = None
     ia_chat_enabled: Optional[bool] = None
     llm_provider: Optional[str] = Field(
-        None, description="anthropic, openai, gemini, openrouter ou nvidia_build (docs/08)."
+        None, description="anthropic, openai, gemini, openrouter, nvidia_build ou cohere (docs/08)."
     )
     llm_api_key: Optional[str] = Field(None, description="Nunca é retornada depois — apenas gravada.")
     llm_base_url: Optional[str] = None
+    llm_model: Optional[str] = Field(
+        None, description="Nome/slug do modelo a usar em chat.completions.create (ex: claude-sonnet-5, gpt-4o-mini)."
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 from collections import defaultdict
 from datetime import datetime, timezone
 
@@ -38,6 +41,7 @@ def obter_configuracao() -> ConfiguracaoSistema:
             llm_provider=current_app.config["LLM_PROVIDER_DEFAULT"],
             llm_api_key=current_app.config["LLM_API_KEY_DEFAULT"],
             llm_base_url=current_app.config["LLM_BASE_URL_DEFAULT"],
+            llm_model=current_app.config["LLM_MODEL_DEFAULT"],
         )
         db.session.add(config)
         db.session.commit()

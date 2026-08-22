@@ -1,7 +1,11 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../hooks/useAuth";
+import { useChatDisponivel } from "../../hooks/useChatDisponivel";
 import styles from "./AdminLayout.module.css";
 
 const CHAVE_RECOLHIDA = "proteger-nr1-admin-sidebar-recolhida";
@@ -18,6 +22,12 @@ const LINKS = [
   { to: "/admin/instituicoes", rotulo: "Instituições e setores", Icone: IconeInstituicoes },
   { to: "/admin/questionarios", rotulo: "Questionários", Icone: IconeQuestionarios },
   { to: "/admin/usuarios", rotulo: "Usuários", Icone: IconeUsuarios },
+  {
+    to: "/admin/assistente-ia",
+    rotulo: "Assistente IA",
+    Icone: IconeAssistenteIA,
+    apenasSeChatDisponivel: true,
+  },
   { to: "/admin/configuracoes", rotulo: "Configurações", Icone: IconeConfiguracoes },
   { to: "/admin/exportacao", rotulo: "Exportação de dados", Icone: IconeExportacao },
   { to: "/admin/logs", rotulo: "Log de atividade", Icone: IconeLogs },
@@ -26,6 +36,8 @@ const LINKS = [
 export function AdminLayout() {
   const { usuario, sair } = useAuth();
   const navigate = useNavigate();
+  const chatDisponivel = useChatDisponivel();
+  const links = LINKS.filter((link) => !link.apenasSeChatDisponivel || chatDisponivel);
   const [recolhida, setRecolhida] = useState(() => {
     try {
       return window.localStorage.getItem(CHAVE_RECOLHIDA) === "true";
@@ -53,7 +65,7 @@ export function AdminLayout() {
         className={`${styles.sidebar} ${recolhida ? styles.sidebarRecolhida : ""}`}
       >
         <nav className={styles.nav} aria-label="Navegação administrativa">
-          {LINKS.map(({ to, rotulo, fim, Icone }) => (
+          {links.map(({ to, rotulo, fim, Icone }) => (
             <NavLink
               key={to}
               to={to}
@@ -191,6 +203,28 @@ function IconeUsuarios({ className }) {
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconeAssistenteIA({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <path
+        d="M4 4h16v11H8l-4 4V4z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 6.5l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.5"
+        strokeLinejoin="round"
       />
     </svg>
   );

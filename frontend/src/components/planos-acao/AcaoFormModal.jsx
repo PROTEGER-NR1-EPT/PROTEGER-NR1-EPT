@@ -1,3 +1,6 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "../forms/Button";
@@ -159,7 +162,7 @@ export function AcaoFormModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className={styles.formulario}>
           <div className={styles.corpo}>
             {erro && (
               <p role="alert" style={{ color: "var(--cor-perigo)" }}>

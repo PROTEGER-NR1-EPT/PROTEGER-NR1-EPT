@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 from app.extensions import db
 from app.models.memoria import AcaoPlano, DependenciaAcao, PlanoAcao, TarefaAcao
 from app.services.resultados_dashboard import obter_resultados_dashboard
@@ -38,6 +41,28 @@ def criar_plano(instituicao_id: int, ciclo: str, criado_por_usuario_id: int) -> 
     db.session.add(plano)
     db.session.commit()
     return plano
+
+
+def editar_plano(plano: PlanoAcao, ciclo: str) -> None:
+    plano.ciclo = ciclo
+    db.session.commit()
+
+
+def excluir_plano(plano: PlanoAcao) -> None:
+    # Mesmo padrão de excluir_acao, por ação: `plano.acoes`/`acao.tarefas` já
+    # vêm carregadas (lazy="selectin"), então os deletes em lote de
+    # TarefaAcao/DependenciaAcao precisam manter synchronize_session no
+    # padrão (não False), senão o identity map fica com objetos obsoletos e
+    # o delete em cascata do db.session.delete(acao)/(plano) levanta
+    # StaleDataError na hora do commit.
+    for acao in list(plano.acoes):
+        db.session.query(TarefaAcao).filter_by(acao_id=acao.id).delete()
+        db.session.query(DependenciaAcao).filter(
+            (DependenciaAcao.acao_id == acao.id) | (DependenciaAcao.depende_de_acao_id == acao.id)
+        ).delete(synchronize_session=False)
+        db.session.delete(acao)
+    db.session.delete(plano)
+    db.session.commit()
 
 
 def _serializar_acao(acao: AcaoPlano) -> dict:

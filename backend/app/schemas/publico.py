@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 """Schemas das rotas públicas (sem autenticação) — app/blueprints/publico.py.
 
 Regra que rege todo este arquivo (docs/04-papeis-e-fluxos-de-usuario.md):

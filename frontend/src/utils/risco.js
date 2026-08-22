@@ -1,3 +1,6 @@
+// Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+// Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 // Espelha, no cliente, a mesma classificação de 4 níveis que o backend
 // calcula em services/instrumentos/calcular_risco_dominio (só usado aqui
 // para agregações feitas no cliente — ex.: média de risco por dimensão no

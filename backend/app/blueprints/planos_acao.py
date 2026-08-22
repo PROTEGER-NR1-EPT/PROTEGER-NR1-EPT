@@ -1,3 +1,6 @@
+# Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
+# Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
+
 from flask import g
 from flask_openapi3 import APIBlueprint, Tag
 
@@ -13,6 +16,7 @@ from app.schemas.planos_acao import (
     CriarAcaoBody,
     CriarPlanoBody,
     EditarAcaoBody,
+    EditarPlanoBody,
     EditarTarefaBody,
     ListaAcoesResponse,
     ListaPlanosResponse,
@@ -118,6 +122,45 @@ def criar_plano(path: InstituicaoIdPath, body: CriarPlanoBody):
     _registrar_log("criar_plano_acao", "plano_acao", plano.id)
     db.session.commit()
     return {"id": plano.id}, 201
+
+
+@bp.put(
+    "/planos-acao/<int:plano_id>",
+    summary="Editar plano de ação (renomear ciclo)",
+    responses={200: ConfirmadoResponse, **respostas_erro(400, 401, 403, 404)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def editar_plano(path: PlanoIdPath, body: EditarPlanoBody):
+    plano = db.session.get(PlanoAcao, path.plano_id)
+    if plano is None:
+        return erro_json("nao_encontrado", "Plano de ação não encontrado.", 404)
+
+    ciclo = body.ciclo.strip()
+    if not ciclo:
+        return erro_json("payload_invalido", "O campo 'ciclo' é obrigatório.", 400)
+
+    servico.editar_plano(plano, ciclo)
+    _registrar_log("editar_plano_acao", "plano_acao", plano.id, {"ciclo": ciclo})
+    db.session.commit()
+    return {"confirmado": True}
+
+
+@bp.delete(
+    "/planos-acao/<int:plano_id>",
+    summary="Excluir plano de ação (ciclo)",
+    description="Exclusão definitiva — remove todas as ações do ciclo, com tarefas e dependências, em cascata.",
+    responses={200: ConfirmadoResponse, **respostas_erro(401, 403, 404)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def excluir_plano(path: PlanoIdPath):
+    plano = db.session.get(PlanoAcao, path.plano_id)
+    if plano is None:
+        return erro_json("nao_encontrado", "Plano de ação não encontrado.", 404)
+
+    _registrar_log("excluir_plano_acao", "plano_acao", plano.id)
+    servico.excluir_plano(plano)
+    db.session.commit()
+    return {"confirmado": True}
 
 
 # ---------------------------------------------------------------------------

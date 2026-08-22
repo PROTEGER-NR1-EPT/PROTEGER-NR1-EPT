@@ -21,6 +21,13 @@
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
 }
 
+.formulario {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .cabecalho {
   flex-shrink: 0;
   display: flex;
