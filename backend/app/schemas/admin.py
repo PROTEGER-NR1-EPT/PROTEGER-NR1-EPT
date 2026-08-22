@@ -283,6 +283,10 @@ class UsuarioInstituicaoVinculoPath(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class ExportResultadosInstituicaoQuery(BaseModel):
+    setor_id: Optional[int] = Field(None, description="Sem filtro (omitido) = todos os setores.")
+
+
 class FiltroResultadosQuery(BaseModel):
     instituicao_ids: Optional[list[int]] = Field(
         None, description="Sem filtro (omitido) = todas as instituições."

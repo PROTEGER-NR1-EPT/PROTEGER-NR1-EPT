@@ -1,7 +1,7 @@
 # Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
 # Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
 
-from flask import g
+from flask import Response, g
 from flask_openapi3 import APIBlueprint, Tag
 
 from app.auth.decorators import requer_papel
@@ -101,6 +101,26 @@ def listar_planos(path: InstituicaoIdPath):
     if instituicao is None:
         return erro_json("nao_encontrado", "Instituição não encontrada.", 404)
     return servico.listar_planos(path.instituicao_id)
+
+
+@bp.get(
+    "/instituicoes/<int:instituicao_id>/planos-acao/export",
+    summary="Exportar planos de ação de uma instituição (CSV)",
+    description="Todos os planos (ciclos) da instituição, uma linha por ação (tarefas/dependências resumidas em colunas).",
+    responses={200: {"content": {"text/csv": {"schema": {"type": "string"}}}}, **respostas_erro(401, 403, 404)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def exportar_planos(path: InstituicaoIdPath):
+    instituicao = db.session.get(Instituicao, path.instituicao_id)
+    if instituicao is None:
+        return erro_json("nao_encontrado", "Instituição não encontrada.", 404)
+
+    csv_texto, nome_arquivo = servico.exportar_planos_csv(path.instituicao_id, g.usuario.id)
+    return Response(
+        csv_texto,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={nome_arquivo}"},
+    )
 
 
 @bp.post(

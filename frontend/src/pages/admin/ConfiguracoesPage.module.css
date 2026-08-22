@@ -57,6 +57,14 @@
   color: var(--cor-perigo);
 }
 
+/* Aba "Resetar sistema": único cartão da aba, sem nada mais ao lado —
+   fica centralizado na largura disponível em vez de grudado à esquerda
+   com uma faixa vazia enorme à direita. */
+.cartaoCentralizado {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .cabecalhoCartao {
   display: flex;
   align-items: center;
@@ -119,4 +127,54 @@
   background: var(--cor-fundo-alt);
   color: var(--cor-texto-secundario);
   font-size: 0.85rem;
+}
+
+/* Aba "Exportação de dados": layout em colunas (CSS multi-column, não
+   grid) — cada cartão tem altura diferente (uns têm 4 filtros, outros
+   nenhum), e um grid alinha por LINHA (o cartão mais alto da linha vira
+   a altura de todos ali, sobrando espaço vazio nos menores). Colunas
+   fluem cada cartão logo abaixo do anterior, sem esse buraco.
+   "Respostas brutas" usa column-span: all para virar um banner de
+   largura total no topo, os outros 5 cartões fluem nas colunas abaixo. */
+.gradeExportacoes {
+  columns: 18rem 3;
+  column-gap: var(--espaco-3);
+}
+
+.cartaoExportacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  break-inside: avoid;
+  margin: 0 0 var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  background: var(--cor-fundo-alt);
+  padding: var(--espaco-3);
+}
+
+.cartaoExportacaoDestaque {
+  column-span: all;
+  background: var(--cor-fundo);
+}
+
+.cartaoExportacao h3,
+.cartaoExportacao h4 {
+  margin: 0;
+}
+
+.cartaoExportacao h4 {
+  font-size: 0.95rem;
+}
+
+.cartaoExportacao p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+.camposExportacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
 }

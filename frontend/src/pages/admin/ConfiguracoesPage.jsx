@@ -16,6 +16,19 @@ import styles from "./ConfiguracoesPage.module.css";
 
 const FRASE_CONFIRMACAO_RESET = "RESETAR SISTEMA";
 
+// Mesmo padrão de pages/assistente-ia/AssistenteIaPage.jsx:dispararDownload
+// — reaproveitado pelos 6 blocos de exportação desta aba.
+function dispararDownload(blob, nomeArquivo) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 function IconeEscudo({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
@@ -184,6 +197,33 @@ export function ConfiguracoesPage() {
   const [erroExportacao, setErroExportacao] = useState(null);
   const [mensagemExportacao, setMensagemExportacao] = useState(null);
 
+  // --- Exportação: Visão geral (PDF) --------------------------------------
+  const [exportandoEstatisticas, setExportandoEstatisticas] = useState(false);
+  const [erroEstatisticasExport, setErroEstatisticasExport] = useState(null);
+
+  // --- Exportação: Resultados (dashboard, CSV) ----------------------------
+  const [instituicaoResultadosExport, setInstituicaoResultadosExport] = useState(null);
+  const [setorResultadosExport, setSetorResultadosExport] = useState(null);
+  const [questionarioIdResultadosExport, setQuestionarioIdResultadosExport] = useState("");
+  const [instrumentoResultadosExport, setInstrumentoResultadosExport] = useState("");
+  const [exportandoResultados, setExportandoResultados] = useState(false);
+  const [erroResultadosExport, setErroResultadosExport] = useState(null);
+
+  // --- Exportação: Resultados do Consultor (por instituição, CSV) ---------
+  const [instituicaoResultadosConsultorExport, setInstituicaoResultadosConsultorExport] = useState(null);
+  const [setorResultadosConsultorExport, setSetorResultadosConsultorExport] = useState(null);
+  const [exportandoResultadosConsultor, setExportandoResultadosConsultor] = useState(false);
+  const [erroResultadosConsultorExport, setErroResultadosConsultorExport] = useState(null);
+
+  // --- Exportação: Planos de Ação (por instituição, CSV) ------------------
+  const [instituicaoPlanosExport, setInstituicaoPlanosExport] = useState(null);
+  const [exportandoPlanos, setExportandoPlanos] = useState(false);
+  const [erroPlanosExport, setErroPlanosExport] = useState(null);
+
+  // --- Exportação: Questionários (CSV) -------------------------------------
+  const [exportandoQuestionarios, setExportandoQuestionarios] = useState(false);
+  const [erroQuestionariosExport, setErroQuestionariosExport] = useState(null);
+
   // --- Log de atividade (ex-LogsPage.jsx) ---------------------------------
   const [logs, setLogs] = useState([]);
   const [usuariosLogs, setUsuariosLogs] = useState([]);
@@ -274,22 +314,88 @@ export function ConfiguracoesPage() {
         setorId: setorExportacao?.id,
         questionarioId: questionarioIdExportacao || undefined,
       });
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = nomeArquivo;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-
+      dispararDownload(blob, nomeArquivo);
       setMensagemExportacao("Exportação concluída — verifique os downloads do navegador.");
       setConfirmadoExportacao(false);
     } catch (erroApi) {
       setErroExportacao(erroApi.mensagem);
     } finally {
       setExportando(false);
+    }
+  }
+
+  async function handleExportarEstatisticas() {
+    setExportandoEstatisticas(true);
+    setErroEstatisticasExport(null);
+    try {
+      const { blob, nomeArquivo } = await adminApi.exportarEstatisticasPdf();
+      dispararDownload(blob, nomeArquivo);
+    } catch (erroApi) {
+      setErroEstatisticasExport(erroApi.mensagem);
+    } finally {
+      setExportandoEstatisticas(false);
+    }
+  }
+
+  async function handleExportarResultados() {
+    setExportandoResultados(true);
+    setErroResultadosExport(null);
+    try {
+      const { blob, nomeArquivo } = await adminApi.exportarResultadosCsv({
+        instituicaoId: instituicaoResultadosExport?.id,
+        setorId: setorResultadosExport?.id,
+        questionarioId: questionarioIdResultadosExport || undefined,
+        instrumento: instrumentoResultadosExport || undefined,
+      });
+      dispararDownload(blob, nomeArquivo);
+    } catch (erroApi) {
+      setErroResultadosExport(erroApi.mensagem);
+    } finally {
+      setExportandoResultados(false);
+    }
+  }
+
+  async function handleExportarResultadosInstituicao() {
+    if (!instituicaoResultadosConsultorExport) return;
+    setExportandoResultadosConsultor(true);
+    setErroResultadosConsultorExport(null);
+    try {
+      const { blob, nomeArquivo } = await adminApi.exportarResultadosInstituicaoCsv(
+        instituicaoResultadosConsultorExport.id,
+        setorResultadosConsultorExport?.id
+      );
+      dispararDownload(blob, nomeArquivo);
+    } catch (erroApi) {
+      setErroResultadosConsultorExport(erroApi.mensagem);
+    } finally {
+      setExportandoResultadosConsultor(false);
+    }
+  }
+
+  async function handleExportarPlanos() {
+    if (!instituicaoPlanosExport) return;
+    setExportandoPlanos(true);
+    setErroPlanosExport(null);
+    try {
+      const { blob, nomeArquivo } = await adminApi.exportarPlanosCsv(instituicaoPlanosExport.id);
+      dispararDownload(blob, nomeArquivo);
+    } catch (erroApi) {
+      setErroPlanosExport(erroApi.mensagem);
+    } finally {
+      setExportandoPlanos(false);
+    }
+  }
+
+  async function handleExportarQuestionarios() {
+    setExportandoQuestionarios(true);
+    setErroQuestionariosExport(null);
+    try {
+      const { blob, nomeArquivo } = await adminApi.exportarQuestionariosCsv();
+      dispararDownload(blob, nomeArquivo);
+    } catch (erroApi) {
+      setErroQuestionariosExport(erroApi.mensagem);
+    } finally {
+      setExportandoQuestionarios(false);
     }
   }
 
@@ -531,89 +637,254 @@ export function ConfiguracoesPage() {
         </Button>
       </form>
 
-      <div className={styles.cartao} hidden={abaAtiva !== "exportacao"}>
+      <div className={`${styles.cartao} ${styles.cartaoLargo}`} hidden={abaAtiva !== "exportacao"}>
         <div className={styles.cabecalhoCartao}>
           <IconeExportacao className={styles.iconeCartao} />
           <h2 className={styles.tituloCartao}>Exportação de dados</h2>
         </div>
 
-        <div
-          className={tabela.secaoAdmin}
-          style={{
-            background: "var(--cor-perigo-fundo)",
-            color: "var(--cor-perigo)",
-            padding: "1rem",
-            borderRadius: "var(--raio-borda)",
-          }}
-        >
-          <p>
-            <strong>Aviso de sensibilidade dos dados.</strong> Esta
-            exportação contorna o filtro de k-anonimato do dashboard: o CSV
-            contém uma linha por resposta individual (desagregada). Embora
-            não tenha nome, e-mail ou qualquer identificador direto, esses
-            dados são considerados sensíveis pela LGPD e podem ser
-            reidentificáveis por cruzamento (ex.: setor muito pequeno). A
-            guarda e o uso do arquivo exportado são de sua responsabilidade.
-            Esta exportação fica registrada no log de atividade.
-          </p>
-        </div>
-
-        <form onSubmit={handleExportar} style={{ maxWidth: "28rem" }}>
-          <h3>Filtros (opcionais)</h3>
-          <DropdownInstituicao
-            value={instituicaoExportacao?.id}
-            onChange={(nova) => {
-              setInstituicaoExportacao(nova);
-              setSetorExportacao(null);
-            }}
-            carregarInstituicoes={adminApi.listarInstituicoes}
-          />
-          <DropdownSetor
-            instituicaoId={instituicaoExportacao?.id}
-            value={setorExportacao?.id}
-            onChange={setSetorExportacao}
-            carregarSetores={adminApi.listarSetores}
-          />
-          <div className={formStyles.campo}>
-            <label htmlFor="questionario-export" className={formStyles.rotulo}>
-              Questionário
-            </label>
-            <select
-              id="questionario-export"
-              className={formStyles.controle}
-              value={questionarioIdExportacao}
-              onChange={(e) => setQuestionarioIdExportacao(e.target.value)}
+        <div className={styles.gradeExportacoes}>
+          <div className={`${styles.cartaoExportacao} ${styles.cartaoExportacaoDestaque}`}>
+            <h3>Respostas brutas</h3>
+            <div
+              className={tabela.secaoAdmin}
+              style={{
+                background: "var(--cor-perigo-fundo)",
+                color: "var(--cor-perigo)",
+                padding: "1rem",
+                borderRadius: "var(--raio-borda)",
+              }}
             >
-              <option value="">Todos</option>
-              {questionariosExportacao.map((questionario) => (
-                <option key={questionario.id} value={questionario.id}>
-                  {questionario.titulo}
-                </option>
-              ))}
-            </select>
+              <p>
+                <strong>Aviso de sensibilidade dos dados.</strong> Esta
+                exportação contorna o filtro de k-anonimato do dashboard: o CSV
+                contém uma linha por resposta individual (desagregada). Embora
+                não tenha nome, e-mail ou qualquer identificador direto, esses
+                dados são considerados sensíveis pela LGPD e podem ser
+                reidentificáveis por cruzamento (ex.: setor muito pequeno). A
+                guarda e o uso do arquivo exportado são de sua responsabilidade.
+                Esta exportação fica registrada no log de atividade.
+              </p>
+            </div>
+
+            <form onSubmit={handleExportar} style={{ maxWidth: "28rem" }}>
+              <h4>Filtros (opcionais)</h4>
+              <DropdownInstituicao
+                value={instituicaoExportacao?.id}
+                onChange={(nova) => {
+                  setInstituicaoExportacao(nova);
+                  setSetorExportacao(null);
+                }}
+                carregarInstituicoes={adminApi.listarInstituicoes}
+              />
+              <DropdownSetor
+                instituicaoId={instituicaoExportacao?.id}
+                value={setorExportacao?.id}
+                onChange={setSetorExportacao}
+                carregarSetores={adminApi.listarSetores}
+              />
+              <div className={formStyles.campo}>
+                <label htmlFor="questionario-export" className={formStyles.rotulo}>
+                  Questionário
+                </label>
+                <select
+                  id="questionario-export"
+                  className={formStyles.controle}
+                  value={questionarioIdExportacao}
+                  onChange={(e) => setQuestionarioIdExportacao(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  {questionariosExportacao.map((questionario) => (
+                    <option key={questionario.id} value={questionario.id}>
+                      {questionario.titulo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <label style={{ display: "block", margin: "1rem 0" }}>
+                <input
+                  type="checkbox"
+                  checked={confirmadoExportacao}
+                  onChange={(e) => setConfirmadoExportacao(e.target.checked)}
+                />{" "}
+                Estou ciente da sensibilidade destes dados e confirmo a
+                exportação.
+              </label>
+
+              {erroExportacao && (
+                <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+                  {erroExportacao}
+                </p>
+              )}
+              {mensagemExportacao && <p role="status">{mensagemExportacao}</p>}
+
+              <Button type="submit" disabled={!confirmadoExportacao || exportando}>
+                {exportando ? "Exportando..." : "Exportar CSV"}
+              </Button>
+            </form>
           </div>
 
-          <label style={{ display: "block", margin: "1rem 0" }}>
-            <input
-              type="checkbox"
-              checked={confirmadoExportacao}
-              onChange={(e) => setConfirmadoExportacao(e.target.checked)}
-            />{" "}
-            Estou ciente da sensibilidade destes dados e confirmo a
-            exportação.
-          </label>
-
-          {erroExportacao && (
-            <p role="alert" style={{ color: "var(--cor-perigo)" }}>
-              {erroExportacao}
+          <div className={styles.cartaoExportacao}>
+            <h4>Visão geral (PDF)</h4>
+            <p>
+              Mesmos números do painel "Visão geral" (instituições, questionários, usuários,
+              respostas, alerta de k-anonimato e ranking por instituição), formatados como um
+              relatório em PDF.
             </p>
-          )}
-          {mensagemExportacao && <p role="status">{mensagemExportacao}</p>}
+            {erroEstatisticasExport && (
+              <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+                {erroEstatisticasExport}
+              </p>
+            )}
+            <Button type="button" onClick={handleExportarEstatisticas} disabled={exportandoEstatisticas}>
+              {exportandoEstatisticas ? "Exportando..." : "Exportar PDF"}
+            </Button>
+          </div>
 
-          <Button type="submit" disabled={!confirmadoExportacao || exportando}>
-            {exportando ? "Exportando..." : "Exportar CSV"}
-          </Button>
-        </form>
+          <div className={styles.cartaoExportacao}>
+            <h4>Resultados</h4>
+            <p>
+              Mesmo recorte do painel "Resultados" (dimensões com risco/nível de risco,
+              comparável entre instrumentos) — já passa pelo filtro de k-anonimato.
+            </p>
+            <div className={styles.camposExportacao}>
+              <DropdownInstituicao
+                value={instituicaoResultadosExport?.id}
+                onChange={(nova) => {
+                  setInstituicaoResultadosExport(nova);
+                  setSetorResultadosExport(null);
+                }}
+                carregarInstituicoes={adminApi.listarInstituicoes}
+              />
+              <DropdownSetor
+                instituicaoId={instituicaoResultadosExport?.id}
+                value={setorResultadosExport?.id}
+                onChange={setSetorResultadosExport}
+                carregarSetores={adminApi.listarSetores}
+              />
+              <div className={formStyles.campo}>
+                <label htmlFor="questionario-resultados-export" className={formStyles.rotulo}>
+                  Questionário
+                </label>
+                <select
+                  id="questionario-resultados-export"
+                  className={formStyles.controle}
+                  value={questionarioIdResultadosExport}
+                  onChange={(e) => setQuestionarioIdResultadosExport(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  {questionariosExportacao.map((questionario) => (
+                    <option key={questionario.id} value={questionario.id}>
+                      {questionario.titulo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className={formStyles.campo}>
+                <label htmlFor="instrumento-resultados-export" className={formStyles.rotulo}>
+                  Instrumento
+                </label>
+                <select
+                  id="instrumento-resultados-export"
+                  className={formStyles.controle}
+                  value={instrumentoResultadosExport}
+                  onChange={(e) => setInstrumentoResultadosExport(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  <option value="karasek">Karasek</option>
+                  <option value="copsoq">COPSOQ</option>
+                  <option value="misto">Misto</option>
+                </select>
+              </div>
+            </div>
+            {erroResultadosExport && (
+              <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+                {erroResultadosExport}
+              </p>
+            )}
+            <Button type="button" onClick={handleExportarResultados} disabled={exportandoResultados}>
+              {exportandoResultados ? "Exportando..." : "Exportar CSV"}
+            </Button>
+          </div>
+
+          <div className={styles.cartaoExportacao}>
+            <h4>Resultados do Consultor</h4>
+            <p>
+              Valores agregados crus por instrumento de uma instituição (inclui a linha
+              "geral", ex.: quadrante do Karasek) — mesmo dado que o Consultor vê na própria
+              tela de Resultados. Escolha uma instituição para exportar.
+            </p>
+            <div className={styles.camposExportacao}>
+              <DropdownInstituicao
+                value={instituicaoResultadosConsultorExport?.id}
+                onChange={(nova) => {
+                  setInstituicaoResultadosConsultorExport(nova);
+                  setSetorResultadosConsultorExport(null);
+                }}
+                carregarInstituicoes={adminApi.listarInstituicoes}
+              />
+              <DropdownSetor
+                instituicaoId={instituicaoResultadosConsultorExport?.id}
+                value={setorResultadosConsultorExport?.id}
+                onChange={setSetorResultadosConsultorExport}
+                carregarSetores={adminApi.listarSetores}
+              />
+            </div>
+            {erroResultadosConsultorExport && (
+              <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+                {erroResultadosConsultorExport}
+              </p>
+            )}
+            <Button
+              type="button"
+              onClick={handleExportarResultadosInstituicao}
+              disabled={!instituicaoResultadosConsultorExport || exportandoResultadosConsultor}
+            >
+              {exportandoResultadosConsultor ? "Exportando..." : "Exportar CSV"}
+            </Button>
+          </div>
+
+          <div className={styles.cartaoExportacao}>
+            <h4>Planos de Ação</h4>
+            <p>
+              Todos os planos (ciclos) de uma instituição, uma linha por ação — escolha a
+              instituição para exportar.
+            </p>
+            <div className={styles.camposExportacao}>
+              <DropdownInstituicao
+                value={instituicaoPlanosExport?.id}
+                onChange={setInstituicaoPlanosExport}
+                carregarInstituicoes={adminApi.listarInstituicoes}
+              />
+            </div>
+            {erroPlanosExport && (
+              <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+                {erroPlanosExport}
+              </p>
+            )}
+            <Button
+              type="button"
+              onClick={handleExportarPlanos}
+              disabled={!instituicaoPlanosExport || exportandoPlanos}
+            >
+              {exportandoPlanos ? "Exportando..." : "Exportar CSV"}
+            </Button>
+          </div>
+
+          <div className={styles.cartaoExportacao}>
+            <h4>Questionários</h4>
+            <p>Todos os questionários cadastrados, uma linha por item (domínio + item).</p>
+            {erroQuestionariosExport && (
+              <p role="alert" style={{ color: "var(--cor-perigo)" }}>
+                {erroQuestionariosExport}
+              </p>
+            )}
+            <Button type="button" onClick={handleExportarQuestionarios} disabled={exportandoQuestionarios}>
+              {exportandoQuestionarios ? "Exportando..." : "Exportar CSV"}
+            </Button>
+          </div>
+        </div>
       </div>
 
       <div className={`${styles.cartao} ${styles.cartaoLargo}`} hidden={abaAtiva !== "logs"}>
@@ -695,7 +966,10 @@ export function ConfiguracoesPage() {
         )}
       </div>
 
-      <div className={`${styles.cartao} ${styles.cartaoPerigo}`} hidden={abaAtiva !== "reset"}>
+      <div
+        className={`${styles.cartao} ${styles.cartaoPerigo} ${styles.cartaoCentralizado}`}
+        hidden={abaAtiva !== "reset"}
+      >
         <div className={styles.cabecalhoCartao}>
           <IconePerigo className={styles.iconeCartao} />
           <h2 className={styles.tituloCartao}>Resetar sistema</h2>

@@ -28,6 +28,7 @@ from app.schemas.admin import (
     EditarUsuarioBody,
     EstatisticasResponse,
     ExportRespostasQuery,
+    ExportResultadosInstituicaoQuery,
     FiltroResultadosQuery,
     FRASE_CONFIRMACAO_RESET,
     ListaInstituicoesAdminResponse,
@@ -52,11 +53,16 @@ from app.schemas.comuns import ConfirmadoResponse, IdCriadoResponse, respostas_e
 from app.schemas.consultor import ListaResultadosResponse
 from app.schemas.publico import InstituicaoIdPath
 from app.services import reset_sistema
-from app.services.estatisticas import contar_grupos_abaixo_threshold, montar_totais
-from app.services.exportacao import exportar_respostas_csv
+from app.services.estatisticas import contar_grupos_abaixo_threshold, gerar_relatorio_pdf, montar_totais
+from app.services.exportacao import exportar_respostas_csv, formatar_csv, nome_arquivo_timestamp
 from app.services.instrumentos import instrumento_invalido, instrumentos_disponiveis
-from app.services.k_anonimato import obter_configuracao, obter_resultados, obter_threshold
-from app.services.resultados_dashboard import obter_resultados_dashboard
+from app.services.k_anonimato import (
+    exportar_resultados_instituicao_csv,
+    obter_configuracao,
+    obter_resultados,
+    obter_threshold,
+)
+from app.services.resultados_dashboard import exportar_resultados_csv, obter_resultados_dashboard
 
 tag = Tag(
     name="Administrador",
@@ -377,6 +383,62 @@ def _serializar_questionario(questionario: Questionario):
 def listar_questionarios():
     questionarios = db.session.query(Questionario).order_by(Questionario.criado_em.desc()).all()
     return [_serializar_questionario(q) for q in questionarios]
+
+
+@bp.get(
+    "/questionarios/export",
+    summary="Exportar questionários (CSV)",
+    description="Todos os questionários, uma linha por item (questionário × domínio × item) — nível que preserva o texto de cada item.",
+    responses={200: {"content": {"text/csv": {"schema": {"type": "string"}}}}, **respostas_erro(401, 403)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def exportar_questionarios():
+    questionarios = db.session.query(Questionario).order_by(Questionario.criado_em.desc()).all()
+
+    linhas = []
+    for questionario in questionarios:
+        if not questionario.dominios:
+            linhas.append(
+                [questionario.id, questionario.titulo, questionario.versao, questionario.ativo,
+                 questionario.modo_apresentacao, "", "", "", "", "", "", "", "", "", "", "", ""]
+            )
+            continue
+        for dominio in questionario.dominios:
+            if not dominio.itens:
+                linhas.append(
+                    [questionario.id, questionario.titulo, questionario.versao, questionario.ativo,
+                     questionario.modo_apresentacao, dominio.id, dominio.nome, dominio.instrumento,
+                     dominio.chave, dominio.ordem, "", "", "", "", "", "", ""]
+                )
+                continue
+            for item in dominio.itens:
+                linhas.append(
+                    [
+                        questionario.id, questionario.titulo, questionario.versao, questionario.ativo,
+                        questionario.modo_apresentacao, dominio.id, dominio.nome, dominio.instrumento,
+                        dominio.chave, dominio.ordem, item.id, item.texto, item.tipo_resposta,
+                        item.ordem, item.escala_min, item.escala_max, item.invertido,
+                    ]
+                )
+
+    csv_texto = formatar_csv(
+        [
+            "questionario_id", "questionario_titulo", "versao", "ativo", "modo_apresentacao",
+            "dominio_id", "dominio_nome", "dominio_instrumento", "dominio_chave", "dominio_ordem",
+            "item_id", "item_texto", "item_tipo_resposta", "item_ordem", "escala_min", "escala_max",
+            "invertido",
+        ],
+        linhas,
+    )
+    _registrar_log("exportar_questionarios_csv", "questionarios", detalhes={"total_linhas": len(linhas)})
+    db.session.commit()
+
+    nome_arquivo = nome_arquivo_timestamp("questionarios", "csv")
+    return Response(
+        csv_texto,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={nome_arquivo}"},
+    )
 
 
 MODOS_APRESENTACAO_VALIDOS = ("blocos", "intercalado")
@@ -779,6 +841,29 @@ def resultados_de_qualquer_instituicao(path: InstituicaoIdPath):
 
 
 @bp.get(
+    "/instituicoes/<int:instituicao_id>/resultados/export",
+    summary="Exportar resultados de uma instituição (CSV)",
+    description=(
+        "Mesmo recorte de GET /admin/instituicoes/{id}/resultados (valores "
+        "agregados crus por instrumento, incluindo a linha 'geral' — ex.: "
+        "quadrante do Karasek), em CSV. `valor_agregado` vai serializado "
+        "como JSON numa coluna (o formato varia por instrumento/linha)."
+    ),
+    responses={200: {"content": {"text/csv": {"schema": {"type": "string"}}}}, **respostas_erro(401, 403)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def exportar_resultados_instituicao(path: InstituicaoIdPath, query: ExportResultadosInstituicaoQuery):
+    csv_texto, nome_arquivo = exportar_resultados_instituicao_csv(
+        path.instituicao_id, query.setor_id, g.usuario.id
+    )
+    return Response(
+        csv_texto,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={nome_arquivo}"},
+    )
+
+
+@bp.get(
     "/resultados",
     summary="Dashboard de resultados (multi-filtro)",
     description=(
@@ -800,6 +885,24 @@ def resultados_dashboard(query: FiltroResultadosQuery):
         setor_ids=query.setor_ids,
         questionario_ids=query.questionario_ids,
         instrumento=query.instrumento,
+    )
+
+
+@bp.get(
+    "/resultados/export",
+    summary="Exportar dashboard de resultados (CSV)",
+    description="Mesmo recorte/filtros de GET /admin/resultados, em CSV.",
+    responses={200: {"content": {"text/csv": {"schema": {"type": "string"}}}}, **respostas_erro(401, 403)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def exportar_resultados_dashboard(query: FiltroResultadosQuery):
+    csv_texto, nome_arquivo = exportar_resultados_csv(
+        query.instituicao_ids, query.setor_ids, query.questionario_ids, query.instrumento, g.usuario.id
+    )
+    return Response(
+        csv_texto,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={nome_arquivo}"},
     )
 
 
@@ -825,6 +928,13 @@ def resultados_dashboard(query: FiltroResultadosQuery):
 )
 @requer_papel(PAPEL_ADMINISTRADOR)
 def obter_estatisticas():
+    return _montar_estatisticas_completas()
+
+
+def _montar_estatisticas_completas() -> dict:
+    """Reaproveitada por GET /admin/estatisticas (JSON) e
+    GET /admin/estatisticas/export (PDF, services/estatisticas.gerar_relatorio_pdf)
+    — mesmo payload nos dois casos."""
     instituicoes_ativo = [i.ativo for i in db.session.query(Instituicao.ativo).all()]
     questionarios_ativo = [q.ativo for q in db.session.query(Questionario.ativo).all()]
     # Banco "auth", separado do banco anônimo consultado acima — junta-se
@@ -899,6 +1009,26 @@ def obter_estatisticas():
             for c in contagens_por_instituicao
         ],
     }
+
+
+@bp.get(
+    "/estatisticas/export",
+    summary="Exportar Visão geral em PDF",
+    description="Mesmo conteúdo de GET /admin/estatisticas, formatado como relatório em PDF (reportlab, paginação automática).",
+    responses={200: {"content": {"application/pdf": {"schema": {"type": "string", "format": "binary"}}}}, **respostas_erro(401, 403)},
+)
+@requer_papel(PAPEL_ADMINISTRADOR)
+def exportar_estatisticas_pdf():
+    dados = _montar_estatisticas_completas()
+    pdf_bytes = gerar_relatorio_pdf(dados)
+    _registrar_log("exportar_estatisticas_pdf", "estatisticas")
+    db.session.commit()
+    nome_arquivo = nome_arquivo_timestamp("visao_geral", "pdf")
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={nome_arquivo}"},
+    )
 
 
 # ---------------------------------------------------------------------------

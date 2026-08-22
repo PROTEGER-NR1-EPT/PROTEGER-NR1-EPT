@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { AcessibilidadeWidget } from "../acessibilidade/AcessibilidadeWidget";
 import { ChatAjudaWidget } from "../chat/ChatAjudaWidget";
+import { IconeEntrar } from "../common/icones";
 import { useAuth } from "../../hooks/useAuth";
 import { useChatDisponivel } from "../../hooks/useChatDisponivel";
 import styles from "./Header.module.css";
@@ -39,7 +40,12 @@ export function Header() {
         </Link>
         <nav className={styles.nav} aria-label="Navegação principal">
           {!estaAutenticado && (
-            <Link to="/login">Entrar (Consultor/Administrador)</Link>
+            <Link to="/login" className={styles.linkEntrar} aria-label="Entrar (Consultor/Administrador)">
+              <IconeEntrar className={styles.iconeEntrar} />
+              <span className={styles.dicaEntrar} aria-hidden="true">
+                Entrar (Consultor/Administrador)
+              </span>
+            </Link>
           )}
           {estaAutenticado && papel === "consultor" && (
             <Link to="/consultor">Painel do Consultor</Link>

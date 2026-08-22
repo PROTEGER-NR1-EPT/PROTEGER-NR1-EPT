@@ -1,6 +1,7 @@
 # Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
 # Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
 
+import json
 from collections import defaultdict
 from datetime import datetime, timezone
 
@@ -10,11 +11,14 @@ from app.extensions import db
 from app.models.anonimo import (
     ConfiguracaoSistema,
     Dominio,
+    Instituicao,
     Questionario,
     ResultadoAgregado,
     RespostaBruta,
     Setor,
 )
+from app.models.auth import LogAtividade
+from app.services.exportacao import formatar_csv, nome_arquivo_timestamp
 from app.services.instrumentos import obter_estrategia
 
 PERIODO_CONSOLIDADO = "consolidado"
@@ -210,3 +214,60 @@ def obter_resultados(instituicao_id: int, setor_id: int = None) -> list[dict]:
             }
         )
     return saida
+
+
+def exportar_resultados_instituicao_csv(
+    instituicao_id: int, setor_id: int, usuario_id: int
+) -> tuple[str, str]:
+    """Mesmo recorte de GET /admin/instituicoes/{id}/resultados (valores
+    agregados crus por instrumento, incluindo a linha "geral" — ex.:
+    quadrante do Karasek, que o dashboard de dimensões não tem), em CSV.
+    `valor_agregado` varia de formato por instrumento/linha (média+
+    classificação por domínio Karasek, quadrante na linha geral, escore+
+    faixa no COPSOQ) — serializado como JSON numa coluna só, mais robusto
+    que colunas esparsas."""
+    instituicao = db.session.get(Instituicao, instituicao_id)
+    nome_instituicao = instituicao.nome if instituicao else f"#{instituicao_id}"
+
+    resultados = obter_resultados(instituicao_id, setor_id)
+
+    csv_texto = formatar_csv(
+        [
+            "instituicao_nome",
+            "setor_nome",
+            "questionario_id",
+            "dominio_nome",
+            "periodo",
+            "n_respostas",
+            "threshold",
+            "resultado_disponivel",
+            "valor_agregado",
+        ],
+        [
+            [
+                nome_instituicao,
+                r["setor_nome"],
+                r["questionario_id"],
+                r["dominio_nome"] or "Geral",
+                r["periodo"],
+                r["n_respostas"],
+                r["threshold"],
+                r["resultado_disponivel"],
+                json.dumps(r["valor_agregado"], ensure_ascii=False) if r["valor_agregado"] else "",
+            ]
+            for r in resultados
+        ],
+    )
+
+    db.session.add(
+        LogAtividade(
+            usuario_id=usuario_id,
+            acao="exportar_resultados_instituicao_csv",
+            entidade="instituicao",
+            entidade_id=instituicao_id,
+            detalhes={"setor_id": setor_id, "total_linhas": len(resultados)},
+        )
+    )
+    db.session.commit()
+
+    return csv_texto, nome_arquivo_timestamp(f"resultados_instituicao_{instituicao_id}", "csv")

@@ -2,7 +2,10 @@
 # Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
 
 from app.extensions import db
+from app.models.anonimo import Instituicao
+from app.models.auth import LogAtividade
 from app.models.memoria import AcaoPlano, DependenciaAcao, PlanoAcao, TarefaAcao
+from app.services.exportacao import formatar_csv, nome_arquivo_timestamp
 from app.services.resultados_dashboard import obter_resultados_dashboard
 
 # ---------------------------------------------------------------------------
@@ -237,3 +240,69 @@ def gerar_sugestoes(plano: PlanoAcao) -> list[dict]:
     if criadas:
         db.session.commit()
     return [_serializar_acao(acao) for acao in criadas]
+
+
+def exportar_planos_csv(instituicao_id: int, usuario_id: int) -> tuple[str, str]:
+    """Todos os planos (ciclos) de uma instituição, uma linha por AÇÃO
+    (não por tarefa — explodir em tarefa duplicaria as colunas da ação
+    por item de checklist). Tarefas viram um resumo de contagem +
+    títulos separados por ';'; depende_de/bloqueia idem."""
+    instituicao = db.session.get(Instituicao, instituicao_id)
+    nome_instituicao = instituicao.nome if instituicao else f"#{instituicao_id}"
+
+    linhas = []
+    for plano in listar_planos(instituicao_id):
+        for acao in listar_acoes(plano["id"]):
+            linhas.append(
+                [
+                    nome_instituicao,
+                    plano["ciclo"],
+                    acao["id"],
+                    acao["titulo"],
+                    acao["tag"],
+                    acao["status"],
+                    acao["prazo"],
+                    acao["responsavel"],
+                    "; ".join(acao["participantes"]),
+                    acao["descricao"],
+                    sum(1 for t in acao["tarefas"] if t["concluida"]),
+                    len(acao["tarefas"]),
+                    "; ".join(t["titulo"] for t in acao["tarefas"]),
+                    "; ".join(a["titulo"] for a in acao["depende_de"]),
+                    "; ".join(a["titulo"] for a in acao["bloqueia"]),
+                ]
+            )
+
+    csv_texto = formatar_csv(
+        [
+            "instituicao_nome",
+            "ciclo",
+            "acao_id",
+            "titulo",
+            "tag",
+            "status",
+            "prazo",
+            "responsavel",
+            "participantes",
+            "descricao",
+            "tarefas_concluidas",
+            "tarefas_total",
+            "tarefas_titulos",
+            "depende_de",
+            "bloqueia",
+        ],
+        linhas,
+    )
+
+    db.session.add(
+        LogAtividade(
+            usuario_id=usuario_id,
+            acao="exportar_planos_csv",
+            entidade="instituicao",
+            entidade_id=instituicao_id,
+            detalhes={"total_linhas": len(linhas)},
+        )
+    )
+    db.session.commit()
+
+    return csv_texto, nome_arquivo_timestamp(f"planos_acao_instituicao_{instituicao_id}", "csv")

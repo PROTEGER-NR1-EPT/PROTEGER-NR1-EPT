@@ -16,14 +16,14 @@
   display: flex;
   align-items: center;
   gap: var(--espaco-2);
-  font-size: 1.1rem;
+  font-size: 1.65rem;
   font-weight: 700;
   color: var(--cor-texto);
   text-decoration: none;
 }
 
 .logo {
-  height: 2rem;
+  height: 3rem;
   width: auto;
 }
 
@@ -54,4 +54,42 @@
   .barra {
     flex-wrap: nowrap;
   }
+}
+
+.linkEntrar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--espaco-1);
+}
+
+.iconeEntrar {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+/* Dica visual (tooltip) — some quem usa leitor de tela já recebe o
+   aria-label do próprio link, por isso a dica fica aria-hidden. */
+.dicaEntrar {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--cor-texto);
+  color: var(--cor-fundo);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: var(--espaco-1) var(--espaco-2);
+  border-radius: var(--raio-borda);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.linkEntrar:hover .dicaEntrar,
+.linkEntrar:focus-visible .dicaEntrar {
+  opacity: 1;
+  visibility: visible;
 }

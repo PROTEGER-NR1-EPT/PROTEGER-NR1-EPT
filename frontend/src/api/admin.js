@@ -147,6 +147,18 @@ export async function obterResultadosDashboard({
 
 // --- Exportação CSV ------------------------------------------------------
 
+// Helper genérico pras exportações abaixo (todas em ConfiguracoesPage.jsx,
+// aba "Exportação de dados") — baixa como blob e extrai o nome do arquivo
+// do header Content-Disposition, mesmo padrão que já era repetido em cada
+// exportação (respostas brutas, chat) antes de virar uma função só.
+async function _baixarArquivo(url, params, nomePadrao) {
+  const resposta = await api.get(url, { params, responseType: "blob" });
+  const disposicao = resposta.headers["content-disposition"] || "";
+  const nomeCasado = disposicao.match(/filename=([^;]+)/);
+  const nomeArquivo = nomeCasado ? nomeCasado[1].trim() : nomePadrao;
+  return { blob: resposta.data, nomeArquivo };
+}
+
 // Só deve ser chamada após confirmação explícita do usuário na UI — ver
 // aba "Exportação de dados" em ConfiguracoesPage.jsx.
 // `confirmo_export_dados_sensiveis: true` é enviado sempre aqui porque
@@ -157,17 +169,34 @@ export async function exportarRespostasCsv({ instituicaoId, setorId, questionari
   if (instituicaoId) params.instituicao_id = instituicaoId;
   if (setorId) params.setor_id = setorId;
   if (questionarioId) params.questionario_id = questionarioId;
+  return _baixarArquivo("/admin/respostas/export", params, "respostas_brutas.csv");
+}
 
-  const resposta = await api.get("/admin/respostas/export", {
-    params,
-    responseType: "blob",
-  });
+export async function exportarEstatisticasPdf() {
+  return _baixarArquivo("/admin/estatisticas/export", {}, "visao_geral.pdf");
+}
 
-  const disposicao = resposta.headers["content-disposition"] || "";
-  const nomeCasado = disposicao.match(/filename=([^;]+)/);
-  const nomeArquivo = nomeCasado ? nomeCasado[1].trim() : "respostas_brutas.csv";
+export async function exportarResultadosCsv({ instituicaoId, setorId, questionarioId, instrumento }) {
+  const params = {};
+  if (instituicaoId) params.instituicao_ids = [instituicaoId];
+  if (setorId) params.setor_ids = [setorId];
+  if (questionarioId) params.questionario_ids = [questionarioId];
+  if (instrumento) params.instrumento = instrumento;
+  return _baixarArquivo("/admin/resultados/export", params, "resultados.csv");
+}
 
-  return { blob: resposta.data, nomeArquivo };
+export async function exportarResultadosInstituicaoCsv(instituicaoId, setorId) {
+  const params = {};
+  if (setorId) params.setor_id = setorId;
+  return _baixarArquivo(`/admin/instituicoes/${instituicaoId}/resultados/export`, params, "resultados_instituicao.csv");
+}
+
+export async function exportarPlanosCsv(instituicaoId) {
+  return _baixarArquivo(`/admin/instituicoes/${instituicaoId}/planos-acao/export`, {}, "planos_acao.csv");
+}
+
+export async function exportarQuestionariosCsv() {
+  return _baixarArquivo("/admin/questionarios/export", {}, "questionarios.csv");
 }
 
 // --- Configurações -----------------------------------------------------

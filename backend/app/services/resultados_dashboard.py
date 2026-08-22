@@ -5,6 +5,8 @@ from collections import defaultdict
 
 from app.extensions import db
 from app.models.anonimo import Dominio, Instituicao, Questionario, ResultadoAgregado, Setor
+from app.models.auth import LogAtividade
+from app.services.exportacao import formatar_csv, nome_arquivo_timestamp
 from app.services.instrumentos import calcular_risco_dominio
 from app.services.k_anonimato import aplicar_k_anonimato, obter_threshold
 
@@ -127,3 +129,70 @@ def obter_resultados_dashboard(
             }
         )
     return saida
+
+
+CABECALHO_RESULTADOS_CSV = [
+    "instituicao_nome",
+    "setor_nome",
+    "questionario_titulo",
+    "dominio_nome",
+    "instrumento",
+    "n_respostas",
+    "threshold",
+    "resultado_disponivel",
+    "risco",
+    "nivel_risco",
+]
+
+
+def exportar_resultados_csv(
+    instituicao_ids: list[int],
+    setor_ids: list[int],
+    questionario_ids: list[int],
+    instrumento: str,
+    usuario_id: int,
+) -> tuple[str, str]:
+    """Mesmo recorte de dados de GET /admin/resultados (dashboard por
+    dimensão), em CSV — já passa pelo filtro de k-anonimato dentro de
+    obter_resultados_dashboard, então não exige a mesma confirmação de
+    "dados sensíveis" da exportação de respostas brutas."""
+    resultados = obter_resultados_dashboard(instituicao_ids, setor_ids, questionario_ids, instrumento)
+
+    csv_texto = formatar_csv(
+        CABECALHO_RESULTADOS_CSV,
+        [
+            [
+                r["instituicao_nome"],
+                r["setor_nome"],
+                r["questionario_titulo"],
+                r["dominio_nome"],
+                r["instrumento"],
+                r["n_respostas"],
+                r["threshold"],
+                r["resultado_disponivel"],
+                r["risco"],
+                r["nivel_risco"],
+            ]
+            for r in resultados
+        ],
+    )
+
+    db.session.add(
+        LogAtividade(
+            usuario_id=usuario_id,
+            acao="exportar_resultados_csv",
+            entidade="resultados_dashboard",
+            detalhes={
+                "filtros": {
+                    "instituicao_ids": instituicao_ids,
+                    "setor_ids": setor_ids,
+                    "questionario_ids": questionario_ids,
+                    "instrumento": instrumento,
+                },
+                "total_linhas": len(resultados),
+            },
+        )
+    )
+    db.session.commit()
+
+    return csv_texto, nome_arquivo_timestamp("resultados", "csv")

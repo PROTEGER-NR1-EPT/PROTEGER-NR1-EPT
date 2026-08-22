@@ -13,7 +13,25 @@ from app.models.auth import LogAtividade
 # Exportação de respostas brutas: contorna o filtro de k-anonimato (é dado
 # desagregado) — por isso a rota que chama este serviço exige confirmação
 # explícita no payload e toda chamada é registrada em log_atividade (docs/05).
+#
+# formatar_csv()/nome_arquivo_timestamp() são helpers genéricos, reaproveitados
+# por todas as exportações do sistema (respostas brutas aqui, e resultados/
+# resultados por instituição/planos de ação/questionários em seus próprios
+# services) — nenhuma delas repete io.StringIO()/csv.writer na mão.
 # ---------------------------------------------------------------------------
+
+
+def formatar_csv(cabecalho: list[str], linhas: list[list]) -> str:
+    buffer = io.StringIO()
+    escritor = csv.writer(buffer)
+    escritor.writerow(cabecalho)
+    escritor.writerows(linhas)
+    return buffer.getvalue()
+
+
+def nome_arquivo_timestamp(prefixo: str, extensao: str) -> str:
+    agora = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    return f"{prefixo}_{agora}.{extensao}"
 
 
 def exportar_respostas_csv(filtros: dict, usuario_id: int) -> tuple[str, str]:
@@ -32,20 +50,9 @@ def exportar_respostas_csv(filtros: dict, usuario_id: int) -> tuple[str, str]:
 
     respostas = consulta.order_by(RespostaBruta.respondido_em.asc()).all()
 
-    buffer = io.StringIO()
-    escritor = csv.writer(buffer)
-    escritor.writerow(
+    csv_texto = formatar_csv(
+        ["id", "questionario_id", "instituicao_id", "setor_id", "respondido_em", "payload_json"],
         [
-            "id",
-            "questionario_id",
-            "instituicao_id",
-            "setor_id",
-            "respondido_em",
-            "payload_json",
-        ]
-    )
-    for resposta in respostas:
-        escritor.writerow(
             [
                 resposta.id,
                 resposta.questionario_id,
@@ -54,7 +61,9 @@ def exportar_respostas_csv(filtros: dict, usuario_id: int) -> tuple[str, str]:
                 resposta.respondido_em.isoformat(),
                 resposta.payload_json,
             ]
-        )
+            for resposta in respostas
+        ],
+    )
 
     log = LogAtividade(
         usuario_id=usuario_id,
@@ -66,6 +75,4 @@ def exportar_respostas_csv(filtros: dict, usuario_id: int) -> tuple[str, str]:
     db.session.add(log)
     db.session.commit()
 
-    agora = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    nome_arquivo = f"respostas_brutas_{agora}.csv"
-    return buffer.getvalue(), nome_arquivo
+    return csv_texto, nome_arquivo_timestamp("respostas_brutas", "csv")

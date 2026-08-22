@@ -21,3 +21,9 @@ pydantic==2.13.4
 # configurado pelo Administrador via endpoint compatível com OpenAI
 # (client.chat.completions.create, base_url customizável).
 openai==3.3.1
+
+# --- Exportação em PDF (app/services/estatisticas.py) ---
+# Único gerador de PDF do projeto. Escolhido especificamente por ser
+# .whl Python puro (py3-none-any, sem dependência nativa de sistema tipo
+# Pango/Cairo) — seguro no build padrão do Render, que não usa Dockerfile.
+reportlab==5.0.1
