@@ -181,6 +181,15 @@ Servido via Gunicorn, apontando para `wsgi:app`:
 gunicorn wsgi:app
 ```
 
+A versão do Python usada no build é fixada em `runtime.txt`
+(`python-3.11.9`, mesma versão do devcontainer) — sem isso o Render usa o
+default mais recente da plataforma, que pode não ter wheel pré-compilada
+do `psycopg2-binary` compatível (já causou falha de deploy com
+`ImportError: undefined symbol: _PyInterpreterState_Get` ao importar
+`psycopg2` numa imagem com Python 3.14). Se o Render ignorar o
+`runtime.txt`, force a versão via variável de ambiente `PYTHON_VERSION`
+nas configurações do serviço.
+
 As migrations (`flask db upgrade`) e o bootstrap do Administrador
 (`flask bootstrap-admin`) devem ser executados manualmente (ou via um
 passo de deploy do Render) após o primeiro deploy — nunca automaticamente
