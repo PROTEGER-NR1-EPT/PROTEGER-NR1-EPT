@@ -1,5 +1,14 @@
 # PROTEGER-NR1-EPT
 
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.0-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Code license](https://img.shields.io/badge/code_license-PolyForm_Noncommercial_1.0.0-blue)](./LICENSE)
+[![Content license](https://img.shields.io/badge/content_license-CC_BY--NC--SA_4.0-lightgrey?logo=creativecommons&logoColor=white)](./docs/LICENSE-MATERIAIS.md)
+
 Sistema web para identificação, registro e prevenção de riscos
 psicossociais (NR-1) em instituições de Educação Profissional e
 Tecnológica (EPT), usando os instrumentos **Karasek Demand-Control** e
