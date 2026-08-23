@@ -48,6 +48,10 @@ export function CalendarioAcoes({ acoes, onEditar }) {
   const celulas = [];
   for (let i = 0; i < primeiroDiaSemana; i += 1) celulas.push(null);
   for (let dia = 1; dia <= totalDias; dia += 1) celulas.push(dia);
+  // Completa a última semana até fechar múltiplo de 7 — sem isso a grade
+  // (que é um único CSS Grid contínuo) deixava as últimas colunas da
+  // última linha sem nenhuma célula, aparecendo como um bloco vazio.
+  while (celulas.length % 7 !== 0) celulas.push(null);
 
   function irParaMesAnterior() {
     if (mes === 0) {
