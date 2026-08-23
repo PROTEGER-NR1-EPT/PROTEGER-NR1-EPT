@@ -14,7 +14,13 @@ import styles from "./UsuariosPage.module.css";
 
 const USUARIO_VAZIO = { nome: "", email: "", senha: "", papel: "consultor" };
 
+const ABAS = [
+  { valor: "usuarios", rotulo: "Usuários" },
+  { valor: "vinculos", rotulo: "Vínculos institucionais" },
+];
+
 export function UsuariosPage() {
+  const [abaAtiva, setAbaAtiva] = useState("usuarios");
   const [usuarios, setUsuarios] = useState([]);
   const [instituicoes, setInstituicoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -151,7 +157,22 @@ export function UsuariosPage() {
       )}
       {mensagem && <p role="status">{mensagem}</p>}
 
-      <div className={tabela.secaoAdmin}>
+      <div className={styles.abas} role="tablist" aria-label="Categorias de usuários">
+        {ABAS.map((aba) => (
+          <button
+            key={aba.valor}
+            type="button"
+            role="tab"
+            aria-selected={abaAtiva === aba.valor}
+            className={`${styles.aba} ${abaAtiva === aba.valor ? styles.abaAtiva : ""}`}
+            onClick={() => setAbaAtiva(aba.valor)}
+          >
+            {aba.rotulo}
+          </button>
+        ))}
+      </div>
+
+      <div className={tabela.secaoAdmin} hidden={abaAtiva !== "usuarios"}>
         <h2>Usuários cadastrados</h2>
         {carregando ? (
           <p>Carregando...</p>
@@ -295,7 +316,7 @@ export function UsuariosPage() {
         </form>
       </div>
 
-      <div className={tabela.secaoAdmin}>
+      <div className={tabela.secaoAdmin} hidden={abaAtiva !== "vinculos"}>
         <h2>Vincular Consultor a instituições</h2>
         <form onSubmit={handleVincular} style={{ maxWidth: "28rem" }}>
           <div className={formStyles.campo}>

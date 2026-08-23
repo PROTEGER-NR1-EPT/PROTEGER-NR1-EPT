@@ -1,3 +1,32 @@
+.abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-1);
+  border-bottom: 1px solid var(--cor-borda);
+  margin-bottom: var(--espaco-4);
+}
+
+.aba {
+  border: none;
+  background: none;
+  padding: var(--espaco-2) var(--espaco-3);
+  font-weight: 600;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+
+.aba:hover {
+  color: var(--cor-texto);
+}
+
+.abaAtiva {
+  color: var(--cor-primaria);
+  border-bottom-color: var(--cor-primaria);
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
