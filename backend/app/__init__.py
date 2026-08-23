@@ -302,6 +302,39 @@ def _registrar_comandos_cli(app):
 
         print("Respostas extras criadas: mais cobertura de setor×questionário para o painel de Resultados.")
 
+    @app.cli.command("seed-massa-testes")
+    def seed_massa_testes_cmd():
+        """Gera uma massa de testes bem maior que os outros seeds: dezenas
+        de respostas por combinação instituição×setor×questionário
+        (cobrindo as 4 faixas de risco) e vários ciclos extras de Planos de
+        Ação por instituição — pra ver o painel de Resultados e o Kanban de
+        Planos de Ação com dados realmente ricos. Não apaga/altera nenhum
+        dado já existente. Idempotente. Requer que `seed-dev-data` já tenha
+        rodado. Recusa rodar fora de FLASK_ENV=development."""
+        if app.config["FLASK_ENV"] != "development":
+            print(
+                "Recusado: este comando só roda com FLASK_ENV=development "
+                "(configurado atualmente como "
+                f"'{app.config['FLASK_ENV']}')."
+            )
+            return
+
+        from app.seed import SETOR_MASSA_TESTES, seed_massa_testes
+
+        resultado = seed_massa_testes()
+        if not resultado:
+            print(
+                "Nada a fazer: dados de teste (seed-dev-data) ainda não existem, ou o "
+                f"setor '{SETOR_MASSA_TESTES}' já foi criado antes."
+            )
+            return
+
+        total_respostas, total_acoes = resultado
+        print(
+            f"Massa de testes criada: {total_respostas} respostas novas e "
+            f"{total_acoes} ações de plano novas, espalhadas pelas 3 instituições."
+        )
+
     import click
 
     @app.cli.command("resetar-sistema")

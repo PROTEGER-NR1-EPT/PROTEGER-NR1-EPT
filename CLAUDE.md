@@ -39,6 +39,7 @@ flask seed-dev-data       # opcional: massa de dados fictícia p/ testar o siste
 flask seed-questionario-misto  # opcional: complementa a seed acima só com o questionário misto (Karasek+COPSOQ), sem apagar nada existente
 flask seed-planos-acao    # opcional: complementa a seed acima com Planos de Ação ricos (vários ciclos/status/tarefas/dependências)
 flask seed-mais-respostas # opcional: complementa a seed acima com mais respostas, pro painel de Resultados (cards/radar/mapa de risco) ficar mais rico
+flask seed-massa-testes   # opcional: massa de testes bem maior (dezenas de respostas por instituição×setor×questionário + vários ciclos extras de Planos de Ação), pra ver os painéis com dados ricos
 
 python run.py             # servidor de desenvolvimento em http://localhost:8000
 pytest                    # testes: k-anonimato, Karasek, COPSOQ (app/services/)

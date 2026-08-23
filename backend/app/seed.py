@@ -1115,3 +1115,190 @@ def seed_respostas_extra() -> bool:
     )
 
     return True
+
+
+# ---------------------------------------------------------------------------
+# Massa de testes grande — densifica bem mais que os outros seeds, pra ver o
+# painel de Resultados (cards/radar/mapa de risco) e o Kanban/Tabela/
+# Calendário de Planos de Ação com dados realmente ricos, cobrindo as 4
+# faixas de risco (baixo/moderado/alto/crítico) em várias combinações
+# instituição×setor×questionário — não só o mínimo ilustrativo dos outros
+# seeds. Complementa sem alterar/duplicar nada existente. Idempotente pelo
+# setor-marcador "Massa de Testes". Requer que `seed_dev_data()` já tenha
+# rodado.
+# ---------------------------------------------------------------------------
+
+SETOR_MASSA_TESTES = "Massa de Testes"
+CICLO_MASSA_TESTES = "Massa de Testes"
+
+# Médias-alvo (escala 1-5, pós-inversão) sorteadas por domínio para cobrir
+# as 4 faixas de risco de calcular_risco_dominio (baixo/moderado/alto/
+# crítico) — funciona tanto pra domínios de risco (demanda/exigências)
+# quanto protetivos (controle/organização/relações), já que a inversão de
+# sentido é aplicada depois, na leitura (services/instrumentos/__init__.py).
+_FAIXAS_RISCO = [1.6, 2.6, 3.6, 4.4]
+
+_TAGS_PLANO_MASSA = [
+    "Demanda Psicológica",
+    "Controle sobre o Trabalho",
+    "Relações Sociais e Liderança",
+    "Organização do Trabalho",
+    "Exigências no Trabalho",
+]
+
+_TITULOS_ACAO_MASSA = [
+    "Revisar carga de trabalho do setor",
+    "Ampliar canais de comunicação interna",
+    "Mapear riscos psicossociais por turma/turno",
+    "Criar programa de apoio psicológico",
+    "Padronizar processos administrativos",
+    "Promover formação sobre gestão de conflitos",
+    "Rever critérios de distribuição de tarefas",
+    "Instituir pausas programadas durante o expediente",
+    "Fortalecer autonomia das equipes pedagógicas",
+    "Melhorar infraestrutura das salas de descanso",
+    "Criar plano de comunicação de mudanças",
+    "Revisar política de banco de horas",
+]
+
+_RESPONSAVEIS_MASSA = [
+    "Direção",
+    "Coordenação Pedagógica",
+    "RH",
+    "Secretaria Escolar",
+    "Comitê de Riscos Psicossociais",
+]
+
+_STATUS_MASSA = ["pendente", "em_andamento", "concluido"]
+
+
+def _criar_respostas_massa(instituicoes):
+    karasek = (
+        db.session.query(Questionario)
+        .filter_by(titulo="Pesquisa de Riscos Psicossociais 2026.1")
+        .first()
+    )
+    copsoq = (
+        db.session.query(Questionario)
+        .filter_by(titulo="Pesquisa de Riscos Psicossociais 2025.2 (encerrada)")
+        .first()
+    )
+    misto = db.session.query(Questionario).filter_by(titulo=TITULO_QUESTIONARIO_MISTO).first()
+    questionarios = [q for q in (karasek, copsoq, misto) if q is not None]
+
+    for instituicao in instituicoes.values():
+        db.session.add(
+            Setor(instituicao_id=instituicao.id, nome=SETOR_MASSA_TESTES, ativo=True)
+        )
+    db.session.flush()
+
+    setores = (
+        db.session.query(Setor)
+        .filter(Setor.instituicao_id.in_([i.id for i in instituicoes.values()]))
+        .all()
+    )
+
+    grupos_tocados = []  # (instituicao_id, setor_id, questionario_id)
+    total_respostas = 0
+    for setor in setores:
+        for questionario in questionarios:
+            dominios = list(questionario.dominios)
+            quantidade = random.randint(25, 60)
+            medias_alvo = [random.choice(_FAIXAS_RISCO) for _ in dominios]
+            dias_atras_max = random.randint(30, 180)
+            for _ in range(quantidade):
+                payload = _payload_por_dominios(list(zip(dominios, medias_alvo)))
+                db.session.add(
+                    RespostaBruta(
+                        questionario_id=questionario.id,
+                        instituicao_id=setor.instituicao_id,
+                        setor_id=setor.id,
+                        payload_json=payload,
+                        respondido_em=_data_aleatoria(dias_atras_max),
+                    )
+                )
+            grupos_tocados.append((setor.instituicao_id, setor.id, questionario.id))
+            total_respostas += quantidade
+
+    db.session.commit()
+
+    for instituicao_id, setor_id, questionario_id in grupos_tocados:
+        recalcular_resultados(instituicao_id, setor_id, questionario_id)
+
+    return total_respostas
+
+
+def _criar_planos_acao_massa(instituicoes, admin):
+    autor_id = admin.id if admin is not None else None
+    total_acoes = 0
+    for instituicao in instituicoes.values():
+        for indice_ciclo in range(random.randint(2, 3)):
+            ciclo = (
+                CICLO_MASSA_TESTES
+                if indice_ciclo == 0
+                else f"{CICLO_MASSA_TESTES} {indice_ciclo + 1}"
+            )
+            plano = servico_planos_acao.criar_plano(instituicao.id, ciclo, autor_id)
+
+            acoes_criadas = []
+            for _ in range(random.randint(6, 12)):
+                status = random.choice(_STATUS_MASSA)
+                dados = {
+                    "titulo": random.choice(_TITULOS_ACAO_MASSA),
+                    "tag": random.choice(_TAGS_PLANO_MASSA),
+                    "status": status,
+                    "prazo": _data_relativa(random.randint(-30, 90)),
+                    "responsavel": random.choice(_RESPONSAVEIS_MASSA),
+                }
+                if random.random() < 0.5:
+                    dados["tarefas"] = [
+                        {"titulo": "Levantamento inicial", "concluida": status != "pendente"},
+                        {"titulo": "Validar com a equipe", "concluida": status == "concluido"},
+                    ]
+                acoes_criadas.append(servico_planos_acao.criar_acao(plano.id, dados))
+                total_acoes += 1
+
+            # Uma dependência entre ações do mesmo plano, pra exercitar o
+            # campo depende_de_ids/"bloqueia" também nos ciclos extras.
+            if len(acoes_criadas) >= 2:
+                dependente, base = random.sample(acoes_criadas, 2)
+                servico_planos_acao.editar_acao(dependente, {"depende_de_ids": [base.id]})
+
+    return total_acoes
+
+
+def seed_massa_testes():
+    """Gera uma massa de testes bem maior que os outros seeds: dezenas de
+    respostas por combinação instituição×setor×questionário (cobrindo as 4
+    faixas de risco, baixo a crítico) e vários ciclos extras de Planos de
+    Ação por instituição, com ações variadas em status/tag/tarefas/
+    dependências. Cria também o setor "Massa de Testes" em cada instituição
+    (garante pelo menos uma combinação nova acima do threshold de
+    k-anonimato em cada uma, inclusive Vale do Sol, que não tinha nenhuma
+    resposta). Não altera nem duplica nada já existente. Idempotente pelo
+    setor-marcador "Massa de Testes" em Horizonte Verde. Requer que
+    `seed_dev_data()` já tenha rodado; retorna False se não tiver rodado, ou
+    se este comando já tiver rodado antes."""
+    horizonte_verde = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_1).first()
+    nova_aurora = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_2).first()
+    vale_do_sol = db.session.query(Instituicao).filter_by(nome=NOME_INSTITUICAO_3).first()
+    if horizonte_verde is None or nova_aurora is None or vale_do_sol is None:
+        return False
+
+    ja_existe = _setor_por_nome(horizonte_verde.id, SETOR_MASSA_TESTES) is not None
+    if ja_existe:
+        return False
+
+    random.seed(45)  # reprodutível, seed diferente dos outros seeds
+
+    instituicoes = {
+        "horizonte_verde": horizonte_verde,
+        "nova_aurora": nova_aurora,
+        "vale_do_sol": vale_do_sol,
+    }
+    admin = db.session.query(Usuario).filter_by(papel=PAPEL_ADMINISTRADOR).first()
+
+    total_respostas = _criar_respostas_massa(instituicoes)
+    total_acoes = _criar_planos_acao_massa(instituicoes, admin)
+
+    return total_respostas, total_acoes
