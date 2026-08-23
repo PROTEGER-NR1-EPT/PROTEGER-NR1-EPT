@@ -177,7 +177,7 @@ export function UsuariosPage() {
         {carregando ? (
           <p>Carregando...</p>
         ) : (
-          <div className={tabela.envoltorioTabela}>
+          <div className={`${tabela.envoltorioTabela} ${styles.tabelaResponsiva}`}>
             <table className={tabela.tabela}>
               <thead>
                 <tr>
@@ -192,10 +192,10 @@ export function UsuariosPage() {
               <tbody>
                 {usuarios.map((usuario) => (
                   <tr key={usuario.id}>
-                    <td>{usuario.nome}</td>
-                    <td>{usuario.email}</td>
-                    <td>{usuario.papel}</td>
-                    <td>
+                    <td data-label="Nome">{usuario.nome}</td>
+                    <td data-label="E-mail">{usuario.email}</td>
+                    <td data-label="Papel">{usuario.papel}</td>
+                    <td data-label="Instituições">
                       {usuario.instituicoes.length > 0 ? (
                         usuario.instituicoes.map((instituicao) => (
                           <span key={instituicao.id} className={styles.chip}>
@@ -215,14 +215,14 @@ export function UsuariosPage() {
                         "—"
                       )}
                     </td>
-                    <td>
+                    <td data-label="Status">
                       <span
                         className={`${tabela.selo} ${usuario.ativo ? tabela.seloAtivo : tabela.seloInativo}`}
                       >
                         {usuario.ativo ? "Ativo" : "Inativo"}
                       </span>
                     </td>
-                    <td className={tabela.acoes}>
+                    <td data-label="Ações" className={`${tabela.acoes} ${styles.celulaAcoes}`}>
                       <BotaoIcone
                         icone={IconeEditar}
                         rotulo={`Editar ${usuario.nome}`}

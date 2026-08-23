@@ -73,3 +73,105 @@
   background: var(--cor-perigo-fundo);
   color: var(--cor-perigo);
 }
+
+/* Abaixo de 640px a tabela vira uma lista de cartões (um por usuário) em
+   vez de rolar na horizontal — com 6 colunas (Nome, E-mail, Papel,
+   Instituições, Status, Ações) a rolagem lateral cortava as primeiras
+   colunas fora da tela. Nome vira o "título" do cartão, E-mail um
+   subtítulo, Papel e Status ficam lado a lado (grid-auto-flow: dense
+   reaproveita o espaço vazio ao lado do Papel) e Ações fica num rodapé
+   separado por um divisor. */
+@media (max-width: 640px) {
+  .tabelaResponsiva table,
+  .tabelaResponsiva tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .tabelaResponsiva thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .tabelaResponsiva tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: row dense;
+    column-gap: var(--espaco-3);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    padding: var(--espaco-3);
+    margin-bottom: var(--espaco-3);
+  }
+
+  .tabelaResponsiva td {
+    grid-column: span 2;
+    padding: 0;
+    border-bottom: none;
+    overflow-wrap: anywhere;
+  }
+
+  .tabelaResponsiva td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--cor-texto-secundario);
+    margin-bottom: 0.15rem;
+  }
+
+  /* Nome: título do cartão, sem rótulo. */
+  .tabelaResponsiva td:nth-child(1) {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .tabelaResponsiva td:nth-child(1)::before {
+    display: none;
+  }
+
+  /* E-mail: subtítulo discreto colado no nome. */
+  .tabelaResponsiva td:nth-child(2) {
+    margin-top: -0.35rem;
+    margin-bottom: var(--espaco-2);
+    color: var(--cor-texto-secundario);
+    font-size: 0.85rem;
+  }
+
+  .tabelaResponsiva td:nth-child(2)::before {
+    display: none;
+  }
+
+  /* Papel + Status: lado a lado, mesma "linha" de metadados. */
+  .tabelaResponsiva td:nth-child(3),
+  .tabelaResponsiva td:nth-child(5) {
+    grid-column: span 1;
+    align-self: start;
+  }
+
+  .tabelaResponsiva td:nth-child(3) {
+    text-transform: capitalize;
+  }
+
+  .tabelaResponsiva td:nth-child(4) {
+    margin-top: var(--espaco-1);
+  }
+
+  .tabelaResponsiva .celulaAcoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espaco-2);
+    margin-top: var(--espaco-3);
+    padding-top: var(--espaco-3);
+    border-top: 1px solid var(--cor-borda);
+  }
+
+  .tabelaResponsiva .celulaAcoes::before {
+    display: none;
+  }
+}
