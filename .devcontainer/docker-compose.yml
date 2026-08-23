@@ -16,10 +16,6 @@ services:
       # `npm install` fora do devcontainer, o que não é o fluxo suportado.
       - frontend-node-modules:/workspace/frontend/node_modules
     command: sleep infinity
-    environment:
-      - DATABASE_URL_ANONIMO=postgresql://devuser:devpass@db:5432/anonimo_db
-      - DATABASE_URL_AUTH=postgresql://devuser:devpass@db:5432/auth_db
-      - DATABASE_URL_MEMORIA=postgresql://devuser:devpass@db:5432/memoria_db
     depends_on:
       - db
 
