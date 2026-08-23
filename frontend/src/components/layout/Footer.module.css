@@ -1,7 +1,64 @@
 .rodape {
   margin-top: var(--espaco-5);
-  padding: var(--espaco-4) 0;
   border-top: 1px solid var(--cor-borda);
+  background: var(--cor-fundo-alt);
   color: var(--cor-texto-secundario);
   font-size: 0.85rem;
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espaco-4);
+  padding: var(--espaco-5) 0;
+}
+
+.colSobre p {
+  max-width: 40rem;
+  line-height: 1.6;
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.tituloColuna {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-texto);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
+}
+
+.badges img {
+  display: block;
+  vertical-align: middle;
+}
+
+.baixo {
+  border-top: 1px solid var(--cor-borda);
+}
+
+.baixoConteudo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--espaco-1) var(--espaco-3);
+  padding: var(--espaco-2) 0;
+  font-size: 0.8rem;
+}
+
+@media (min-width: 640px) {
+  .grade {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
 }
