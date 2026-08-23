@@ -2,10 +2,12 @@
 
 ## Cronograma alvo
 
-- **Protótipo funcional:** setembro (ano corrente)
-- **Uso como produto educacional/submissão acadêmica:** posterior ao
-  protótipo — o sistema não precisa estar 100% finalizado nesse marco,
-  apenas demonstrável.
+- **Protótipo funcional: concluído.** Backend e frontend estão
+  implementados de ponta a ponta (fluxo público, Consultor,
+  Administrador, os três recursos de IA opcionais e Planos de Ação).
+- **Uso como produto educacional/submissão acadêmica:** próximo marco —
+  o sistema já está demonstrável; itens em aberto abaixo (TCLE/comitê de
+  ética, orçamento) não bloqueiam esse uso.
 
 ## Itens em aberto (bloqueantes de decisão, não de código)
 

@@ -4,13 +4,12 @@
 > Nomes de rotas e payloads podem ser ajustados durante o desenvolvimento;
 > o que deve ser preservado são as fronteiras de acesso por papel.
 
-> **Status:** as rotas Público/Consultor/Administrador abaixo estão
-> implementadas em `backend/app/blueprints/`, com o mesmo prefixo
+> **Status:** as rotas Público/Consultor/Administrador/**IA** abaixo
+> estão implementadas em `backend/app/blueprints/`, com o mesmo prefixo
 > (`/api/v1`) e as mesmas fronteiras de acesso por papel descritas aqui.
-> As rotas de **IA** (seção abaixo) e **TCLE** (`/tcle/{instituicao_id}`)
-> ainda **não foram implementadas** — ver `docs/09-roadmap-e-pendencias.md`
-> (TCLE depende de decisão sobre comitê de ética) e o item "NÃO IMPLEMENTAR
-> AINDA" do escopo do MVP.
+> Só **TCLE** (`/tcle/{instituicao_id}`) ainda **não foi implementada** —
+> ver `docs/09-roadmap-e-pendencias.md` (depende de decisão sobre comitê
+> de ética).
 >
 > Para o contrato exato (schemas de request/response, exemplos, todos os
 > códigos de erro possíveis por rota), a referência autoritativa e sempre
@@ -57,15 +56,19 @@ bearer token), exceto rotas marcadas como públicas.
 | GET/POST | `/admin/questionarios` | Listar/criar questionários — vários podem estar ativos ao mesmo tempo; cada domínio carrega seu próprio instrumento (questionários mistos) |
 | PUT | `/admin/questionarios/{id}` | Editar questionário/domínios/itens (inclui `modo_apresentacao`: blocos ou intercalado) |
 | DELETE | `/admin/questionarios/{id}` | Excluir questionário — bloqueado se já houver respostas registradas (usar `ativo: false` para desativar nesse caso) |
+| GET | `/admin/questionarios/export` | Exportação CSV de todos os questionários, uma linha por item (questionário × domínio × item) |
 | GET/POST | `/admin/usuarios` | Listar (inclui instituições vinculadas de cada Consultor)/criar Consultores e Administradores |
 | PUT | `/admin/usuarios/{id}` | Editar nome/e-mail/papel (não altera senha) |
 | DELETE | `/admin/usuarios/{id}` | Desativar usuário (soft delete — impede login, preserva log/vínculos; não é possível desativar a própria conta) |
 | POST | `/admin/usuarios/{id}/vinculos` | Vincular consultor a instituição(ões) |
 | DELETE | `/admin/usuarios/{id}/vinculos/{instituicao_id}` | Remover um vínculo específico |
 | GET | `/admin/instituicoes/{id}/resultados` | Resultados agregados de qualquer instituição |
+| GET | `/admin/instituicoes/{id}/resultados/export` | Exportação CSV do recorte acima, uma instituição |
 | GET | `/admin/resultados` | Dashboard de resultados por dimensão, com filtro multi-seleção (`instituicao_ids`, `setor_ids`, `questionario_ids`) e por instrumento (`karasek`/`copsoq`/`misto`); inclui `risco`/`nivel_risco` (0-100, 4 faixas, comparável entre instrumentos) |
-| GET | `/admin/respostas/export` | Exportação CSV bruta (requer confirmação prévia — ver doc 05) |
+| GET | `/admin/resultados/export` | Exportação CSV do dashboard acima, mesmos filtros |
+| GET | `/admin/respostas/export` | Exportação CSV bruta, desagregada (contorna k-anonimato — requer confirmação prévia, ver doc 05) |
 | GET/PUT | `/admin/configuracoes` | Threshold de k-anonimato, toggles de IA, provedor LLM |
+| GET | `/admin/estatisticas/export` | Exportação em PDF do relatório "Visão geral" (`GET /admin/estatisticas`, reportlab) |
 | GET | `/admin/logs` | Log de atividade |
 | POST/GET | `/admin/memoria` | Criar/consultar registros de memória institucional |
 | GET/POST | `/admin/instituicoes/{id}/planos-acao` | Listar/criar planos de ação (ciclos) de uma instituição |
@@ -77,6 +80,8 @@ bearer token), exceto rotas marcadas como públicas.
 | GET | `/admin/estatisticas` | Contagens gerais para o painel do Administrador (instituições, questionários, usuários, respostas, alerta de k-anonimato e ranking por instituição) |
 
 ## IA (opcional — apenas se toggle ativado)
+
+### Criação assistida de questionário (`/admin/ia/questionario/*`) — implementado
 
 | Método | Rota | Descrição |
 |---|---|---|

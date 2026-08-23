@@ -38,7 +38,13 @@ Visualiza resultados apenas das instituições às quais está vinculado.
    setor/domínio/quadrante, sujeitos ao threshold de k-anonimato (grupos
    abaixo do threshold aparecem ocultos/insuficientes).
 4. Pode consultar registros de memória institucional daquela instituição.
-5. Não pode criar questionários, gerenciar usuários, nem alterar
+5. Consulta (somente leitura) os Planos de Ação das instituições
+   vinculadas — ciclos, ações, tarefas e dependências.
+6. Se o Administrador tiver ativado o toggle, usa o Assistente IA (chat
+   de ajuda contextual) e a análise assistida de resultados.
+7. "Meu perfil": consulta nome/e-mail/papel e troca a própria senha —
+   mesma tela do Administrador (rodapé da sidebar).
+8. Não pode criar questionários, gerenciar usuários, nem alterar
    configurações do sistema.
 
 ### 3. Administrador (login obrigatório)
@@ -68,10 +74,8 @@ Acesso completo.
    em tela de aviso sobre sensibilidade dos dados (ver documento 05).
 8. Consulta ao log de atividade.
 9. "Meu perfil": consulta nome/e-mail/papel e troca a própria senha
-   (`PUT /auth/senha`, exige senha atual). A rota do backend funciona
-   para Consultor e Administrador igualmente, mas hoje só existe tela no
-   painel do Administrador (acessível pelo rodapé da sidebar) — o
-   Consultor ainda não tem esse atalho na interface.
+   (`PUT /auth/senha`, exige senha atual) — acessível pelo rodapé da
+   sidebar, igual para Consultor e Administrador.
 
 ## Primeiro acesso (bootstrap)
 

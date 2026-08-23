@@ -13,6 +13,12 @@ contexto completo (arquitetura, modelo de dados, regras de negócio).
 - flask-cors, com origens configuráveis via `CORS_ORIGINS`
 - **flask-openapi3 + Scalar** para documentação interativa da API (ver seção
   própria abaixo)
+- `openai` — cliente único para os três recursos de IA opcionais (chat de
+  ajuda, criação assistida de questionário, análise assistida de
+  resultados), usado contra qualquer provedor compatível com o formato
+  OpenAI (`app/services/llm_client.py`)
+- `reportlab` — geração de PDF (relatório da Visão geral em
+  `app/services/estatisticas.py`)
 
 ## Documentação interativa da API (Scalar)
 
@@ -91,28 +97,43 @@ app/
 ├── extensions.py         → db (SQLAlchemy + binds), migrate, cors
 ├── models/
 │   ├── anonimo.py        → bind padrão (banco anônimo)
-│   ├── auth.py            → bind "auth"
-│   └── memoria.py         → bind "memoria"
+│   ├── auth.py            → bind "auth" (inclui ConversaChat/MensagemChat, do chat de ajuda)
+│   └── memoria.py         → bind "memoria" (inclui PlanoAcao/AcaoPlano/TarefaAcao/DependenciaAcao)
 ├── blueprints/
 │   ├── publico.py         → sem autenticação
 │   ├── auth.py             → login/logout
 │   ├── consultor.py        → papel "consultor"
-│   └── admin.py             → papel "administrador"
+│   ├── admin.py             → papel "administrador"
+│   ├── planos_acao.py        → CRUD de Planos de Ação (ciclos/ações/tarefas/dependências)
+│   ├── chat.py                → chat de ajuda contextual (Consultor/Administrador)
+│   ├── ia.py                   → criação assistida de questionário
+│   └── resultados_ia.py         → análise assistida de resultados
 ├── schemas/                 → modelos Pydantic para o OpenAPI/Scalar (um arquivo por blueprint)
 │   ├── comuns.py             → ErroResponse e outros compartilhados
 │   ├── publico.py
 │   ├── auth.py
 │   ├── consultor.py
-│   └── admin.py
+│   ├── admin.py
+│   ├── planos_acao.py
+│   ├── chat.py
+│   └── ia.py
 ├── services/
 │   ├── k_anonimato.py      → único ponto de leitura de resultado agregado
 │   ├── instrumentos/        → strategy pattern (karasek.py, copsoq.py)
-│   └── exportacao.py        → exportação CSV com log de auditoria
+│   ├── exportacao.py        → exportação CSV com log de auditoria
+│   ├── estatisticas.py       → contagens do painel + geração de PDF (reportlab)
+│   ├── resultados_dashboard.py → dashboard multi-filtro de resultados (Consultor/Administrador)
+│   ├── planos_acao.py         → regras de negócio de Planos de Ação
+│   ├── reset_sistema.py        → apagamento coordenado dos 3 bancos (flask resetar-sistema)
+│   ├── llm_client.py            → ponto único de chamada a provedor LLM (guardrail de escopo)
+│   ├── chat_ia.py                → chat de ajuda contextual
+│   ├── questionario_ia.py         → criação assistida de questionário
+│   └── resultados_ia.py            → análise assistida de resultados
 ├── auth/
 │   ├── security.py          → hash de senha, geração de token
 │   └── decorators.py         → @login_required, @requer_papel(...)
 ├── bootstrap.py               → criação idempotente do 1º Administrador
-└── seed.py                     → massa de dados fictícia p/ dev (flask seed-dev-data / seed-questionario-misto)
+└── seed.py                     → massa de dados fictícia p/ dev (flask seed-dev-data / seed-questionario-misto / seed-planos-acao / seed-mais-respostas / seed-massa-testes)
 ```
 
 ## Rodando localmente (dentro do devcontainer)
@@ -145,6 +166,23 @@ flask seed-dev-data
 # misto existir, este comando complementa só essa parte (idempotente pelo
 # título do questionário, não apaga/altera nada já existente).
 flask seed-questionario-misto
+
+# opcional: complementa a seed acima com Planos de Ação ricos (vários
+# ciclos, ações em todos os status, tarefas, dependência entre ações e
+# anexos) para as 3 instituições — pra ver o Kanban/Tabela/Calendário
+# povoados. Idempotente, requer seed-dev-data já rodado.
+flask seed-planos-acao
+
+# opcional: amplia a massa de respostas de seed-dev-data pra o painel de
+# Resultados (cards, radar "Visão geral", "Mapa de risco") ficar mais
+# rico de ver. Idempotente, requer seed-dev-data já rodado.
+flask seed-mais-respostas
+
+# opcional: massa de testes bem maior que os seeds acima — dezenas de
+# respostas por combinação instituição×setor×questionário (cobrindo as 4
+# faixas de risco) e vários ciclos extras de Planos de Ação por
+# instituição. Idempotente, requer seed-dev-data já rodado.
+flask seed-massa-testes
 
 # roda o servidor de desenvolvimento em http://localhost:8000
 python run.py
@@ -216,8 +254,14 @@ a cada boot do servidor.
   `configuracoes_sistema` (banco anônimo, linha única) — nunca lidos de
   variável de ambiente em runtime; os valores em `.env` só alimentam essa
   linha na primeira vez que ela é criada.
-- **Nenhuma integração real de LLM** foi implementada — os campos de
-  configuração existem, mas nenhuma rota chama um provedor de IA (fora de
-  escopo desta etapa).
+- **Três recursos de IA opcionais estão implementados** (chat de ajuda
+  contextual, criação assistida de questionário, análise assistida de
+  resultados), cada um independentemente ativável em
+  `configuracoes_sistema`. Toda chamada a um provedor LLM passa por um
+  único ponto de entrada, `app/services/llm_client.py`, que aplica um
+  guardrail de escopo (a IA só responde dentro do domínio do produto) —
+  ver `docs/05-regras-de-negocio-e-privacidade.md`. As implementações de
+  cada recurso vivem em `services/chat_ia.py`,
+  `services/questionario_ia.py` e `services/resultados_ia.py`.
 - **TCLE não implementado** — pendente de decisão sobre exigência de
   comitê de ética (`docs/09-roadmap-e-pendencias.md`).

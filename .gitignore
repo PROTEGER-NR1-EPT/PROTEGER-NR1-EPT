@@ -46,3 +46,4 @@ Thumbs.db
 
 # --- Docker / devcontainer (dados locais, não config) ---
 .devcontainer/*.local.yml
+.claude/settings.local.json

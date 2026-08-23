@@ -7,10 +7,12 @@ para como subir a API que este frontend consome.
 ## Stack
 
 - **React + Vite**
-- **React Router v6** — navegação entre as áreas pública, Consultor e Administrador
+- **React Router v7** — navegação entre as áreas pública, Consultor e Administrador
 - **axios** — cliente HTTP (`src/api/client.js`), apontando para `VITE_API_BASE_URL`
 - **Context API + hooks** — estado global (autenticação, preferências de acessibilidade); sem Redux
 - **CSS Modules + Tailwind CSS v4** — ver justificativa abaixo
+- **recharts** — gráficos do painel de Resultados (radar por dimensão, mapa de risco)
+- **react-markdown + remark-gfm** — renderiza em Markdown as respostas do Assistente IA
 
 ### CSS Modules + Tailwind, e como convivem com a acessibilidade
 
@@ -77,14 +79,14 @@ evitar um flash da tela de login antes da sessão ser restaurada.
 
 ```
 src/
-├── api/           → um arquivo por área da API (publico, auth, consultor, admin) + client.js (axios)
+├── api/           → um arquivo por área da API (publico, auth, consultor, admin) + client.js (axios), mais ia.js, chat.js e planosAcao.js
 ├── context/        → AuthContext (sessão) e PreferencesContext (fonte/contraste — adicionado, não estava na lista original)
 ├── routes/          → PublicRoute (foge de /login se já autenticado) e ProtectedRoute (bloqueia por papel)
-├── pages/            → uma pasta por área: publico/, auth/, consultor/, admin/
-├── components/        → layout/, forms/, resultados/, acessibilidade/, questionario/, common/
-├── hooks/               → useAuth, usePreferences
+├── pages/            → uma pasta por área: publico/, auth/, consultor/, admin/, assistente-ia/
+├── components/        → layout/, forms/, resultados/, acessibilidade/, questionario/, common/, chat/, planos-acao/
+├── hooks/               → useAuth, usePreferences, useChatAjuda, useChatDisponivel
 ├── styles/               → tokens.css (variáveis de tema), global.css (reset), tabela.module.css (tabelas admin)
-└── utils/resultados.js   → classifica cada linha de /resultados pelo formato do valor_agregado (ver comentário no arquivo)
+└── utils/                → resultados.js (classifica cada linha de /resultados pelo formato do valor_agregado, ver comentário no arquivo), data.js, risco.js, statusAcao.js
 ```
 
 Alguns arquivos não estavam na lista original do escopo mas foram
@@ -93,15 +95,21 @@ comentário no topo explicando por quê: `PreferencesContext.jsx`,
 `hooks/usePreferences.js`, `pages/publico/PublicFlowLayout.jsx`,
 `pages/admin/AdminLayout.jsx`, `components/forms/Button.jsx`,
 `utils/resultados.js`, `pages/admin/PerfilPage.jsx` (troca de senha,
-acessível a partir do rodapé da sidebar do admin),
+acessível a partir do rodapé da sidebar, reaproveitado por Consultor e
+Administrador),
 `components/questionario/PreviewQuestionario.jsx` (pré-visualização de
 questionário estilo Google Forms) e `components/common/ConfirmModal.jsx`
 (modal de confirmação genérico, usado hoje para excluir questionário).
 
-`pages/admin/AdminLayout.jsx` é uma sidebar colapsável (não um `<nav>`
+`pages/admin/AdminLayout.jsx` (e `pages/consultor/ConsultorLayout.jsx`,
+que replica o mesmo padrão) é uma sidebar colapsável (não um `<nav>`
 horizontal) — vira barra de ícones inferior em telas estreitas (estilo
-app), encolhe para só ícones em telas largas, e mostra status do
-usuário logado + link para `PerfilPage.jsx` no rodapé.
+app), encolhe para só ícones em telas largas (estado lembrado via
+`localStorage`, preferência de UI não-sensível — não confundir com a
+regra de nunca guardar o token de sessão em storage do navegador), e
+mostra status do usuário logado + link para `PerfilPage.jsx` no rodapé
+— disponível para Consultor (`/consultor/perfil`) e Administrador
+(`/admin/perfil`) igualmente.
 
 Em `pages/publico/`, `PaginaInicial.jsx` (rota `/`) fica **fora** do
 `PublicFlowLayout` — é a página institucional de apresentação do projeto,
@@ -139,9 +147,26 @@ fonte/contraste — substituiu a barra sempre visível que existia antes.
   validar formato): `{ "dependeDoItem": <item_id>, "valorEsperado": <valor> }`
   — o item só é exibido (e só é enviado no payload) se a resposta ao item
   referenciado for igual a `valorEsperado`. Ver `QuestionarioPage.jsx`.
-- **IA:** os toggles em `ConfiguracoesPage.jsx` só gravam a preferência
-  via `PUT /admin/configuracoes` — não existe nenhuma chamada real a LLM
-  em nenhuma tela, propositalmente (fora do escopo desta etapa).
+- **IA:** os toggles em `ConfiguracoesPage.jsx` gravam a preferência via
+  `PUT /admin/configuracoes`, mas os três recursos de IA têm chamada
+  real ao backend, condicionada a esses toggles: o **Assistente IA**
+  (`pages/assistente-ia/AssistenteIaPage.jsx`, reaproveitado em
+  `/consultor/assistente-ia` e `/admin/assistente-ia`, com sidebar de
+  conversas estilo ChatGPT) e o widget de chat flutuante
+  (`components/chat/ChatAjudaWidget.jsx`, mostrado em toda página
+  autenticada exceto a própria tela do Assistente, controlado por
+  `hooks/useChatDisponivel.js`) consomem `src/api/chat.js`; a análise
+  assistida de resultados é o painel `AnaliseIaPainel.jsx`, embutido no
+  painel de Resultados, consumindo `src/api/ia.js`; a criação assistida
+  de questionário usa `gerarSugestoes` (`src/api/planosAcao.js`) dentro
+  de `pages/admin/PlanosAcaoPage.jsx` para gerar ações de plano a partir
+  de dimensões em risco.
+- **Planos de Ação:** feature completa de gestão de ações por ciclo —
+  rotas `/consultor/planos-acao` (`PlanosAcaoConsultor.jsx`, somente
+  leitura) e `/admin/planos-acao` (`PlanosAcaoPage.jsx`, CRUD completo),
+  com componentes em `components/planos-acao/` (`KanbanAcoes`,
+  `TabelaAcoes`, `CalendarioAcoes`, `AcaoFormModal`,
+  `DetalhesAcaoModal`) e API em `src/api/planosAcao.js`.
 
 ## Rodando localmente (dentro do devcontainer)
 

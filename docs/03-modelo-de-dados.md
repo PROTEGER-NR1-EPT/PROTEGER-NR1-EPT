@@ -18,7 +18,8 @@ identifica o respondente.
 | `dominios` | id, questionario_id, nome, **instrumento (karasek/copsoq)**, chave, ordem | Domínios/dimensões — cada domínio carrega seu próprio instrumento, permitindo questionários **mistos** (domínios de instrumentos diferentes no mesmo questionário) |
 | `itens` | id, dominio_id, texto, tipo_resposta, ordem, regra_condicional | Perguntas individuais |
 | `respostas_brutas` | id, questionario_id, instituicao_id, setor_id, respondido_em, payload_json | **Sem qualquer campo identificador do respondente** |
-| `resultados_agregados` | id, instituicao_id, setor_id, questionario_id, dominio_id, periodo, valor_agregado, n_respostas | Pré-calculado; usado no dashboard, já considerando threshold de k-anonimato |
+| `resultados_agregados` | id, instituicao_id, setor_id, questionario_id, dominio_id, periodo, valor_agregado, n_respostas | Pré-calculado; usado no dashboard, já considerando threshold de k-anonimato. `risco`/`nivel_risco` (docs/07) não são colunas próprias — são derivados de `valor_agregado` na camada de serviço |
+| `configuracoes_sistema` | id (singleton, sempre 1), k_anonimato_threshold, ia_chat_enabled, ia_sugestao_questionario_enabled, ia_analise_resultados_enabled, llm_provider, llm_api_key, llm_base_url, llm_model | Linha única — threshold de k-anonimato e toggles/credenciais de IA, nunca lidos de variável de ambiente em runtime (só alimentam esta linha na primeira vez que é criada) |
 
 ## 2. Banco de Autenticação (`auth_db`)
 
@@ -30,6 +31,8 @@ Armazena identidade e controle de acesso — nunca dados de resposta.
 | `consultor_instituicao` | id, usuario_id, instituicao_id | Vínculo N:N — um consultor pode atender várias instituições |
 | `sessao_login` | id, usuario_id, token, criado_em, expira_em, ip, user_agent | Controle de sessão ativa |
 | `log_atividade` | id, usuario_id, acao, entidade, entidade_id, criado_em | Trilha de auditoria (ex.: exportação de CSV, alteração de threshold) |
+| `conversas_chat` | id, usuario_id, titulo, criado_em | Uma conversa do chat de ajuda contextual — agrupa `mensagens_chat`; título gerado a partir da 1ª mensagem |
+| `mensagens_chat` | id, conversa_id, usuario_id, papel (usuario/assistente), conteudo, criado_em | Histórico de mensagens do chat de ajuda, por usuário |
 
 > `instituicao_id` aqui é apenas um identificador numérico replicado do
 > banco anônimo — nunca há join direto entre os bancos; a aplicação resolve

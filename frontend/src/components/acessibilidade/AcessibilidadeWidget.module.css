@@ -1,6 +1,12 @@
 .botaoFlutuante {
   position: fixed;
-  top: var(--espaco-3);
+  /* Abaixo do cabeçalho (que tem ~5rem numa linha só), pra não ficar na
+     frente do link "Entrar" que fica no canto superior direito da barra
+     de navegação. Em mobile, o próprio usuário pode arrastar o botão pra
+     outro lugar (AcessibilidadeWidget.jsx sobrescreve `top` via style
+     inline depois do primeiro arraste) — esse valor aqui é só a posição
+     inicial. */
+  top: calc(var(--espaco-3) + 4.5rem);
   right: var(--espaco-3);
   z-index: 1000;
   width: 3.25rem;
@@ -28,13 +34,21 @@
 
 /* Em telas pequenas o botão fica menor e semitransparente para atrapalhar
    menos o conteúdo, ganhando opacidade total ao toque/hover/foco ou quando
-   o painel está aberto. */
+   o painel está aberto. Também vira arrastável verticalmente (ver
+   AcessibilidadeWidget.jsx) — touch-action:none evita que o gesto de
+   arrastar vire scroll da página no toque. */
 @media (max-width: 639px) {
   .botaoFlutuante {
     width: 2.5rem;
     height: 2.5rem;
     opacity: 0.5;
+    touch-action: none;
+    cursor: grab;
     transition: opacity 0.15s ease, background-color 0.15s ease;
+  }
+
+  .botaoFlutuante:active {
+    cursor: grabbing;
   }
 
   .icone {
@@ -85,12 +99,16 @@
 
 .painel {
   position: fixed;
-  top: calc(var(--espaco-3) + 3.75rem);
+  /* Posição inicial, relativa à posição inicial do botão — depois que o
+     botão é arrastado (mobile), AcessibilidadeWidget.jsx sobrescreve
+     top/bottom/max-height via style inline pra o painel abrir perto de
+     onde o botão está de fato. */
+  top: calc(var(--espaco-3) + 4.5rem + 3.75rem);
   right: var(--espaco-3);
   z-index: 1000;
   width: 18rem;
   max-width: calc(100vw - (2 * var(--espaco-3)));
-  max-height: calc(100vh - (var(--espaco-3) * 2) - 3.75rem);
+  max-height: calc(100vh - (2 * var(--espaco-3)) - 4.5rem - 3.75rem);
   overflow-y: auto;
   background: var(--cor-fundo);
   border: 1px solid var(--cor-borda);
