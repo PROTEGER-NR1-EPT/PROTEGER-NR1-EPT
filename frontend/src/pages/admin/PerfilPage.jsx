@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import * as authApi from "../../api/auth";
 import { Button } from "../../components/forms/Button";
+import { PageHeader } from "../../components/common/PageHeader";
 import { useAuth } from "../../hooks/useAuth";
 import formStyles from "../../components/forms/FormField.module.css";
 import styles from "./PerfilPage.module.css";
@@ -47,7 +48,21 @@ export function PerfilPage() {
 
   return (
     <section className={styles.pagina}>
-      <h1 className={styles.titulo}>Meu perfil</h1>
+      <PageHeader titulo="Meu perfil">
+        <p>
+          Seus próprios dados de acesso — nome, e-mail e papel (Consultor
+          ou Administrador) são só de leitura aqui; pra mudar algo assim,
+          peça a um Administrador (em "Usuários", se você for Administrador,
+          ou peça a outro Administrador do sistema).
+        </p>
+        <p>
+          O que dá pra fazer nesta tela é trocar sua própria senha: informe
+          a senha atual e a nova (mínimo de 8 caracteres, digitada duas
+          vezes pra confirmar) e clique em "Salvar nova senha". Vale
+          principalmente pra trocar a senha provisória recebida no primeiro
+          acesso.
+        </p>
+      </PageHeader>
 
       <div className={styles.cartao}>
         <div className={styles.cabecalhoPerfil}>

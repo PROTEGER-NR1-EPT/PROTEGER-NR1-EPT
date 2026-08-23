@@ -8,6 +8,7 @@ import { BotaoIcone } from "../../components/common/BotaoIcone";
 import { Button } from "../../components/forms/Button";
 import { ConfirmModal } from "../../components/common/ConfirmModal";
 import { DropdownInstituicao } from "../../components/forms/DropdownInstituicao";
+import { PageHeader } from "../../components/common/PageHeader";
 import { IconeEditar, IconeExcluir } from "../../components/common/icones";
 import formStyles from "../../components/forms/FormField.module.css";
 import tabela from "../../styles/tabela.module.css";
@@ -206,7 +207,43 @@ export function InstituicoesPage() {
 
   return (
     <section>
-      <h1>Instituições e setores</h1>
+      <PageHeader titulo="Instituições e setores">
+        <p>
+          Instituições são as escolas/institutos que participam do
+          diagnóstico; setores são as subdivisões internas de cada
+          instituição (ex.: um campus, um departamento) usadas para filtrar
+          respostas e resultados. A tela tem duas abas:
+        </p>
+        <h3>Aba "Instituições"</h3>
+        <ul>
+          <li>
+            A tabela lista as instituições cadastradas, com UF, município,
+            o questionário vinculado a cada uma e o status.
+          </li>
+          <li>
+            O questionário vinculado é o que aparece pra quem responde —
+            pode trocar direto no dropdown da própria linha da tabela, sem
+            precisar editar a instituição.
+          </li>
+          <li>
+            "Nova instituição" cadastra uma nova; o lápis edita; a lixeira
+            desativa (some do formulário público e dos vínculos, mas
+            respostas e resultados já registrados continuam preservados).
+          </li>
+        </ul>
+        <h3>Aba "Setores"</h3>
+        <ul>
+          <li>
+            Escolha uma instituição no seletor pra ver e gerenciar os
+            setores dela — cada instituição tem sua própria lista.
+          </li>
+          <li>
+            Cadastre, edite ou desative setores do mesmo jeito que na aba de
+            instituições; um setor desativado some dos dropdowns do
+            formulário público, mas respostas antigas ficam preservadas.
+          </li>
+        </ul>
+      </PageHeader>
       {erro && (
         <p role="alert" style={{ color: "var(--cor-perigo)" }}>
           {erro}

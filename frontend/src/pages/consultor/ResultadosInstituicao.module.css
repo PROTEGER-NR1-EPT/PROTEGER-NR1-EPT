@@ -14,10 +14,6 @@
   color: var(--cor-primaria);
 }
 
-.titulo {
-  margin: 0 0 var(--espaco-1);
-}
-
 .subtitulo {
   margin: 0 0 var(--espaco-5);
   color: var(--cor-texto-secundario);

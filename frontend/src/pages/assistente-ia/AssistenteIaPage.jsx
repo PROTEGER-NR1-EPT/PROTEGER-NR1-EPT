@@ -9,6 +9,7 @@ import * as adminApi from "../../api/admin";
 import * as chatApi from "../../api/chat";
 import * as consultorApi from "../../api/consultor";
 import { ConfirmModal } from "../../components/common/ConfirmModal";
+import { PageHeader } from "../../components/common/PageHeader";
 import { IconeExcluir } from "../../components/common/icones";
 import { BotaoIcone } from "../../components/common/BotaoIcone";
 import { Button } from "../../components/forms/Button";
@@ -216,7 +217,37 @@ export function AssistenteIaPage() {
     <section className={styles.pagina}>
       <div className={styles.cabecalhoPagina}>
         <div>
-          <h1 className={styles.titulo}>Assistente IA</h1>
+          <PageHeader titulo="Assistente IA">
+            <p>
+              Chat com IA pra tirar dúvidas sobre o sistema, sobre os
+              questionários (instrumentos Karasek/COPSOQ, como são
+              calculados) e sobre como interpretar os resultados —
+              disponível só se um Administrador habilitar esse recurso em
+              "Configurações do sistema".
+            </p>
+            <h3>Conversas</h3>
+            <p>
+              Cada tópico fica numa conversa separada, listada na barra
+              lateral — "Nova conversa" começa uma do zero; clique numa
+              conversa existente pra continuá-la. A lixeira apaga uma
+              conversa permanentemente.
+            </p>
+            {ehAdmin && (
+              <>
+                <h3>Auditoria (Administrador)</h3>
+                <p>
+                  O seletor "Ver conversas de" deixa revisar, em modo
+                  somente leitura, as conversas de qualquer outro usuário do
+                  sistema — útil pra acompanhar como o assistente está
+                  sendo usado.
+                </p>
+              </>
+            )}
+            <p>
+              As respostas são geradas por IA e podem conter imprecisões —
+              trate como apoio, não como fonte definitiva.
+            </p>
+          </PageHeader>
           <p className={styles.descricao}>
             Converse sobre o sistema, questionários e os resultados
             {ehAdmin ? " das instituições cadastradas." : " das suas instituições vinculadas."}

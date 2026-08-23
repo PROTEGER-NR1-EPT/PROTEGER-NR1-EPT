@@ -12,10 +12,6 @@
   gap: var(--espaco-3);
 }
 
-.titulo {
-  margin: 0 0 var(--espaco-1);
-}
-
 .descricao {
   max-width: 42rem;
   margin: 0;

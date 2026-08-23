@@ -61,6 +61,23 @@ export function IconeEntrar({ className }) {
   );
 }
 
+export function IconeAjuda({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M9.3 9.5a2.7 2.7 0 1 1 3.9 2.4c-.8.45-1.2.9-1.2 1.7v.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function IconeExcluir({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { listarMinhasInstituicoes } from "../../api/consultor";
+import { PageHeader } from "../../components/common/PageHeader";
 import tabela from "../../styles/tabela.module.css";
 import styles from "./DashboardConsultor.module.css";
 
@@ -33,7 +34,20 @@ export function DashboardConsultor() {
   return (
     <section className={styles.secao}>
       <div className="container">
-        <h1 className={styles.titulo}>Minhas instituições</h1>
+        <PageHeader titulo="Minhas instituições">
+          <p>
+            Tela inicial do painel do Consultor — lista as instituições que
+            um Administrador vinculou a você. Você só vê e atua nas
+            instituições que aparecem aqui; se faltar alguma, peça a um
+            Administrador pra te vincular a ela (em "Usuários", aba
+            "Vínculos institucionais").
+          </p>
+          <p>
+            Clique numa instituição pra abrir os resultados agregados dela.
+            De lá, use o menu lateral pra acessar também os Planos de ação
+            daquela instituição.
+          </p>
+        </PageHeader>
 
         {carregando && <p>Carregando...</p>}
         {erro && (

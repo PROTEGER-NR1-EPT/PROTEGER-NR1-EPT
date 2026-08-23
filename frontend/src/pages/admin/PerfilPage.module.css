@@ -2,10 +2,6 @@
   max-width: 34rem;
 }
 
-.titulo {
-  margin: 0 0 var(--espaco-4);
-}
-
 .cartao {
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-borda);

@@ -11,6 +11,7 @@ import { KanbanAcoes } from "../../components/planos-acao/KanbanAcoes";
 import { TabelaAcoes } from "../../components/planos-acao/TabelaAcoes";
 import { BotaoIcone } from "../../components/common/BotaoIcone";
 import { ConfirmModal } from "../../components/common/ConfirmModal";
+import { PageHeader } from "../../components/common/PageHeader";
 import { IconeEditar, IconeExcluir } from "../../components/common/icones";
 import { Button } from "../../components/forms/Button";
 import { DropdownInstituicao } from "../../components/forms/DropdownInstituicao";
@@ -246,7 +247,51 @@ export function PlanosAcaoPage() {
 
   return (
     <section>
-      <h1>Planos de ação</h1>
+      <PageHeader titulo="Planos de ação">
+        <p>
+          Um Plano de ação organiza as ações que a instituição vai tomar
+          pra tratar os riscos psicossociais identificados no diagnóstico,
+          agrupadas por ciclo (ex.: um semestre).
+        </p>
+        <h3>Escolher instituição e ciclo</h3>
+        <ul>
+          <li>
+            Selecione a instituição no topo; depois escolha um ciclo já
+            existente no dropdown, ou crie um novo em "Novo ciclo".
+          </li>
+          <li>
+            O lápis ao lado do ciclo renomeia; a lixeira exclui o ciclo
+            inteiro (ações, tarefas e dependências) — não pode ser desfeito.
+          </li>
+        </ul>
+        <h3>As três visualizações</h3>
+        <ul>
+          <li>
+            <strong>Kanban</strong>: arraste as ações entre as colunas de
+            status (pendente/em andamento/concluído).
+          </li>
+          <li>
+            <strong>Tabela</strong>: lista todas as ações com filtros e
+            ordenação, boa pra revisar tudo de uma vez.
+          </li>
+          <li>
+            <strong>Calendário</strong>: mostra as ações no mês do prazo —
+            clique num item pra abrir os detalhes.
+          </li>
+        </ul>
+        <h3>Ações</h3>
+        <ul>
+          <li>
+            "Nova ação" abre o formulário de cadastro (título, prazo,
+            responsável, tarefas, dependências de outras ações).
+          </li>
+          <li>
+            "Gerar sugestões a partir do diagnóstico" usa a IA (se
+            habilitada) pra propor ações com base nos resultados do
+            questionário — sempre revise antes de manter.
+          </li>
+        </ul>
+      </PageHeader>
       {erro && (
         <p role="alert" style={{ color: "var(--cor-perigo)" }}>
           {erro}

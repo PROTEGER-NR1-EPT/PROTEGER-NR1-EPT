@@ -2,10 +2,6 @@
   padding: var(--espaco-5) 0;
 }
 
-.titulo {
-  margin: 0 0 var(--espaco-4);
-}
-
 .erro {
   color: var(--cor-perigo);
   background: var(--cor-perigo-fundo);

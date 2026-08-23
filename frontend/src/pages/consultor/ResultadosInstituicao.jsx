@@ -11,6 +11,7 @@ import {
   obterResultadosDashboard,
 } from "../../api/consultor";
 import { CopsoqDominioBadge } from "../../components/resultados/CopsoqDominioBadge";
+import { PageHeader } from "../../components/common/PageHeader";
 import { KarasekQuadrante } from "../../components/resultados/KarasekQuadrante";
 import { ResultadoIndisponivel } from "../../components/resultados/ResultadoIndisponivel";
 import { ResultadosDashboard } from "../../components/resultados/ResultadosDashboard";
@@ -81,7 +82,33 @@ export function ResultadosInstituicao() {
         <Link to="/consultor" className={styles.voltar}>
           ← Minhas instituições
         </Link>
-        <h1 className={styles.titulo}>{instituicao?.nome ?? "Resultados agregados"}</h1>
+        <PageHeader titulo={instituicao?.nome ?? "Resultados agregados"}>
+          <p>
+            Resultados agregados de uma instituição vinculada a você,
+            protegidos por k-anonimato — grupos (setor + questionário) com
+            respostas insuficientes pra preservar o anonimato de quem
+            respondeu simplesmente não aparecem ainda.
+          </p>
+          <h3>Painel do topo</h3>
+          <p>
+            Cards-resumo, radar de dimensões e mapa de risco — as mesmas
+            visualizações do painel de Resultados do Administrador, só que
+            já filtradas pra esta instituição.
+          </p>
+          <h3>Resultados por setor</h3>
+          <p>
+            Abaixo do painel, os resultados aparecem agrupados por setor:
+            quadrante de Karasek (demanda × controle) pra questionários
+            Karasek, selos de nível de risco por domínio pra questionários
+            COPSOQ.
+          </p>
+          <h3>Memória institucional</h3>
+          <p>
+            No fim da página, um histórico de registros (eventos, decisões,
+            observações) relevantes pra entender o contexto da instituição
+            ao longo do tempo.
+          </p>
+        </PageHeader>
         {instituicao && (instituicao.municipio || instituicao.uf) && (
           <p className={styles.subtitulo}>
             {[instituicao.municipio, instituicao.uf].filter(Boolean).join(" — ")}

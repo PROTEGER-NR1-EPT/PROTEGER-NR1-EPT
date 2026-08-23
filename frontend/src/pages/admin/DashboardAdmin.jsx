@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 
 import { obterEstatisticas } from "../../api/admin";
+import { PageHeader } from "../../components/common/PageHeader";
 import { useAuth } from "../../hooks/useAuth";
 import tabela from "../../styles/tabela.module.css";
 import styles from "./DashboardAdmin.module.css";
@@ -90,7 +91,33 @@ export function DashboardAdmin() {
 
   return (
     <section>
-      <h1>Painel do Administrador</h1>
+      <PageHeader titulo="Painel do Administrador">
+        <p>
+          Tela inicial do painel, com um resumo geral do sistema — pra
+          gerenciar algo específico, use o menu lateral.
+        </p>
+        <h3>Cards de estatística</h3>
+        <p>
+          Totais de instituições, questionários, usuários e respostas
+          (com quantas vieram nos últimos 7 e 30 dias), pra ter uma ideia
+          rápida do tamanho e do ritmo de uso do sistema.
+        </p>
+        <h3>Aviso de k-anonimato</h3>
+        <p>
+          Se aparecer, indica quantos grupos (instituição + setor +
+          questionário) já têm pelo menos uma resposta mas ainda não
+          atingiram o mínimo exigido pra proteger o anonimato de quem
+          respondeu — por isso o resultado deles ainda não fica visível em
+          "Resultados". Por privacidade, o aviso não identifica quais
+          grupos são.
+        </p>
+        <h3>Respostas por instituição</h3>
+        <p>
+          Ranking das instituições com mais respostas registradas — útil
+          pra ver rapidamente onde a adesão ao diagnóstico está maior ou
+          menor.
+        </p>
+      </PageHeader>
       <p>
         Olá, {usuario?.nome}. Use o menu para gerenciar instituições,
         setores, questionários, usuários, configurações do sistema,

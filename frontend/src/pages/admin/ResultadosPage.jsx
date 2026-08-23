@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import * as adminApi from "../../api/admin";
 import { Button } from "../../components/forms/Button";
+import { PageHeader } from "../../components/common/PageHeader";
 import { ResultadosDashboard } from "../../components/resultados/ResultadosDashboard";
 import formStyles from "../../components/forms/FormField.module.css";
 import styles from "./ResultadosPage.module.css";
@@ -94,7 +95,39 @@ export function ResultadosPage() {
 
   return (
     <section>
-      <h1 className={styles.titulo}>Resultados</h1>
+      <PageHeader titulo="Resultados">
+        <p>
+          Painel agregado dos resultados do diagnóstico, já protegido por
+          k-anonimato — grupos com respostas insuficientes pra preservar o
+          anonimato de quem respondeu simplesmente não aparecem.
+        </p>
+        <h3>Abas</h3>
+        <ul>
+          <li>
+            <strong>Visão geral</strong>: cards-resumo (grupos avaliados,
+            respostas somadas, dimensões em risco alto/crítico) e o radar
+            comparando as dimensões avaliadas.
+          </li>
+          <li>
+            <strong>Mapa de risco</strong>: mapa de calor cruzando
+            instituição/setor/questionário com o nível de risco de cada
+            dimensão — bom pra achar rápido onde o problema está
+            concentrado.
+          </li>
+          <li>
+            <strong>Análise IA</strong> (se habilitada): um resumo
+            interpretativo dos resultados gerado por IA, complementar aos
+            números — sempre trate como apoio, não como conclusão pronta.
+          </li>
+        </ul>
+        <h3>Filtros</h3>
+        <p>
+          No rodapé da tela, filtre por instituição, setor, questionário
+          e/ou instrumento (Karasek, COPSOQ ou misto) e clique em "Aplicar
+          filtros" — sem nada selecionado, mostra todos os dados
+          disponíveis. "Limpar filtros" volta pra visão completa.
+        </p>
+      </PageHeader>
       {erro && (
         <p role="alert" style={{ color: "var(--cor-perigo)" }}>
           {erro}

@@ -7,6 +7,7 @@ import * as adminApi from "../../api/admin";
 import { BotaoIcone } from "../../components/common/BotaoIcone";
 import { Button } from "../../components/forms/Button";
 import { ConfirmModal } from "../../components/common/ConfirmModal";
+import { PageHeader } from "../../components/common/PageHeader";
 import { IconeEditar, IconeExcluir } from "../../components/common/icones";
 import { PreviewQuestionario } from "../../components/questionario/PreviewQuestionario";
 import formStyles from "../../components/forms/FormField.module.css";
@@ -274,7 +275,52 @@ export function QuestionariosPage() {
 
   return (
     <section>
-      <h1>Questionários</h1>
+      <PageHeader titulo="Questionários">
+        <p>
+          Cada questionário é o instrumento que uma instituição usa pra
+          coletar respostas — pode misturar domínios de instrumentos
+          diferentes (ex.: Karasek + COPSOQ) no mesmo questionário. Vários
+          questionários podem ficar ativos ao mesmo tempo; cada instituição
+          escolhe qual usa em "Instituições e setores".
+        </p>
+        <h3>Lista</h3>
+        <ul>
+          <li>
+            "Pré-visualizar" mostra como o questionário aparece pra quem
+            responde, sem salvar nada.
+          </li>
+          <li>
+            "Ativar"/"Desativar" controla se ele fica disponível pra ser
+            vinculado a instituições — não apaga nada.
+          </li>
+          <li>
+            A lixeira exclui de vez; só funciona se ainda não houver
+            respostas registradas (senão, desative em vez de excluir).
+          </li>
+        </ul>
+        <h3>Formulário de criação/edição</h3>
+        <ul>
+          <li>
+            Um questionário é organizado em domínios, e cada domínio tem uma
+            lista de itens (as perguntas). "Adicionar domínio"/"Adicionar
+            item" crescem essa estrutura.
+          </li>
+          <li>
+            No domínio do instrumento Karasek, a "Chave" precisa ser
+            exatamente "demanda" ou "controle" — é como o backend calcula o
+            escore.
+          </li>
+          <li>
+            "Pontuação invertida" inverte a escala de um item específico
+            (útil pra itens redigidos ao contrário dos demais do domínio).
+          </li>
+          <li>
+            Se disponível, "Gerar com IA" cria um rascunho de domínios e
+            itens a partir de uma descrição em texto livre — sempre revise
+            antes de salvar.
+          </li>
+        </ul>
+      </PageHeader>
       {erro && (
         <p role="alert" style={{ color: "var(--cor-perigo)" }}>
           {erro}

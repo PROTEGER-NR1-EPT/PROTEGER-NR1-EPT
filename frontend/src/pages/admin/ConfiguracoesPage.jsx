@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import * as adminApi from "../../api/admin";
 import { ConfirmModal } from "../../components/common/ConfirmModal";
+import { PageHeader } from "../../components/common/PageHeader";
 import { Button } from "../../components/forms/Button";
 import { DropdownInstituicao } from "../../components/forms/DropdownInstituicao";
 import { DropdownSetor } from "../../components/forms/DropdownSetor";
@@ -441,7 +442,57 @@ export function ConfiguracoesPage() {
 
   return (
     <section>
-      <h1>Configurações do sistema</h1>
+      <PageHeader titulo="Configurações do sistema">
+        <p>
+          Ajustes globais que afetam o sistema inteiro, organizados em
+          abas. A maioria fica só sob efeito depois de clicar em "Salvar
+          configurações" no fim da tela — as três últimas abas são
+          exceções, com ações próprias e imediatas.
+        </p>
+        <h3>k-anonimato</h3>
+        <p>
+          Define o número mínimo de respostas que um grupo (instituição +
+          setor + questionário) precisa ter antes do resultado dele
+          aparecer em "Resultados" — protege o anonimato de quem
+          respondeu. Aumentar o valor deixa os resultados mais seguros mas
+          demora mais pra aparecerem; diminuir mostra resultados mais cedo,
+          com menos proteção.
+        </p>
+        <h3>Recursos de IA</h3>
+        <p>
+          Liga/desliga, um a um, os três recursos opcionais que usam IA:
+          chat de ajuda contextual, criação assistida de questionário e
+          análise assistida de resultados. Desligados por padrão — só
+          funcionam se também houver um provedor LLM configurado na aba
+          seguinte.
+        </p>
+        <h3>Provedor LLM</h3>
+        <p>
+          Configura qual provedor de IA (OpenAI, Anthropic, Gemini etc.),
+          modelo e chave de API alimentam os recursos de IA da aba
+          anterior — é o único lugar do sistema que fala com esse
+          provedor.
+        </p>
+        <h3>Exportação de dados</h3>
+        <p>
+          Baixa em CSV os dados brutos do sistema (respostas, resultados
+          agregados, planos de ação etc.) — cada exportação fica registrada
+          no log de atividade, já que pode conter dados sensíveis.
+        </p>
+        <h3>Log de atividade</h3>
+        <p>
+          Histórico de ações administrativas sensíveis (quem exportou o
+          quê, mudanças de configuração, resets) — pra auditoria, não é
+          editável.
+        </p>
+        <h3>Resetar sistema</h3>
+        <p>
+          Apaga permanentemente respostas e/ou outros dados do sistema —
+          ação destrutiva e irreversível, protegida por uma frase de
+          confirmação. Use só se tiver certeza absoluta do que está
+          fazendo.
+        </p>
+      </PageHeader>
       {erro && (
         <p role="alert" style={{ color: "var(--cor-perigo)" }}>
           {erro}

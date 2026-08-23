@@ -1,0 +1,13 @@
+.cabecalho {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-4);
+}
+
+.titulo {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}

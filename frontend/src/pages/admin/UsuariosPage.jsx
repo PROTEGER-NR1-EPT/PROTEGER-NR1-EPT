@@ -7,6 +7,7 @@ import * as adminApi from "../../api/admin";
 import { BotaoIcone } from "../../components/common/BotaoIcone";
 import { Button } from "../../components/forms/Button";
 import { ConfirmModal } from "../../components/common/ConfirmModal";
+import { PageHeader } from "../../components/common/PageHeader";
 import { IconeEditar, IconeExcluir } from "../../components/common/icones";
 import formStyles from "../../components/forms/FormField.module.css";
 import tabela from "../../styles/tabela.module.css";
@@ -149,7 +150,42 @@ export function UsuariosPage() {
 
   return (
     <section>
-      <h1>Usuários</h1>
+      <PageHeader titulo="Usuários">
+        <p>
+          Cadastro dos Consultores e Administradores que têm acesso ao
+          sistema — não confundir com quem responde o questionário, que não
+          faz login. A tela tem duas abas:
+        </p>
+        <h3>Aba "Usuários"</h3>
+        <ul>
+          <li>
+            A tabela lista todos os usuários cadastrados, com papel, as
+            instituições vinculadas a cada Consultor e o status (ativo/inativo).
+          </li>
+          <li>
+            Use "Novo usuário" para cadastrar um Consultor ou Administrador —
+            você define uma senha provisória que a pessoa deve trocar no
+            primeiro acesso.
+          </li>
+          <li>
+            O lápis edita nome, e-mail e papel; a lixeira desativa o usuário
+            (ele deixa de conseguir logar, mas o histórico é preservado e dá
+            pra reativar a qualquer momento pelo botão "Reativar").
+          </li>
+        </ul>
+        <h3>Aba "Vínculos institucionais"</h3>
+        <ul>
+          <li>
+            Um Consultor só enxerga e atua nas instituições vinculadas a ele
+            — aqui você escolhe o Consultor e uma ou mais instituições
+            (Ctrl/Cmd + clique para selecionar várias) e clica em "Vincular".
+          </li>
+          <li>
+            Pra desfazer um vínculo, volte na aba "Usuários" e clique no "×"
+            do chip da instituição, na coluna "Instituições" da tabela.
+          </li>
+        </ul>
+      </PageHeader>
       {erro && (
         <p role="alert" style={{ color: "var(--cor-perigo)" }}>
           {erro}

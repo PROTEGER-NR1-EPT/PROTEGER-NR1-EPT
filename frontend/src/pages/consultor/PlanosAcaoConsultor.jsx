@@ -9,6 +9,7 @@ import { DetalhesAcaoModal } from "../../components/planos-acao/DetalhesAcaoModa
 import { KanbanAcoes } from "../../components/planos-acao/KanbanAcoes";
 import { TabelaAcoes } from "../../components/planos-acao/TabelaAcoes";
 import { DropdownInstituicao } from "../../components/forms/DropdownInstituicao";
+import { PageHeader } from "../../components/common/PageHeader";
 import formStyles from "../../components/forms/FormField.module.css";
 import styles from "./PlanosAcaoConsultor.module.css";
 
@@ -91,7 +92,34 @@ export function PlanosAcaoConsultor() {
 
   return (
     <section>
-      <h1>Planos de ação</h1>
+      <PageHeader titulo="Planos de ação">
+        <p>
+          Acompanhamento dos planos de ação das instituições vinculadas a
+          você — organizados por ciclo (ex.: um semestre). Esta tela é
+          somente leitura: criar ciclos/ações, editar, excluir ou mover o
+          status de uma ação é exclusivo do Administrador.
+        </p>
+        <h3>Escolher instituição e ciclo</h3>
+        <p>
+          Selecione a instituição no topo e, se ela tiver mais de um ciclo
+          cadastrado, escolha qual quer ver no dropdown de ciclo.
+        </p>
+        <h3>As três visualizações</h3>
+        <ul>
+          <li>
+            <strong>Kanban</strong>: ações agrupadas por status (pendente/em
+            andamento/concluído).
+          </li>
+          <li>
+            <strong>Tabela</strong>: lista todas as ações, boa pra revisar
+            tudo de uma vez.
+          </li>
+          <li>
+            <strong>Calendário</strong>: ações posicionadas no mês do prazo.
+          </li>
+        </ul>
+        <p>Em qualquer uma delas, clique numa ação pra ver os detalhes completos.</p>
+      </PageHeader>
       {erro && (
         <p role="alert" style={{ color: "var(--cor-perigo)" }}>
           {erro}
