@@ -172,7 +172,7 @@ export function UsuariosPage() {
         ))}
       </div>
 
-      <div className={tabela.secaoAdmin} hidden={abaAtiva !== "usuarios"}>
+      <div className={`${styles.cartao} ${styles.cartaoLargo}`} hidden={abaAtiva !== "usuarios"}>
         <h2>Usuários cadastrados</h2>
         {carregando ? (
           <p>Carregando...</p>
@@ -316,7 +316,7 @@ export function UsuariosPage() {
         </form>
       </div>
 
-      <div className={tabela.secaoAdmin} hidden={abaAtiva !== "vinculos"}>
+      <div className={styles.cartao} hidden={abaAtiva !== "vinculos"}>
         <h2>Vincular Consultor a instituições</h2>
         <form onSubmit={handleVincular} style={{ maxWidth: "28rem" }}>
           <div className={formStyles.campo}>

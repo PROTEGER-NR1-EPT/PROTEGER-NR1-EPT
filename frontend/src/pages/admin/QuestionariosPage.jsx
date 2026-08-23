@@ -282,7 +282,7 @@ export function QuestionariosPage() {
       )}
       {mensagem && <p role="status">{mensagem}</p>}
 
-      <div className={tabela.secaoAdmin}>
+      <div className={`${styles.cartao} ${styles.cartaoLargo}`}>
         <h2>Questionários cadastrados</h2>
         <p>
           Vários questionários podem estar ativos ao mesmo tempo — cada
@@ -358,7 +358,7 @@ export function QuestionariosPage() {
         )}
       </div>
 
-      <div className={tabela.secaoAdmin}>
+      <div className={`${styles.cartao} ${styles.cartaoLargo}`}>
         <h2>{editandoId ? "Editar questionário" : "Novo questionário"}</h2>
 
         {!editandoId && sugestaoDisponivel && !mostrarPainelIa && (

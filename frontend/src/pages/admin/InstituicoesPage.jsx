@@ -11,11 +11,18 @@ import { DropdownInstituicao } from "../../components/forms/DropdownInstituicao"
 import { IconeEditar, IconeExcluir } from "../../components/common/icones";
 import formStyles from "../../components/forms/FormField.module.css";
 import tabela from "../../styles/tabela.module.css";
+import styles from "./InstituicoesPage.module.css";
 
 const INSTITUICAO_VAZIA = { nome: "", uf: "", municipio: "", questionario_id: "" };
 const SETOR_VAZIO = { nome: "" };
 
+const ABAS = [
+  { valor: "instituicoes", rotulo: "Instituições" },
+  { valor: "setores", rotulo: "Setores" },
+];
+
 export function InstituicoesPage() {
+  const [abaAtiva, setAbaAtiva] = useState("instituicoes");
   const [instituicoes, setInstituicoes] = useState([]);
   const [questionarios, setQuestionarios] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -206,7 +213,25 @@ export function InstituicoesPage() {
         </p>
       )}
 
-      <div className={tabela.secaoAdmin}>
+      <div className={styles.abas} role="tablist" aria-label="Categorias de instituições">
+        {ABAS.map((aba) => (
+          <button
+            key={aba.valor}
+            type="button"
+            role="tab"
+            aria-selected={abaAtiva === aba.valor}
+            className={`${styles.aba} ${abaAtiva === aba.valor ? styles.abaAtiva : ""}`}
+            onClick={() => setAbaAtiva(aba.valor)}
+          >
+            {aba.rotulo}
+          </button>
+        ))}
+      </div>
+
+      <div
+        className={`${styles.cartao} ${styles.cartaoLargo}`}
+        hidden={abaAtiva !== "instituicoes"}
+      >
         <h2>Instituições cadastradas</h2>
         {carregando ? (
           <p>Carregando...</p>
@@ -361,7 +386,10 @@ export function InstituicoesPage() {
         </form>
       </div>
 
-      <div className={tabela.secaoAdmin}>
+      <div
+        className={`${styles.cartao} ${styles.cartaoLargo}`}
+        hidden={abaAtiva !== "setores"}
+      >
         <h2>Setores</h2>
         <p>Selecione uma instituição para ver e gerenciar seus setores.</p>
         <DropdownInstituicao

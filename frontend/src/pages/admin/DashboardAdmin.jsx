@@ -166,7 +166,7 @@ export function DashboardAdmin() {
             </div>
           )}
 
-          <div className={tabela.secaoAdmin}>
+          <div className={`${tabela.secaoAdmin} ${styles.cartao}`}>
             <h2>Respostas por instituição</h2>
             {estatisticas.por_instituicao.length === 0 ? (
               <p className={tabela.semDados}>Ainda não há respostas registradas.</p>

@@ -1,3 +1,17 @@
+.cartao {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  background: var(--cor-fundo);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: var(--espaco-4);
+  margin-bottom: var(--espaco-4);
+  max-width: 32rem;
+}
+
+.cartaoLargo {
+  max-width: none;
+}
+
 .dominioForm {
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-borda);

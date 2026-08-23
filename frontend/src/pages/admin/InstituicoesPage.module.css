@@ -40,36 +40,3 @@
 .cartaoLargo {
   max-width: none;
 }
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: var(--cor-fundo-alt);
-  border: 1px solid var(--cor-borda);
-  border-radius: 999px;
-  padding: 0.15rem 0.4rem 0.15rem 0.6rem;
-  font-size: 0.85rem;
-  margin: 0.15rem 0.25rem 0.15rem 0;
-}
-
-.chipRemover {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.1rem;
-  height: 1.1rem;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--cor-texto-secundario);
-  cursor: pointer;
-  font-size: 0.9rem;
-  line-height: 1;
-  padding: 0;
-}
-
-.chipRemover:hover {
-  background: var(--cor-perigo-fundo);
-  color: var(--cor-perigo);
-}
