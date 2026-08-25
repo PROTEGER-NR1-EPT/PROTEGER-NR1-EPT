@@ -1,0 +1,47 @@
+.secao {
+  padding: var(--espaco-5) 0;
+}
+
+.cartao {
+  max-width: 24rem;
+  margin: 0 auto;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  padding: var(--espaco-4);
+  text-align: center;
+}
+
+.spinner {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  margin: 0 auto var(--espaco-3);
+  border: 3px solid var(--cor-borda);
+  border-top-color: var(--cor-primaria);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mensagem {
+  margin: 0;
+  color: var(--cor-texto);
+}
+
+.mensagemSecundaria {
+  margin: var(--espaco-2) 0 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.9rem;
+}

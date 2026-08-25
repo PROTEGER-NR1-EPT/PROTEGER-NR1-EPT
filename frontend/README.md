@@ -219,3 +219,10 @@ mensagem clara (não um erro de rede genérico) apontando para
 Build estático (Vite) na **Vercel**, configurando `VITE_API_BASE_URL`
 como variável de ambiente do projeto na Vercel, apontando para o backend
 publicado no Render.
+
+`vercel.json` (na raiz de `frontend/`) reescreve qualquer caminho para
+`/index.html` — sem isso, dar F5 (ou acessar direto) em qualquer rota do
+React Router que não seja `/` (ex.: `/login`, `/admin`) resulta em 404
+NOT_FOUND da Vercel, porque ela tenta resolver o caminho como um arquivo
+estático em vez de deixar o roteamento client-side (React Router) cuidar
+disso.

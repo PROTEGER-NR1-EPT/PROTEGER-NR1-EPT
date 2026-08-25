@@ -3,6 +3,7 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 
+import { CarregandoSessao } from "../components/common/CarregandoSessao";
 import { useAuth } from "../hooks/useAuth";
 
 const HOME_POR_PAPEL = {
@@ -23,7 +24,7 @@ export function PublicRoute() {
   const { estaAutenticado, papel, carregando } = useAuth();
 
   if (carregando) {
-    return null;
+    return <CarregandoSessao />;
   }
 
   if (estaAutenticado) {

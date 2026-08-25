@@ -3,6 +3,7 @@
 
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
+import { CarregandoSessao } from "../components/common/CarregandoSessao";
 import { useAuth } from "../hooks/useAuth";
 
 const HOME_POR_PAPEL = {
@@ -24,7 +25,7 @@ export function ProtectedRoute({ papeisPermitidos }) {
   const location = useLocation();
 
   if (carregando) {
-    return null;
+    return <CarregandoSessao />;
   }
 
   if (!estaAutenticado) {

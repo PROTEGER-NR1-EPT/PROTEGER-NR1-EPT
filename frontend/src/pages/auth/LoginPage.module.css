@@ -56,3 +56,10 @@
   width: 100%;
   margin-top: var(--espaco-2);
 }
+
+.mensagemDemora {
+  color: var(--cor-texto-secundario);
+  font-size: 0.85rem;
+  margin: var(--espaco-2) 0 0;
+  text-align: center;
+}

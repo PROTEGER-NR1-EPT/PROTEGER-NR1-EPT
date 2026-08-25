@@ -1,7 +1,7 @@
 // Copyright PROTEGER-NR1 EPT (https://github.com/PROTEGER-NR1-EPT/PROTEGER-NR1-EPT)
 // Licenciado sob PolyForm Noncommercial 1.0.0 — veja o arquivo LICENSE na raiz do projeto.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "../../components/forms/Button";
@@ -40,6 +40,19 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState(null);
+  // Mostrado só se o login demorar mais que o normal — evita flash da
+  // mensagem no caminho comum, mas avisa quando o backend (Render, plano
+  // free) está "acordando" após um período sem tráfego.
+  const [entrandoDemorado, setEntrandoDemorado] = useState(false);
+
+  useEffect(() => {
+    if (!entrando) {
+      setEntrandoDemorado(false);
+      return;
+    }
+    const timer = setTimeout(() => setEntrandoDemorado(true), 4000);
+    return () => clearTimeout(timer);
+  }, [entrando]);
 
   async function handleSubmit(evento) {
     evento.preventDefault();
@@ -105,6 +118,13 @@ export function LoginPage() {
             <Button type="submit" className={styles.botaoEntrar} disabled={entrando}>
               {entrando ? "Entrando..." : "Entrar"}
             </Button>
+
+            {entrandoDemorado && (
+              <p className={styles.mensagemDemora} role="status">
+                Isso está demorando mais que o normal. O servidor pode estar iniciando após um
+                período sem uso — aguarde mais alguns instantes.
+              </p>
+            )}
           </form>
         </div>
       </div>
