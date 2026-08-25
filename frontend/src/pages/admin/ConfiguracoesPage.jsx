@@ -66,6 +66,22 @@ function IconeIA({ className }) {
   );
 }
 
+function IconeAcessibilidade({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
+      <circle cx="12" cy="5" r="2" fill="currentColor" />
+      <path
+        d="M5 9h14M12 9v6M12 15l-4 6M12 15l4 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function IconeConexao({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true" focusable="false">
@@ -138,6 +154,7 @@ const ABAS = [
   { valor: "k-anonimato", rotulo: "k-anonimato" },
   { valor: "ia", rotulo: "Recursos de IA" },
   { valor: "llm", rotulo: "Provedor LLM" },
+  { valor: "acessibilidade", rotulo: "Acessibilidade" },
   { valor: "exportacao", rotulo: "Exportação de dados" },
   { valor: "logs", rotulo: "Log de atividade" },
   { valor: "reset", rotulo: "Resetar sistema" },
@@ -148,7 +165,7 @@ const ABAS = [
 // confirmação) não podem ficar dentro do <form onSubmit={handleSalvar}>
 // das configurações de fato — o form inteiro (incluindo o botão "Salvar
 // configurações") fica oculto nessas três abas.
-const ABAS_FORM_CONFIG = ["k-anonimato", "ia", "llm"];
+const ABAS_FORM_CONFIG = ["k-anonimato", "ia", "llm", "acessibilidade"];
 
 // Base URLs oficiais (documentação de cada provedor) para o endpoint
 // compatível com OpenAI — preenchidas automaticamente ao trocar de
@@ -411,6 +428,7 @@ export function ConfiguracoesPage() {
         ia_sugestao_questionario_enabled: config.ia_sugestao_questionario_enabled,
         ia_analise_resultados_enabled: config.ia_analise_resultados_enabled,
         ia_chat_enabled: config.ia_chat_enabled,
+        acessibilidade_widget_enabled: config.acessibilidade_widget_enabled,
         llm_provider: config.llm_provider,
         llm_base_url: config.llm_base_url,
         llm_model: config.llm_model,
@@ -472,6 +490,14 @@ export function ConfiguracoesPage() {
           modelo e chave de API alimentam os recursos de IA da aba
           anterior — é o único lugar do sistema que fala com esse
           provedor.
+        </p>
+        <h3>Acessibilidade</h3>
+        <p>
+          Liga/desliga o botão flutuante de acessibilidade (tamanho de
+          fonte e alto contraste) que aparece em todo o site — inclusive
+          para quem não está logado. Desativar aqui remove o botão de
+          todo mundo; cada visitante continua controlando fonte/contraste
+          por conta própria enquanto o botão estiver visível.
         </p>
         <h3>Exportação de dados</h3>
         <p>
@@ -680,6 +706,31 @@ export function ConfiguracoesPage() {
               onChange={(e) => setNovaChaveApi(e.target.value)}
               placeholder={config.llm_api_key_configurada ? "••••••••" : ""}
             />
+          </div>
+        </div>
+
+        <div className={styles.cartao} hidden={abaAtiva !== "acessibilidade"}>
+          <div className={styles.cabecalhoCartao}>
+            <IconeAcessibilidade className={styles.iconeCartao} />
+            <h2 className={styles.tituloCartao}>Acessibilidade</h2>
+          </div>
+          <p className={styles.descricaoCartao}>
+            Controla o botão flutuante de acessibilidade (ajuste de tamanho
+            de fonte e alto contraste) que aparece no canto da tela em todo
+            o site — inclusive para quem não está logado.
+          </p>
+
+          <div className={styles.listaToggles}>
+            <label className={styles.toggle}>
+              <input
+                type="checkbox"
+                checked={config.acessibilidade_widget_enabled}
+                onChange={(e) =>
+                  setConfig({ ...config, acessibilidade_widget_enabled: e.target.checked })
+                }
+              />
+              Mostrar o widget de acessibilidade
+            </label>
           </div>
         </div>
 

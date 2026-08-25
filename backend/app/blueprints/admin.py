@@ -1104,6 +1104,7 @@ def obter_configuracoes():
         "ia_sugestao_questionario_enabled": config.ia_sugestao_questionario_enabled,
         "ia_analise_resultados_enabled": config.ia_analise_resultados_enabled,
         "ia_chat_enabled": config.ia_chat_enabled,
+        "acessibilidade_widget_enabled": config.acessibilidade_widget_enabled,
         "llm_provider": config.llm_provider,
         "llm_base_url": config.llm_base_url,
         "llm_model": config.llm_model,
@@ -1143,6 +1144,7 @@ def atualizar_configuracoes(body: AtualizarConfiguracoesBody):
         "ia_sugestao_questionario_enabled",
         "ia_analise_resultados_enabled",
         "ia_chat_enabled",
+        "acessibilidade_widget_enabled",
     ):
         if campo in dados:
             setattr(config, campo, bool(dados[campo]))

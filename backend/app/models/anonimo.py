@@ -195,6 +195,12 @@ class ConfiguracaoSistema(db.Model):
     )
     ia_chat_enabled = db.Column(db.Boolean, nullable=False, default=False)
 
+    # Ao contrário dos toggles de IA acima (opt-in, default False), este é
+    # opt-out (default True) — o widget de acessibilidade (fonte/contraste)
+    # fica visível para todo mundo, inclusive visitantes não autenticados,
+    # a menos que um Administrador desligue explicitamente.
+    acessibilidade_widget_enabled = db.Column(db.Boolean, nullable=False, default=True)
+
     llm_provider = db.Column(db.String(30), nullable=True)
     llm_api_key = db.Column(db.String(255), nullable=True)
     llm_base_url = db.Column(db.String(255), nullable=True)

@@ -10,6 +10,7 @@ from app.extensions import db
 from app.models.anonimo import Instituicao, Questionario, RespostaBruta, Setor
 from app.schemas.comuns import respostas_erro
 from app.schemas.publico import (
+    ConfiguracoesPublicasResponse,
     EnviarRespostaBody,
     EnviarRespostaResponse,
     InstituicaoIdPath,
@@ -18,7 +19,7 @@ from app.schemas.publico import (
     QuestionarioAtivoQuery,
     QuestionarioAtivoResponse,
 )
-from app.services.k_anonimato import recalcular_resultados
+from app.services.k_anonimato import obter_configuracao, recalcular_resultados
 
 # Rotas sem autenticação. O Usuário respondente nunca vê o nome do
 # instrumento, cálculo de quadrante/domínio ou qualquer dado agregado
@@ -33,6 +34,17 @@ tag = Tag(
     ),
 )
 bp = APIBlueprint("publico", __name__, abp_tags=[tag])
+
+
+@bp.get(
+    "/configuracoes-publicas",
+    summary="Configurações do sistema seguras para expor sem login",
+    description="Único subconjunto de configuracoes_sistema visível sem autenticação — hoje só o toggle do widget de acessibilidade.",
+    responses={200: ConfiguracoesPublicasResponse},
+)
+def obter_configuracoes_publicas():
+    config = obter_configuracao()
+    return {"acessibilidade_widget_enabled": config.acessibilidade_widget_enabled}
 
 
 @bp.get(

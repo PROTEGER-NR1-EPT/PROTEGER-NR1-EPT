@@ -3,6 +3,11 @@
 
 import { api } from "./client";
 
+export async function obterConfiguracoesPublicas() {
+  const { data } = await api.get("/configuracoes-publicas");
+  return data;
+}
+
 export async function listarInstituicoes() {
   const { data } = await api.get("/instituicoes");
   return data;

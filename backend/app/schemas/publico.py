@@ -86,6 +86,17 @@ class EnviarRespostaBody(BaseModel):
     )
 
 
+class ConfiguracoesPublicasResponse(BaseModel):
+    """Único subconjunto de `configuracoes_sistema` exposto sem
+    autenticação — hoje só o toggle do widget de acessibilidade, que
+    precisa ser lido inclusive por visitantes não logados (Header.jsx é
+    montado em toda rota, pública ou não)."""
+
+    acessibilidade_widget_enabled: bool = Field(
+        ..., description="Se false, o frontend não deve mostrar o widget flutuante de acessibilidade."
+    )
+
+
 class EnviarRespostaResponse(BaseModel):
     confirmado: bool = Field(
         True,

@@ -43,6 +43,7 @@ def _valores_padrao() -> dict:
         "ia_sugestao_questionario_enabled": False,
         "ia_analise_resultados_enabled": False,
         "ia_chat_enabled": False,
+        "acessibilidade_widget_enabled": True,
         "llm_provider": current_app.config["LLM_PROVIDER_DEFAULT"],
         "llm_api_key": current_app.config["LLM_API_KEY_DEFAULT"],
         "llm_base_url": current_app.config["LLM_BASE_URL_DEFAULT"],

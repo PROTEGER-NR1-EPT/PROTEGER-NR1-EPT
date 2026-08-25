@@ -57,6 +57,29 @@
   font-size: 0.8rem;
 }
 
+@media (max-width: 639px) {
+  .grade {
+    text-align: center;
+  }
+
+  .colSobre p {
+    margin: 0 auto;
+  }
+
+  .coluna {
+    align-items: center;
+  }
+
+  .badges {
+    justify-content: center;
+  }
+
+  .baixoConteudo {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
 @media (min-width: 640px) {
   .grade {
     grid-template-columns: 2fr 1fr 1fr;

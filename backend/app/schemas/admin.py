@@ -371,6 +371,9 @@ class ConfiguracoesResponse(BaseModel):
     ia_sugestao_questionario_enabled: bool
     ia_analise_resultados_enabled: bool
     ia_chat_enabled: bool
+    acessibilidade_widget_enabled: bool = Field(
+        ..., description="Se false, o widget flutuante de acessibilidade (fonte/contraste) some de todo o site, inclusive para visitantes não autenticados."
+    )
     llm_provider: Optional[str] = Field(None, examples=["anthropic"])
     llm_base_url: Optional[str] = None
     llm_model: Optional[str] = Field(None, examples=["claude-sonnet-5"])
@@ -384,6 +387,7 @@ class AtualizarConfiguracoesBody(BaseModel):
     ia_sugestao_questionario_enabled: Optional[bool] = None
     ia_analise_resultados_enabled: Optional[bool] = None
     ia_chat_enabled: Optional[bool] = None
+    acessibilidade_widget_enabled: Optional[bool] = None
     llm_provider: Optional[str] = Field(
         None, description="anthropic, openai, gemini, openrouter, nvidia_build ou cohere (docs/08)."
     )

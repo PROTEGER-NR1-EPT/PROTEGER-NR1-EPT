@@ -6,6 +6,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AcessibilidadeWidget } from "../acessibilidade/AcessibilidadeWidget";
 import { ChatAjudaWidget } from "../chat/ChatAjudaWidget";
 import { IconeEntrar } from "../common/icones";
+import { useAcessibilidadeDisponivel } from "../../hooks/useAcessibilidadeDisponivel";
 import { useAuth } from "../../hooks/useAuth";
 import { useChatDisponivel } from "../../hooks/useChatDisponivel";
 import styles from "./Header.module.css";
@@ -20,6 +21,7 @@ export function Header() {
   const { pathname } = useLocation();
   const papelValido = papel === "consultor" || papel === "administrador";
   const chatDisponivel = useChatDisponivel(estaAutenticado && papelValido);
+  const acessibilidadeDisponivel = useAcessibilidadeDisponivel();
   const naPaginaAssistenteIa = ROTAS_SEM_WIDGET_CHAT.includes(pathname);
 
   async function handleSair() {
@@ -29,7 +31,7 @@ export function Header() {
 
   return (
     <header className={styles.cabecalho}>
-      <AcessibilidadeWidget />
+      {acessibilidadeDisponivel && <AcessibilidadeWidget />}
       {estaAutenticado && papelValido && chatDisponivel && !naPaginaAssistenteIa && (
         <ChatAjudaWidget />
       )}
