@@ -10,6 +10,7 @@ opcionais e a rota só altera o que foi explicitamente enviado no payload
 "campo enviado como null".
 """
 
+from datetime import datetime
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field, RootModel
@@ -236,6 +237,13 @@ class UsuarioAdmin(BaseModel):
     instituicoes: list[InstituicaoVinculadaResumo] = Field(
         default_factory=list,
         description="Instituições vinculadas (ConsultorInstituicao) — sempre vazio para Administrador.",
+    )
+    ultima_interacao_em: Optional[datetime] = Field(
+        None,
+        description=(
+            "Mais recente entre o último login e a última ação registrada "
+            "em log_atividade. Nulo se o usuário nunca fez login."
+        ),
     )
 
 

@@ -13,7 +13,14 @@ from app.auth.security import gerar_hash_senha, verificar_senha
 from app.blueprints import erro_json
 from app.extensions import db
 from app.models.anonimo import Dominio, Instituicao, Item, Questionario, RespostaBruta, ResultadoAgregado, Setor
-from app.models.auth import PAPEIS_VALIDOS, PAPEL_ADMINISTRADOR, ConsultorInstituicao, LogAtividade, Usuario
+from app.models.auth import (
+    PAPEIS_VALIDOS,
+    PAPEL_ADMINISTRADOR,
+    ConsultorInstituicao,
+    LogAtividade,
+    SessaoLogin,
+    Usuario,
+)
 from app.models.memoria import InstituicaoReferencia, RegistroMemoria
 from app.schemas.admin import (
     AtualizarConfiguracoesBody,
@@ -601,7 +608,9 @@ def excluir_questionario(path: QuestionarioIdPath):
         "Nunca inclui `senha_hash`. Inclui as instituições vinculadas a "
         "cada Consultor (resolvidas em duas consultas — banco `auth` para "
         "os vínculos, banco `anonimo` para os nomes — nunca um JOIN "
-        "direto entre bancos, ver docs/03)."
+        "direto entre bancos, ver docs/03). `ultima_interacao_em` é o mais "
+        "recente entre o último login (`sessao_login`) e a última ação "
+        "registrada em `log_atividade` — `null` se o usuário nunca fez login."
     ),
     responses={200: ListaUsuariosResponse, **respostas_erro(401, 403)},
 )
@@ -626,6 +635,28 @@ def listar_usuarios():
         .all()
     }
 
+    ultimo_login_por_usuario = dict(
+        db.session.query(SessaoLogin.usuario_id, func.max(SessaoLogin.criado_em))
+        .group_by(SessaoLogin.usuario_id)
+        .all()
+    )
+    ultima_acao_por_usuario = dict(
+        db.session.query(LogAtividade.usuario_id, func.max(LogAtividade.criado_em))
+        .group_by(LogAtividade.usuario_id)
+        .all()
+    )
+
+    def _ultima_interacao(usuario_id):
+        candidatos = [
+            data
+            for data in (
+                ultimo_login_por_usuario.get(usuario_id),
+                ultima_acao_por_usuario.get(usuario_id),
+            )
+            if data is not None
+        ]
+        return max(candidatos) if candidatos else None
+
     return [
         {
             "id": u.id,
@@ -637,6 +668,7 @@ def listar_usuarios():
                 {"id": instituicao_id, "nome": nomes_instituicao.get(instituicao_id, "?")}
                 for instituicao_id in instituicao_ids_por_usuario.get(u.id, [])
             ],
+            "ultima_interacao_em": _ultima_interacao(u.id),
         }
         for u in usuarios
     ]

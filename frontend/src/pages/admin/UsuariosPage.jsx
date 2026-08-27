@@ -160,7 +160,9 @@ export function UsuariosPage() {
         <ul>
           <li>
             A tabela lista todos os usuários cadastrados, com papel, as
-            instituições vinculadas a cada Consultor e o status (ativo/inativo).
+            instituições vinculadas a cada Consultor, o status (ativo/inativo)
+            e a última vez que a pessoa fez login ou realizou alguma ação no
+            sistema ("—" se nunca fez login).
           </li>
           <li>
             Use "Novo usuário" para cadastrar um Consultor ou Administrador —
@@ -222,6 +224,7 @@ export function UsuariosPage() {
                   <th scope="col">Papel</th>
                   <th scope="col">Instituições</th>
                   <th scope="col">Status</th>
+                  <th scope="col">Última atividade</th>
                   <th scope="col">Ações</th>
                 </tr>
               </thead>
@@ -257,6 +260,11 @@ export function UsuariosPage() {
                       >
                         {usuario.ativo ? "Ativo" : "Inativo"}
                       </span>
+                    </td>
+                    <td data-label="Última atividade">
+                      {usuario.ultima_interacao_em
+                        ? new Date(usuario.ultima_interacao_em).toLocaleString("pt-BR")
+                        : "—"}
                     </td>
                     <td data-label="Ações" className={`${tabela.acoes} ${styles.celulaAcoes}`}>
                       <BotaoIcone
